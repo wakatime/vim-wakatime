@@ -2,7 +2,7 @@
 " File:        wakatime.vim
 " Description: invisible time tracker using Wakati.Me
 " Maintainer:  Wakati.Me <support@wakatime.com>
-" Version: 0.0.1
+" Version: 0.1.2
 " ============================================================================
 
 " Init {{{
