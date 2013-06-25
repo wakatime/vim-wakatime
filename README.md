@@ -10,7 +10,7 @@ Get an api key by signing up at https://www.wakati.me
 
 Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
 
-Add `Bundle 'wakatime/vim-wakatime' to your `~/.vimrc`
+Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`
 
 Then run these shell commands:
 
