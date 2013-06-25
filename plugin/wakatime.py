@@ -47,7 +47,6 @@ def git_project(path):
 
 def find_git_config(path):
     path = os.path.realpath(path)
-    log.info(path)
     if os.path.isfile(path):
         path = os.path.split(path)[0]
     if os.path.isfile(os.path.join(path, '.git', 'config')):
