@@ -52,6 +52,9 @@ if !exists("g:wakatime_updatetime")
     let g:wakatime_updatetime = 15 " 15 minutes
 endif
 
+" We are not away until getting a CursorHold event
+let s:away_start = 0
+
 python << ENDPYTHON
 import vim
 import uuid
@@ -85,19 +88,35 @@ function! s:GetCurrentFile()
 endfunction
 
 function! s:api(type, task)
-    exec "silent !python " . s:plugin_directory . "/wakatime.py --key" g:wakatime_api_key "--instance" s:instance_id "--action" a:type "--task" a:task . " &"
+    exec "silent !python " . s:plugin_directory . "/wakatime.py --key" g:wakatime_api_key "--instance" s:instance_id "--action" a:type "--task" shellescape(a:task) . " &"
 endfunction
 
 function! s:api_with_time(type, task, time)
-    exec "silent !python " . s:plugin_directory . "/wakatime.py --key" g:wakatime_api_key "--instance" s:instance_id "--action" a:type "--task" a:task "--time" printf("%f", a:time) . " &"
+    exec "silent !python " . s:plugin_directory . "/wakatime.py --key" g:wakatime_api_key "--instance" s:instance_id "--action" a:type "--task" shellescape(a:task) "--time" printf("%f", a:time) . " &"
 endfunction
 
 function! s:getchar()
-  let c = getchar()
-  if c =~ '^\d\+$'
-    let c = nr2char(c)
-  endif
-  return c
+    let c = getchar()
+    if c =~ '^\d\+$'
+      let c = nr2char(c)
+    endif
+    return c
+endfunction
+
+function! s:isAway()
+    return s:away_start
+endfunction
+
+function! s:allServersAway()
+    if has('clientserver')
+        let servers = split(serverlist())
+        for server in servers
+            if !remote_expr(server,'s:isAway()')
+                return 0
+            endif
+        endfor
+    endif
+    return 1
 endfunction
 
 " }}}
@@ -107,27 +126,27 @@ endfunction
 
 function! s:bufenter()
     let task = s:GetCurrentFile()
-    call s:api("open_file", shellescape(task))
+    call s:api("open_file", task)
 endfunction
 
 function! s:bufleave()
     let task = s:GetCurrentFile()
-    call s:api("close_file", shellescape(task))
+    call s:api("close_file", task)
 endfunction
 
 function! s:vimenter()
     let task = s:GetCurrentFile()
-    call s:api("open_editor", shellescape(task))
+    call s:api("open_editor", task)
 endfunction
 
 function! s:vimleave()
     let task = s:GetCurrentFile()
-    call s:api("quit_editor", shellescape(task))
+    call s:api("quit_editor", task)
 endfunction
 
 function! s:bufwrite()
     let task = s:GetCurrentFile()
-    call s:api("write_file", shellescape(task))
+    call s:api("write_file", task)
 endfunction
 
 function! s:cursorhold()
@@ -138,6 +157,14 @@ endfunction
 
 function! s:cursormoved()
     autocmd! Wakatime CursorMoved,CursorMovedI *
+
+    " Don't do anything unless all other Vim instances are also away
+    if !s:allServersAway()
+        let s:away_start = 0
+        call s:api("ping", s:away_task)
+        return
+    endif
+
     python vim.command("let away_end=%f" % time.time())
     let away_unit = "minutes"
     let away_duration = (away_end - s:away_start) / 60
@@ -155,12 +182,12 @@ function! s:cursormoved()
     endif
     let answer = input(printf("You were away %.f %s. Add time to current file? (y/n)", away_duration, away_unit))
     if answer != "y"
-        call s:api_with_time("minimize_editor", shellescape(s:away_task), s:away_start)
-        call s:api_with_time("maximize_editor", shellescape(s:away_task), away_end)
-        let s:away_start = 0
+        call s:api_with_time("minimize_editor", s:away_task, s:away_start)
+        call s:api_with_time("maximize_editor", s:away_task, away_end)
     else
-        call s:api("ping", shellescape(s:away_task))
+        call s:api("ping", s:away_task)
     endif
+    let s:away_start = 0
     "redraw!
 endfunction
 
