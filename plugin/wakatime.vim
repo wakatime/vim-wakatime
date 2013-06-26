@@ -5,6 +5,7 @@
 " Version: 0.1.2
 " ============================================================================
 
+
 " Init {{{
 
 " Check Vim version
@@ -46,9 +47,9 @@ set cpo&vim
 
 let s:plugin_directory = expand("<sfile>:p:h")
 
-" Set a nice updatetime value, if updatetime is too short
-if &updatetime < 60 * 1000 * 2
-    let &updatetime = 60 * 1000 * 15 " 15 minutes
+" Set default updatetime
+if !exists("g:wakatime_updatetime")
+    let g:wakatime_updatetime = 15 " 15 minutes
 endif
 
 python << ENDPYTHON
@@ -62,6 +63,7 @@ ENDPYTHON
 
 " }}}
 
+
 " Function Definitions {{{
 
 function! s:initVariable(var, value)
@@ -70,6 +72,12 @@ function! s:initVariable(var, value)
         return 1
     endif
     return 0
+endfunction
+
+function! s:setUpdateTime()
+    if &updatetime < 60 * 1000 * 2
+        let &updatetime = g:wakatime_updatetime * 60 * 1000
+    endif
 endfunction
 
 function! s:GetCurrentFile()
@@ -93,6 +101,7 @@ function! s:getchar()
 endfunction
 
 " }}}
+
 
 " Event Handlers {{{
 
@@ -132,6 +141,10 @@ function! s:cursormoved()
     python vim.command("let away_end=%f" % time.time())
     let away_unit = "minutes"
     let away_duration = (away_end - s:away_start) / 60
+    if away_duration < 2
+        call s:setUpdateTime()
+        return
+    endif
     if away_duration > 59
         let away_duration = away_duration / 60
         let away_unit = "hours"
@@ -153,6 +166,10 @@ endfunction
 
 " }}}
 
+
+call s:setUpdateTime()
+
+
 " Autocommand Events {{{
 
 augroup Wakatime
@@ -166,6 +183,7 @@ augroup Wakatime
 augroup END
 
 " }}}
+
 
 " Restore cpoptions
 let &cpo = s:old_cpo
