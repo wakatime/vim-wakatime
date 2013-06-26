@@ -88,11 +88,15 @@ function! s:GetCurrentFile()
 endfunction
 
 function! s:api(type, task)
-    exec "silent !python " . s:plugin_directory . "/wakatime.py --key" g:wakatime_api_key "--instance" s:instance_id "--action" a:type "--task" shellescape(a:task) . " &"
+    if a:task != ''
+        exec "silent !python " . s:plugin_directory . "/wakatime.py --key" g:wakatime_api_key "--instance" s:instance_id "--action" a:type "--task" shellescape(a:task) . " &"
+    endif
 endfunction
 
 function! s:api_with_time(type, task, time)
-    exec "silent !python " . s:plugin_directory . "/wakatime.py --key" g:wakatime_api_key "--instance" s:instance_id "--action" a:type "--task" shellescape(a:task) "--time" printf("%f", a:time) . " &"
+    if a:task != ''
+        exec "silent !python " . s:plugin_directory . "/wakatime.py --key" g:wakatime_api_key "--instance" s:instance_id "--action" a:type "--task" shellescape(a:task) "--time" printf("%f", a:time) . " &"
+    endif
 endfunction
 
 function! s:getchar()
@@ -103,7 +107,7 @@ function! s:getchar()
     return c
 endfunction
 
-function! s:isAway()
+function! Wakatime_isAway()
     return s:away_start
 endfunction
 
@@ -111,8 +115,10 @@ function! s:allServersAway()
     if has('clientserver')
         let servers = split(serverlist())
         for server in servers
-            if !remote_expr(server,'s:isAway()')
-                return 0
+            if server != v:servername
+                if !remote_expr(server,'Wakatime_isAway()')
+                    return 0
+                endif
             endif
         endfor
     endif
