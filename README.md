@@ -6,13 +6,15 @@ Automatic time tracking.
 Installation
 ------------
 
-Get an api key by signing up at https://www.wakati.me
+1) Get an api key from:
 
-Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
+https://www.wakati.me
+
+2) Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
 
 Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`
 
-Then run these shell commands:
+3) Run these shell commands:
 
     sudo touch /var/log/wakatime.log && sudo chmod a+w !$
     echo "api_key=MY_API_KEY" > ~/.wakatime
