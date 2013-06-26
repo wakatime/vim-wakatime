@@ -16,7 +16,7 @@ Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`
 
 3) Run these shell commands:
 
-    sudo touch /var/log/wakatime.log && sudo chmod a+w !$
+    touch ~/wakatime.log; chmod u+w !$
     echo "api_key=MY_API_KEY" > ~/.wakatime
     vim +BundleInstall +qall
 
