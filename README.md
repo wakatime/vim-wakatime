@@ -25,9 +25,9 @@ Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`
 Screen Shots
 ------------
 
-(https://www.wakati.me/static/img/ScreenShots/Screenshot%20from%202013-06-26%2001:12:59.png)
+![Project Overview](https://www.wakati.me/static/img/ScreenShots/Screenshot%20from%202013-06-26%2001:12:59.png)
 
-(https://www.wakati.me/static/img/ScreenShots/Screenshot%20from%202013-06-26%2001:13:13.png)
+![Files in a Project](https://www.wakati.me/static/img/ScreenShots/Screenshot%20from%202013-06-26%2001:13:13.png)
 
-(https://www.wakati.me/static/img/ScreenShots/Screenshot%20from%202013-06-26%2001:13:53.png)
+![Changing Date Range](https://www.wakati.me/static/img/ScreenShots/Screenshot%20from%202013-06-26%2001:13:53.png)
 
