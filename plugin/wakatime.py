@@ -173,7 +173,7 @@ def main(argv):
     if args.verbose:
         level = log.DEBUG
     del args.verbose
-    log.basicConfig(filename='~/.wakatime.log', format='%(asctime)s vim-wakatime/'+version+' %(levelname)s %(message)s', datefmt='%Y-%m-%dT%H:%M:%SZ', level=level)
+    log.basicConfig(filename=os.path.expanduser('~/.wakatime.log'), format='%(asctime)s vim-wakatime/'+version+' %(levelname)s %(message)s', datefmt='%Y-%m-%dT%H:%M:%SZ', level=level)
     tags = tags_from_path(args.task)
     project = project_from_path(args.task)
     send_action(project=project, tags=tags, **vars(args))
