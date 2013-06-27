@@ -10,14 +10,17 @@ Installation
 
 https://wakati.me
 
-2) Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
+2) Run these shell commands:
 
-Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`
-
-3) Run these shell commands:
-
-    touch ~/.wakatime.log
     echo "api_key=MY_API_KEY" > ~/.wakatime
+    touch ~/.wakatime.log
+
+3) Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
+
+Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`.
+
+Then inside Vim, type `:BundleInstall` or run this shell command:
+
     vim +BundleInstall +qall
 
 4) Use Vim and your time will automatically be tracked for you.
