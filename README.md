@@ -10,10 +10,9 @@ Installation
 
 https://wakati.me
 
-2) Run these shell commands:
+2) Run this shell command replacing KEY with your api key:
 
-    echo "api_key=MY_API_KEY" > ~/.wakatime
-    touch ~/.wakatime.log
+    echo "api_key=KEY" > ~/.wakatime
 
 3) Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
 
