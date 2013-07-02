@@ -1,7 +1,7 @@
 vim-wakatime 0.1.2
 ===========
 
-Automatic time tracking.
+Automatic time tracking for Vim.
 
 Installation
 ------------
@@ -12,7 +12,7 @@ https://wakati.me
 
 2) Run this shell command replacing KEY with your api key:
 
-    echo "api_key=KEY" > ~/.wakatime
+    echo "api_key=KEY" >> ~/.wakatime
 
 3) Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
 

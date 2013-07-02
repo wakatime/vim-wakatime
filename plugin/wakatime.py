@@ -17,7 +17,7 @@ import logging as log
 
 
 # Config
-version = '0.1.2'
+version = '0.1.3'
 user_agent = 'vim-wakatime/%s (%s)' % (version, platform.platform())
 
 
@@ -118,14 +118,12 @@ def send_action(key, instance, action, task, timestamp, project, tags):
     url = 'https://www.wakati.me/api/v1/actions'
     data = {
         'type': action,
-        'task': task,
-        'time': time.time(),
+        'task': os.path.realpath(task),
+        'time': timestamp,
         'instance_id': instance,
         'project': project,
         'tags': tags,
     }
-    if timestamp:
-        data['time'] = timestamp
     request = urllib2.Request(url=url, data=json.dumps(data))
     request.add_header('User-Agent', user_agent)
     request.add_header('Content-Type', 'application/json')
@@ -173,10 +171,13 @@ def main(argv):
     if args.verbose:
         level = log.DEBUG
     del args.verbose
+    if not args.timestamp:
+        args.timestamp = time.time()
     log.basicConfig(filename=os.path.expanduser('~/.wakatime.log'), format='%(asctime)s vim-wakatime/'+version+' %(levelname)s %(message)s', datefmt='%Y-%m-%dT%H:%M:%SZ', level=level)
-    tags = tags_from_path(args.task)
-    project = project_from_path(args.task)
-    send_action(project=project, tags=tags, **vars(args))
+    if os.path.isfile(os.path.realpath(args.task)):
+        tags = tags_from_path(args.task)
+        project = project_from_path(args.task)
+        send_action(project=project, tags=tags, **vars(args))
     return 0
 
 
