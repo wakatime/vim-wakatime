@@ -55,6 +55,9 @@ endif
 " We are not away until getting a CursorHold event
 let s:away_start = 0
 
+" Create logfile if does not exist
+exec "silent !touch ~/.wakatime.log"
+
 python << ENDPYTHON
 import vim
 import uuid
@@ -82,6 +85,8 @@ function! s:setUpdateTime()
         let &updatetime = g:wakatime_updatetime * 60 * 1000
     endif
 endfunction
+
+call s:setUpdateTime()
 
 function! s:GetCurrentFile()
     return expand("%:p")
@@ -198,9 +203,6 @@ function! s:cursormoved()
 endfunction
 
 " }}}
-
-
-call s:setUpdateTime()
 
 
 " Autocommand Events {{{
