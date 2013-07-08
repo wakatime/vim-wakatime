@@ -69,9 +69,9 @@
                 let extras = extras . '--write'
             endif
             if a:endtime
-                let extras = extras . '--endtime ' . a:endtime
+                let extras = extras . '--endtime ' . printf('%f', a:endtime)
             endif
-            exec "silent !python" s:plugin_directory . "packages/wakatime/wakatime.py --file" shellescape(targetFile) "--time" a:time extras . " &"
+            exec "silent !python" s:plugin_directory . "packages/wakatime/wakatime.py --file" shellescape(targetFile) "--time" printf('%s', a:time) extras . " &"
             let time = a:time
             if a:endtime && time < a:endtime
                 let time = a:endtime
