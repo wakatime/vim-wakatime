@@ -2,7 +2,7 @@
 " File:        wakatime.vim
 " Description: Automatic time tracking for Vim.
 " Maintainer:  Wakati.Me <support@wakatime.com>
-" Version:     0.1.3
+" Version:     0.2.1
 " ============================================================================
 
 
@@ -20,21 +20,6 @@
         finish
     endif
 
-    " Check for required user-defined settings
-    if !exists("g:wakatime_api_key")
-        if filereadable(expand("$HOME/.wakatime"))
-            for s:line in readfile(expand("$HOME/.wakatime"))
-                let s:setting = split(s:line, "=")
-                if s:setting[0] == "api_key"
-                    let g:wakatime_api_key = s:setting[1]
-                endif
-            endfor
-        endif
-        if !exists("g:wakatime_api_key")
-            finish
-        endif
-    endif
-
     " Only load plugin once
     if exists("g:loaded_wakatime")
         finish
@@ -45,37 +30,23 @@
     let s:old_cpo = &cpo
     set cpo&vim
 
-    let s:plugin_directory = expand("<sfile>:p:h")
-
-    " Set default updatetime
-    if !exists("g:wakatime_updatetime")
-        let g:wakatime_updatetime = 15 " 15 minutes
+    " Set default away minutes
+    if !exists("g:wakatime_AwayMinutes")
+        let g:wakatime_AwayMinutes = 10
     endif
 
-    " We are not away until getting a CursorHold event
-    let s:away_start = 0
+    " Globals
+    let s:plugin_directory = expand("<sfile>:p:h") . '/'
+    let s:last_action = 0
 
-    " Create logfile if does not exist
-    exec "silent !touch ~/.wakatime.log"
-
+    " Import things python needs
     python import time
-    python import time
-    python import uuid
     python import vim
-    python instance_id = str(uuid.uuid4())
-    python vim.command('let s:instance_id = "%s"' % instance_id)
 
 " }}}
 
 
 " Function Definitions {{{
-
-    function! s:setUpdateTime()
-        if &updatetime < 60 * 1000 * 2
-            let &updatetime = g:wakatime_updatetime * 60 * 1000
-        endif
-    endfunction
-    call s:setUpdateTime()
 
     function! s:GetCurrentFile()
         return expand("%:p")
@@ -86,10 +57,41 @@
         return current_time
     endfunction
 
-    function! s:api(type, task, time)
-        if a:task != ''
-            exec "silent !python " . s:plugin_directory . "/wakatime.py --key" g:wakatime_api_key "--instance" s:instance_id "--action" a:type "--task" shellescape(a:task) "--time" a:time . " &"
+    function! s:api(targetFile, time, endtime, is_write, last)
+        let targetFile = a:targetFile
+        if targetFile == ''
+            let targetFile = a:last[1]
         endif
+        if targetFile != ''
+            let extras = ''
+            if a:is_write
+                let extras = extras . '--write'
+            endif
+            if a:endtime
+                let extras = extras . '--endtime ' . a:endtime
+            endif
+            exec "silent !python" s:plugin_directory . "packages/wakatime/wakatime.py --verbose --file" shellescape(targetFile) "--time" a:time extras . " &"
+            let time = a:time
+            if a:endtime && time < a:endtime
+                let time = a:endtime
+            endif
+            call s:SetLastAction(time, targetFile)
+        endif
+    endfunction
+    
+    function! s:GetLastAction()
+        if !filereadable(expand("$HOME/.wakatime.data"))
+            return [0, '']
+        endif
+        let last = readfile(expand("$HOME/.wakatime.data"), '', 2)
+        if len(last) != 2
+            return [0, '']
+        endif
+        return [str2float(last[0]), last[1]]
+    endfunction
+    
+    function! s:SetLastAction(time, targetFile)
+        call writefile([a:time, a:targetFile], expand("$HOME/.wakatime.data"))
     endfunction
 
     function! s:getchar()
@@ -99,23 +101,40 @@
         endif
         return c
     endfunction
-
-    function! Wakatime_isAway()
-        return s:away_start
-    endfunction
-
-    function! s:allServersAway()
-        if has('clientserver')
-            let servers = split(serverlist())
-            for server in servers
-                if server != v:servername
-                    if !remote_expr(server,'Wakatime_isAway()')
-                        return 0
-                    endif
-                endif
-            endfor
+    
+    function! s:enoughTimePassed(now, prev)
+        if a:now - a:prev >= 299
+            return 1
         endif
-        return 1
+        return 0
+    endfunction
+    
+    function! s:away(now, last)
+        if a:last[0] < 1
+            return 0
+        endif
+
+        let duration = a:now - a:last[0]
+        if duration > g:wakatime_AwayMinutes * 60
+            let units = 'seconds'
+            if duration > 59
+                let duration = round(duration / 60)
+                let units = 'minutes'
+            endif
+            if duration > 59
+                let duration = round(duration / 60)
+                let units = 'hours'
+            endif
+            if duration > 24
+                let duration = round(duration / 24)
+                let units = 'days'
+            endif
+            let answer = input(printf("You were away %.f %s. Add time to current file? (y/n)", duration, units))
+            if answer != "y"
+                return 1
+            endif
+            return 0
+        endif
     endfunction
 
 " }}}
@@ -123,66 +142,21 @@
 
 " Event Handlers {{{
 
-    function! s:bufenter()
-        call s:api("open_file", s:GetCurrentFile(), s:GetCurrentTime())
-    endfunction
-
-    function! s:bufleave()
-        call s:api("close_file", s:GetCurrentFile(), s:GetCurrentTime())
-    endfunction
-
-    function! s:vimenter()
-        call s:api("open_editor", s:GetCurrentFile(), s:GetCurrentTime())
-    endfunction
-
-    function! s:vimleave()
-        call s:api("quit_editor", s:GetCurrentFile(), s:GetCurrentTime())
-    endfunction
-
-    function! s:bufwrite()
-        call s:api("write_file", s:GetCurrentFile(), s:GetCurrentTime())
-    endfunction
-
-    function! s:cursorhold()
-        let s:away_task = s:GetCurrentFile()
-        python vim.command("let s:away_start=%f" % (time.time() - (float(vim.eval("&updatetime")) / 1000.0)))
-        autocmd Wakatime CursorMoved,CursorMovedI * call s:cursormoved()
-    endfunction
-
-    function! s:cursormoved()
-        autocmd! Wakatime CursorMoved,CursorMovedI *
-
-        " Don't do anything unless all other Vim instances are also away
-        if !s:allServersAway()
-            let s:away_start = 0
-            call s:api("ping", s:away_task, s:GetCurrentTime())
-            return
+    function! s:normalAction()
+        let targetFile = s:GetCurrentFile()
+        let now = s:GetCurrentTime()
+        let last = s:GetLastAction()
+        if s:enoughTimePassed(now, last[0]) || targetFile != last[1]
+            if s:away(now, last)
+                call s:api(targetFile, last[0], now, 0, last)
+            else
+                call s:api(targetFile, now, 0, 0, last)
+            endif
         endif
+    endfunction
 
-        python vim.command("let away_end=%f" % time.time())
-        let away_unit = "minutes"
-        let away_duration = (away_end - s:away_start) / 60
-        if away_duration < 2
-            call s:setUpdateTime()
-            return
-        endif
-        if away_duration > 59
-            let away_duration = away_duration / 60
-            let away_unit = "hours"
-        endif
-        if away_duration > 59
-            let away_duration = away_duration / 60
-            let away_unit = "days"
-        endif
-        let answer = input(printf("You were away %.f %s. Add time to current file? (y/n)", away_duration, away_unit))
-        if answer != "y"
-            call s:api("minimize_editor", s:away_task, printf("%f", s:away_start))
-            call s:api("maximize_editor", s:away_task, printf("%f", away_end))
-        else
-            call s:api("ping", s:away_task, s:GetCurrentTime())
-        endif
-        let s:away_start = 0
-        "redraw!
+    function! s:writeAction()
+        call s:api(s:GetCurrentFile(), s:GetCurrentTime(), 0, 1, s:GetLastAction())
     endfunction
 
 " }}}
@@ -192,12 +166,10 @@
 
     augroup Wakatime
         autocmd!
-        autocmd BufEnter * call s:bufenter()
-        autocmd BufLeave * call s:bufleave()
-        autocmd VimEnter * call s:vimenter()
-        autocmd VimLeave * call s:vimleave()
-        autocmd BufWritePost * call s:bufwrite()
-        autocmd CursorHold,CursorHoldI * call s:cursorhold()
+        autocmd BufEnter * call s:normalAction()
+        autocmd VimEnter * call s:normalAction()
+        autocmd BufWritePost * call s:writeAction()
+        autocmd CursorMoved,CursorMovedI * call s:normalAction()
     augroup END
 
 " }}}
