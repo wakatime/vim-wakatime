@@ -38,6 +38,7 @@
     " Globals
     let s:plugin_directory = expand("<sfile>:p:h") . '/'
     let s:last_action = 0
+    let s:fresh = 1
 
     " Import things python needs
     python import time
@@ -57,7 +58,7 @@
         return current_time
     endfunction
 
-    function! s:api(targetFile, time, endtime, is_write, last)
+    function! s:Api(targetFile, time, endtime, is_write, last)
         let targetFile = a:targetFile
         if targetFile == ''
             let targetFile = a:last[1]
@@ -91,10 +92,11 @@
     endfunction
     
     function! s:SetLastAction(time, targetFile)
+        let s:fresh = 0
         call writefile([a:time, a:targetFile], expand("$HOME/.wakatime.data"))
     endfunction
 
-    function! s:getchar()
+    function! s:GetChar()
         let c = getchar()
         if c =~ '^\d\+$'
           let c = nr2char(c)
@@ -102,15 +104,15 @@
         return c
     endfunction
     
-    function! s:enoughTimePassed(now, prev)
+    function! s:EnoughTimePassed(now, prev)
         if a:now - a:prev >= 299
             return 1
         endif
         return 0
     endfunction
     
-    function! s:away(now, last)
-        if a:last[0] < 1
+    function! s:Away(now, last)
+        if s:fresh || a:last[0] < 1
             return 0
         endif
 
@@ -146,17 +148,17 @@
         let targetFile = s:GetCurrentFile()
         let now = s:GetCurrentTime()
         let last = s:GetLastAction()
-        if s:enoughTimePassed(now, last[0]) || targetFile != last[1]
-            if s:away(now, last)
-                call s:api(targetFile, last[0], now, 0, last)
+        if s:EnoughTimePassed(now, last[0]) || targetFile != last[1]
+            if s:Away(now, last)
+                call s:Api(targetFile, last[0], now, 0, last)
             else
-                call s:api(targetFile, now, 0, 0, last)
+                call s:Api(targetFile, now, 0, 0, last)
             endif
         endif
     endfunction
 
     function! s:writeAction()
-        call s:api(s:GetCurrentFile(), s:GetCurrentTime(), 0, 1, s:GetLastAction())
+        call s:Api(s:GetCurrentFile(), s:GetCurrentTime(), 0, 1, s:GetLastAction())
     endfunction
 
 " }}}
