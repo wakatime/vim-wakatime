@@ -85,7 +85,7 @@ let s:VERSION = '0.2.1'
             if a:endtime > 1
                 let cmd = cmd + ['--endtime', printf('%f', a:endtime)]
             endif
-            let cmd = cmd + ['--verbose']
+            "let cmd = cmd + ['--verbose']
             exec 'silent !' . join(cmd, ' ') . ' &'
             let time = a:time
             if a:endtime > 1 && float2nr(round(time)) < float2nr(round(a:endtime))
