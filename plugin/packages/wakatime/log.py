@@ -27,15 +27,13 @@ class CustomEncoder(json.JSONEncoder):
 
 class JsonFormatter(logging.Formatter):
 
-    def __init__(self, timestamp, endtime, isWrite, targetFile, version,
-            plugin, datefmt=None):
+    def setup(self, timestamp, endtime, isWrite, targetFile, version, plugin):
         self.timestamp = timestamp
         self.endtime = endtime
         self.isWrite = isWrite
         self.targetFile = targetFile
         self.version = version
         self.plugin = plugin
-        super(JsonFormatter, self).__init__(datefmt=datefmt)
 
     def format(self, record):
         data = OrderedDict([
@@ -66,14 +64,14 @@ def setup_logging(args, version):
     if not logfile:
         logfile = '~/.wakatime.log'
     handler = logging.FileHandler(os.path.expanduser(logfile))
-    formatter = JsonFormatter(
+    formatter = JsonFormatter(datefmt='%Y-%m-%dT%H:%M:%SZ')
+    formatter.setup(
         timestamp=args.timestamp,
         endtime=args.endtime,
         isWrite=args.isWrite,
         targetFile=args.targetFile,
         version=version,
         plugin=args.plugin,
-        datefmt='%Y-%m-%dT%H:%M:%SZ',
     )
     handler.setFormatter(formatter)
     logger = logging.getLogger()
