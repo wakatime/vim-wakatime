@@ -2,8 +2,9 @@
 " File:        wakatime.vim
 " Description: Automatic time tracking for Vim.
 " Maintainer:  Wakati.Me <support@wakatime.com>
-" Version:     0.2.1
 " ============================================================================
+
+let s:VERSION = '0.2.1'
 
 
 " Init {{{
@@ -32,7 +33,7 @@
 
     " Set default away minutes
     if !exists("g:wakatime_AwayMinutes")
-        let g:wakatime_AwayMinutes = 10
+        let g:wakatime_AwayMinutes = 5
     endif
     
     " Set default action frequency in seconds
@@ -74,17 +75,20 @@
             let targetFile = a:last[1]
         endif
         if targetFile != ''
-            let extras = []
+            let cmd = ['python', s:plugin_directory . 'packages/wakatime/wakatime.py']
+            let cmd = cmd + ['--file', shellescape(targetFile)]
+            let cmd = cmd + ['--time', printf('%f', a:time)]
+            let cmd = cmd + ['--plugin', printf('vim-wakatime/%s', s:VERSION)]
             if a:is_write
-                let extras = extras + ['--write']
+                let cmd = cmd + ['--write']
             endif
-            if a:endtime
-                let extras = extras + ['--endtime', printf('%f', a:endtime)]
+            if a:endtime > 1
+                let cmd = cmd + ['--endtime', printf('%f', a:endtime)]
             endif
-            "let extras = extras + ['--verbose']
-            exec "silent !python" s:plugin_directory . "packages/wakatime/wakatime.py --file" shellescape(targetFile) "--time" printf('%f', a:time) join(extras, ' ') "&"
+            let cmd = cmd + ['--verbose']
+            exec 'silent !' . join(cmd, ' ') . ' &'
             let time = a:time
-            if a:endtime && time < a:endtime
+            if a:endtime > 1 && float2nr(round(time)) < float2nr(round(a:endtime))
                 let time = a:endtime
             endif
             call s:SetLastAction(time, targetFile)
@@ -93,11 +97,11 @@
     
     function! s:GetLastAction()
         if !filereadable(expand("$HOME/.wakatime.data"))
-            return [0, '']
+            return [0.0, '']
         endif
         let last = readfile(expand("$HOME/.wakatime.data"), '', 2)
         if len(last) != 2
-            return [0, '']
+            return [0.0, '']
         endif
         return [str2float(last[0]), last[1]]
     endfunction
@@ -164,13 +168,13 @@
             if s:Away(now, last)
                 call s:Api(targetFile, last[0], now, 0, last)
             else
-                call s:Api(targetFile, now, 0, 0, last)
+                call s:Api(targetFile, now, 0.0, 0, last)
             endif
         endif
     endfunction
 
     function! s:writeAction()
-        call s:Api(s:GetCurrentFile(), s:GetCurrentTime(), 0, 1, s:GetLastAction())
+        call s:Api(s:GetCurrentFile(), s:GetCurrentTime(), 0.0, 1, s:GetLastAction())
     endfunction
 
 " }}}
