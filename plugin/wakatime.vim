@@ -34,6 +34,16 @@
     if !exists("g:wakatime_AwayMinutes")
         let g:wakatime_AwayMinutes = 10
     endif
+    
+    " Set default action frequency in seconds
+    if !exists("g:wakatime_ActionFrequency")
+        let g:wakatime_ActionFrequency = 299
+    endif
+
+    " To be backwards compatible, rename config file
+    if filereadable(expand("$HOME/.wakatime"))
+        exec "silent !mv" expand("$HOME/.wakatime") expand("$HOME/.wakatime.conf")
+    endif
 
     " Globals
     let s:plugin_directory = expand("<sfile>:p:h") . '/'
@@ -54,7 +64,7 @@
     endfunction
 
     function! s:GetCurrentTime()
-        python vim.command('let current_time="%f"' % time.time())
+        python vim.command('let current_time=%f' % time.time())
         return current_time
     endfunction
 
@@ -64,14 +74,15 @@
             let targetFile = a:last[1]
         endif
         if targetFile != ''
-            let extras = ''
+            let extras = []
             if a:is_write
-                let extras = extras . '--write'
+                let extras = extras + ['--write']
             endif
             if a:endtime
-                let extras = extras . '--endtime ' . printf('%f', a:endtime)
+                let extras = extras + ['--endtime', printf('%f', a:endtime)]
             endif
-            exec "silent !python" s:plugin_directory . "packages/wakatime/wakatime.py --file" shellescape(targetFile) "--time" printf('%s', a:time) extras . " &"
+            "let extras = extras + ['--verbose']
+            exec "silent !python" s:plugin_directory . "packages/wakatime/wakatime.py --file" shellescape(targetFile) "--time" printf('%f', a:time) join(extras, ' ') "&"
             let time = a:time
             if a:endtime && time < a:endtime
                 let time = a:endtime
@@ -93,7 +104,7 @@
     
     function! s:SetLastAction(time, targetFile)
         let s:fresh = 0
-        call writefile([a:time, a:targetFile], expand("$HOME/.wakatime.data"))
+        call writefile([printf('%f', a:time), a:targetFile], expand("$HOME/.wakatime.data"))
     endfunction
 
     function! s:GetChar()
@@ -105,7 +116,7 @@
     endfunction
     
     function! s:EnoughTimePassed(now, prev)
-        if a:now - a:prev >= 299
+        if a:now - a:prev >= g:wakatime_ActionFrequency
             return 1
         endif
         return 0
@@ -148,6 +159,7 @@
         let targetFile = s:GetCurrentFile()
         let now = s:GetCurrentTime()
         let last = s:GetLastAction()
+        "echo printf('%f %f %s', now, last[0], last[1])
         if s:EnoughTimePassed(now, last[0]) || targetFile != last[1]
             if s:Away(now, last)
                 call s:Api(targetFile, last[0], now, 0, last)
