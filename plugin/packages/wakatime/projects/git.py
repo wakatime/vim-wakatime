@@ -58,8 +58,9 @@ class Git(BaseProject):
         stdout = None
         try:
             stdout, stderr = Popen([
-                'git', 'branch', '--no-color', '--list'
-            ], stdout=PIPE, cwd=self._project_base()).communicate()
+                    'git', 'branch', '--no-color', '--list'
+                ], stdout=PIPE, stderr=PIPE, cwd=self._project_base()
+            ).communicate()
         except OSError:
             pass
         if stdout:

@@ -37,7 +37,7 @@ class Subversion(BaseProject):
         try:
             stdout, stderr = Popen([
                 'svn', 'info', os.path.realpath(self.path)
-            ], stdout=PIPE).communicate()
+            ], stdout=PIPE, stderr=PIPE).communicate()
         except OSError:
             pass
         else:
