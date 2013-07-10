@@ -1,5 +1,5 @@
-vim-wakatime 0.2.1
-==================
+vim-wakatime
+============
 
 Automatic time tracking for Vim.
 

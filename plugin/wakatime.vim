@@ -139,8 +139,8 @@ let s:VERSION = '0.2.1'
         return 0
     endfunction
     
-    function! s:Away(now, prev)
-        let duration = a:now - a:prev
+    function! s:Away(now, last)
+        let duration = a:now - a:last[1]
         let units = 'seconds'
         if duration > 59
             let duration = round(duration / 60)
