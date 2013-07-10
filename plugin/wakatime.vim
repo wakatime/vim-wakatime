@@ -91,7 +91,7 @@ let s:VERSION = '0.2.1'
             if a:endtime > 1 && float2nr(round(time)) < float2nr(round(a:endtime))
                 let time = a:endtime
             endif
-            call s:SetLastAction(time, targetFile)
+            call s:SetLastAction(time, time, targetFile)
         endif
     endfunction
     
@@ -106,9 +106,9 @@ let s:VERSION = '0.2.1'
         return [str2float(last[0]), str2float(last[1]), last[2]]
     endfunction
     
-    function! s:SetLastAction(time, targetFile)
+    function! s:SetLastAction(time, last_update, targetFile)
         let s:fresh = 0
-        call writefile([printf('%f', a:time), printf('%f', s:GetCurrentTime()), a:targetFile], expand("$HOME/.wakatime.data"))
+        call writefile([printf('%f', a:time), printf('%f', a:last_update), a:targetFile], expand("$HOME/.wakatime.data"))
     endfunction
 
     function! s:GetChar()
@@ -181,8 +181,8 @@ let s:VERSION = '0.2.1'
                 call s:Api(targetFile, now, last[0], 0, last)
             endif
         else
-            if now - last[1] > 5:
-                call s:SetLastAction(last[0], targetFile)
+            if now - last[1] > 5
+                call s:SetLastAction(last[0], now, targetFile)
             endif
         endif
     endfunction
