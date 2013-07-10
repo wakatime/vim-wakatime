@@ -200,7 +200,7 @@ let s:VERSION = '0.2.1'
                 call s:Api(targetFile, now, last[0], 1, last)
             endif
         else
-            call s:SetLastAction(last[0], targetFile)
+            call s:Api(targetFile, now, 0.0, 1, last)
         endif
     endfunction
 
