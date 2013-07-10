@@ -129,7 +129,7 @@ let s:VERSION = '0.2.1'
     
     function! s:ShouldPromptUser(now, last)
         let prev = a:last[1]
-        if s:fresh || prev[0] < 1
+        if s:fresh || prev < 1
             return 0
         endif
         let duration = a:now - prev
