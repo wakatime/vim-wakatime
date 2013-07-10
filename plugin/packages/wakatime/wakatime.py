@@ -97,10 +97,6 @@ def parseArguments():
             args.key = default_key
         else:
             parser.error('Missing api key')
-    if args.endtime and args.endtime < args.timestamp:
-        tmp = args.timestamp
-        args.timestamp = args.endtime
-        args.endtime = tmp
     return args
 
 
