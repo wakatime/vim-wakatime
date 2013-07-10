@@ -99,8 +99,8 @@ let s:VERSION = '0.2.1'
         if !filereadable(expand("$HOME/.wakatime.data"))
             return [0.0, '', 0.0]
         endif
-        let last = readfile(expand("$HOME/.wakatime.data"), '', 2)
-        if len(last) < 3
+        let last = readfile(expand("$HOME/.wakatime.data"), '', 3)
+        if len(last) != 3
             return [0.0, '', 0.0]
         endif
         return [str2float(last[0]), str2float(last[1]), last[2]]
