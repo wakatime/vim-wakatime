@@ -20,9 +20,11 @@ log = logging.getLogger(__name__)
 
 class Mercurial(BaseProject):
 
-    def base(self):
-        return super(Mercurial, self).base()
+    def process(self):
+        return False
+
+    def name(self):
+        return None
 
     def tags(self):
-        tags = []
-        return tags
+        return []

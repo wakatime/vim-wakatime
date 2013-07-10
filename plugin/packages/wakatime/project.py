@@ -30,6 +30,6 @@ PLUGINS = [
 def find_project(path):
     for plugin in PLUGINS:
         project = plugin(path)
-        if project.config:
+        if project.process():
             return project
     return BaseProject(path)

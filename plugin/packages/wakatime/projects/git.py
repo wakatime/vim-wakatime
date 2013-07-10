@@ -11,13 +11,10 @@
 
 import logging
 import os
+from subprocess import Popen, PIPE
 
 from .base import BaseProject
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ..packages.ordereddict import OrderedDict
+from ..packages.ordereddict import OrderedDict
 
 
 log = logging.getLogger(__name__)
@@ -25,21 +22,54 @@ log = logging.getLogger(__name__)
 
 class Git(BaseProject):
 
-    def base(self):
+    def process(self):
+        self.config = self._find_config(self.path)
         if self.config:
-            return os.path.dirname(os.path.dirname(self.config))
+            return True
+        return False
+
+    def name(self):
+        base = self._project_base()
+        if base:
+            return os.path.basename(base)
         return None
 
     def tags(self):
         tags = []
         if self.config:
-            sections = self.parseConfig()
+            base = self._project_base()
+            if base:
+                tags.append(base)
+            sections = self._parse_config()
             for section in sections:
                 if section.split(' ', 1)[0] == 'remote' and 'url' in sections[section]:
                     tags.append(sections[section]['url'])
+            branch = self._current_branch()
+            if branch is not None:
+                tags.append(branch)
         return tags
 
-    def findConfig(self, path):
+    def _project_base(self):
+        if self.config:
+            return os.path.dirname(os.path.dirname(self.config))
+        return None
+
+    def _current_branch(self):
+        stdout = None
+        try:
+            stdout, stderr = Popen([
+                'git', 'branch', '--no-color', '--list'
+            ], stdout=PIPE, cwd=self._project_base()).communicate()
+        except OSError:
+            pass
+        if stdout:
+            for line in stdout.splitlines():
+                line = line.split(' ', 1)
+                if line[0] == '*':
+                    return line[1]
+        return None
+
+    def _find_config(self, path):
         path = os.path.realpath(path)
         if os.path.isfile(path):
             path = os.path.split(path)[0]
@@ -48,9 +78,9 @@ class Git(BaseProject):
         split_path = os.path.split(path)
         if split_path[1] == '':
             return None
-        return self.findConfig(split_path[0])
+        return self._find_config(split_path[0])
 
-    def parseConfig(self):
+    def _parse_config(self):
         sections = {}
         try:
             f = open(self.config, 'r')
