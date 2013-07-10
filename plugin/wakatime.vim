@@ -181,7 +181,9 @@ let s:VERSION = '0.2.1'
                 call s:Api(targetFile, now, last[0], 0, last)
             endif
         else
-            call s:SetLastAction(last[0], targetFile)
+            if now - last[1] > 5:
+                call s:SetLastAction(last[0], targetFile)
+            endif
         endif
     endfunction
 
