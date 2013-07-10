@@ -33,12 +33,12 @@ let s:VERSION = '0.2.1'
 
     " Set default away minutes
     if !exists("g:wakatime_AwayMinutes")
-        let g:wakatime_AwayMinutes = 5
+        let g:wakatime_AwayMinutes = 10
     endif
     
-    " Set default action frequency in seconds
+    " Set default action frequency in minutes
     if !exists("g:wakatime_ActionFrequency")
-        let g:wakatime_ActionFrequency = 299
+        let g:wakatime_ActionFrequency = 5
     endif
 
     " To be backwards compatible, rename config file
@@ -72,7 +72,7 @@ let s:VERSION = '0.2.1'
     function! s:Api(targetFile, time, endtime, is_write, last)
         let targetFile = a:targetFile
         if targetFile == ''
-            let targetFile = a:last[1]
+            let targetFile = a:last[2]
         endif
         if targetFile != ''
             let cmd = ['python', s:plugin_directory . 'packages/wakatime/wakatime.py']
@@ -97,18 +97,18 @@ let s:VERSION = '0.2.1'
     
     function! s:GetLastAction()
         if !filereadable(expand("$HOME/.wakatime.data"))
-            return [0.0, '']
+            return [0.0, '', 0.0]
         endif
         let last = readfile(expand("$HOME/.wakatime.data"), '', 2)
-        if len(last) != 2
-            return [0.0, '']
+        if len(last) < 3
+            return [0.0, '', 0.0]
         endif
-        return [str2float(last[0]), last[1]]
+        return [str2float(last[0]), str2float(last[1]), last[2]]
     endfunction
     
     function! s:SetLastAction(time, targetFile)
         let s:fresh = 0
-        call writefile([printf('%f', a:time), a:targetFile], expand("$HOME/.wakatime.data"))
+        call writefile([printf('%f', a:time), printf('%f', s:GetCurrentTime()), a:targetFile], expand("$HOME/.wakatime.data"))
     endfunction
 
     function! s:GetChar()
@@ -118,40 +118,47 @@ let s:VERSION = '0.2.1'
         endif
         return c
     endfunction
-    
-    function! s:EnoughTimePassed(now, prev)
-        if a:now - a:prev >= g:wakatime_ActionFrequency
+
+    function! s:EnoughTimePassed(now, last)
+        let prev = a:last[0]
+        if a:now - prev > g:wakatime_ActionFrequency * 60
             return 1
         endif
         return 0
     endfunction
     
-    function! s:Away(now, last)
-        if s:fresh || a:last[0] < 1
+    function! s:ShouldPromptUser(now, last)
+        let prev = a:last[1]
+        if s:fresh || prev[0] < 1
             return 0
         endif
-
-        let duration = a:now - a:last[0]
+        let duration = a:now - prev
         if duration > g:wakatime_AwayMinutes * 60
-            let units = 'seconds'
-            if duration > 59
-                let duration = round(duration / 60)
-                let units = 'minutes'
-            endif
-            if duration > 59
-                let duration = round(duration / 60)
-                let units = 'hours'
-            endif
-            if duration > 24
-                let duration = round(duration / 24)
-                let units = 'days'
-            endif
-            let answer = input(printf("You were away %.f %s. Add time to current file? (y/n)", duration, units))
-            if answer != "y"
-                return 1
-            endif
-            return 0
+            return 1
         endif
+        return 0
+    endfunction
+    
+    function! s:Away(now, prev)
+        let duration = a:now - a:prev
+        let units = 'seconds'
+        if duration > 59
+            let duration = round(duration / 60)
+            let units = 'minutes'
+        endif
+        if duration > 59
+            let duration = round(duration / 60)
+            let units = 'hours'
+        endif
+        if duration > 24
+            let duration = round(duration / 24)
+            let units = 'days'
+        endif
+        let answer = input(printf("You were away %.f %s. Add time to current file? (y/n)", duration, units))
+        if answer != "y"
+            return 1
+        endif
+        return 0
     endfunction
 
 " }}}
@@ -163,18 +170,38 @@ let s:VERSION = '0.2.1'
         let targetFile = s:GetCurrentFile()
         let now = s:GetCurrentTime()
         let last = s:GetLastAction()
-        "echo printf('%f %f %s', now, last[0], last[1])
-        if s:EnoughTimePassed(now, last[0]) || targetFile != last[1]
-            if s:Away(now, last)
-                call s:Api(targetFile, last[0], now, 0, last)
+        if s:EnoughTimePassed(now, last) || targetFile != last[2]
+            if s:ShouldPromptUser(now, last)
+                if s:Away(now, last)
+                    call s:Api(targetFile, now, last[0], 0, last)
+                else
+                    call s:Api(targetFile, now, 0.0, 0, last)
+                endif
             else
-                call s:Api(targetFile, now, 0.0, 0, last)
+                call s:Api(targetFile, now, last[0], 0, last)
             endif
+        else
+            call s:SetLastAction(last[0], targetFile)
         endif
     endfunction
 
     function! s:writeAction()
-        call s:Api(s:GetCurrentFile(), s:GetCurrentTime(), 0.0, 1, s:GetLastAction())
+        let targetFile = s:GetCurrentFile()
+        let now = s:GetCurrentTime()
+        let last = s:GetLastAction()
+        if s:EnoughTimePassed(now, last) || targetFile != last[2]
+            if s:ShouldPromptUser(now, last)
+                if s:Away(now, last)
+                    call s:Api(targetFile, now, last[0], 1, last)
+                else
+                    call s:Api(targetFile, now, 0.0, 1, last)
+                endif
+            else
+                call s:Api(targetFile, now, last[0], 1, last)
+            endif
+        else
+            call s:SetLastAction(last[0], targetFile)
+        endif
     endfunction
 
 " }}}
