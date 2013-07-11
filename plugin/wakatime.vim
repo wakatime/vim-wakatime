@@ -45,6 +45,15 @@ let s:VERSION = '0.2.1'
     if filereadable(expand("$HOME/.wakatime"))
         exec "silent !mv" expand("$HOME/.wakatime") expand("$HOME/.wakatime.conf")
     endif
+    
+    " Create config file if does not exist
+    if !filereadable(expand("$HOME/.wakatime.conf"))
+        let key = input("Enter your WakaTi.me api key: ")
+        if key != ''
+            call writefile([printf("api_key=%s", key)], expand("$HOME/.wakatime.conf"))
+            echo "WakaTi.me setup complete! Visit https://wakati.me to view your logged time."
+        endif
+    endif
 
     " Globals
     let s:plugin_directory = expand("<sfile>:p:h") . '/'
