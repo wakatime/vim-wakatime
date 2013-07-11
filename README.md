@@ -11,11 +11,7 @@ Installation
 
 https://wakati.me
 
-2) Run this shell command replacing KEY with your api key:
-
-    echo "api_key=KEY" >> ~/.wakatime.conf
-
-3) Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
+2) Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
 
 Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`.
 
@@ -23,9 +19,15 @@ Then inside Vim, type `:BundleInstall` or run this shell command:
 
     vim +BundleInstall +qall
 
+3) Re-open Vim.
+
+You will see a prompt at the bottom asking for your [WakaTi.me](https://www.wakati.me/#apikey) api key.
+
+Enter your api key, then press `enter`.
+
 4) Use Vim and your time will automatically be tracked for you.
 
-Visit https://wakati.me to view your time spent in each file.
+5) Visit https://wakati.me see your logged time.
 
 
 Screen Shots
