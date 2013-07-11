@@ -15,7 +15,7 @@ Installation
 
   b) Then inside Vim, type `:BundleInstall`.
 
-3. You will see a prompt at the bottom asking for your [WakaTi.me](https://www.wakati.me/#apikey) api key. Enter your api key, then press `enter`.
+3. You will see a prompt at the bottom asking for your [api key](https://www.wakati.me/#apikey). Enter your api key, then press `enter`.
 
 4. Use Vim and your time will automatically be tracked for you.
 
