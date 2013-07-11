@@ -7,27 +7,19 @@ Automatic time tracking for Vim.
 Installation
 ------------
 
-1) Get an api key from:
+1. Get an api key from: https://wakati.me
 
-https://wakati.me
+2. Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
 
-2) Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
+  a) Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`.
 
-Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`.
+  b) Then inside Vim, type `:BundleInstall`.
 
-Then inside Vim, type `:BundleInstall` or run this shell command:
+3. You will see a prompt at the bottom asking for your [WakaTi.me](https://www.wakati.me/#apikey) api key. Enter your api key, then press `enter`.
 
-    vim +BundleInstall +qall
+4. Use Vim and your time will automatically be tracked for you.
 
-3) Re-open Vim.
-
-You will see a prompt at the bottom asking for your [WakaTi.me](https://www.wakati.me/#apikey) api key.
-
-Enter your api key, then press `enter`.
-
-4) Use Vim and your time will automatically be tracked for you.
-
-5) Visit https://wakati.me see your logged time.
+5. Visit https://wakati.me see your logged time.
 
 
 Screen Shots
