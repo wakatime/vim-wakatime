@@ -21,6 +21,8 @@ Installation
 
 5. Visit https://wakati.me to see your logged time.
 
+6. Consider installing [BIND9](https://help.ubuntu.com/community/BIND9ServerHowto#Caching_Server_configuration) to cache your repeated DNS requests: `sudo apt-get install bind9`
+
 
 Screen Shots
 ------------
