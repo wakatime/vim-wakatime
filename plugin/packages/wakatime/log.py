@@ -64,7 +64,7 @@ def setup_logging(args, version):
     if not logfile:
         logfile = '~/.wakatime.log'
     handler = logging.FileHandler(os.path.expanduser(logfile))
-    formatter = JsonFormatter(datefmt='%Y-%m-%dT%H:%M:%SZ')
+    formatter = JsonFormatter(datefmt='%a %b %d %H:%M:%S %Z %Y')
     formatter.setup(
         timestamp=args.timestamp,
         endtime=args.endtime,
