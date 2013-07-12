@@ -149,21 +149,28 @@ let s:VERSION = '0.2.2'
     endfunction
     
     function! s:Away(now, last)
+        let minutes = ''
         let duration = a:now - a:last[1]
-        let units = 'seconds'
-        if duration > 59
+        let units = 'second'
+        if duration >= 60
             let duration = round(duration / 60)
-            let units = 'minutes'
+            let units = 'minute'
+            if duration >= 60
+                let remainder = duration % 60
+                if remainder > 0
+                    let minutes = printf(" and %f minute", remainder)
+                    if remainder > 1
+                        let minutes = minutes . 's'
+                    endif
+                endif
+                let duration = round(duration / 60)
+                let units = 'hour'
+            endif
         endif
-        if duration > 59
-            let duration = round(duration / 60)
-            let units = 'hours'
+        if duration > 1
+            let units = units . 's'
         endif
-        if duration > 24
-            let duration = round(duration / 24)
-            let units = 'days'
-        endif
-        let answer = input(printf("You were away %.f %s. Add time to current file? (y/n)", duration, units))
+        let answer = input(printf("You were away %.f %s%s. Add time to current file? (y/n)", duration, units, minutes))
         if answer != "y"
             return 1
         endif
