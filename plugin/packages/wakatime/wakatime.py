@@ -134,7 +134,7 @@ def send_action(project=None, tags=None, key=None, targetFile=None,
     if endtime:
         data['endtime'] = endtime
     if isWrite:
-        data['isWrite'] = isWrite
+        data['is_write'] = isWrite
     if project:
         data['project'] = project
     if tags:
