@@ -158,7 +158,7 @@ let s:VERSION = '0.2.2'
             if duration >= 60
                 let remainder = float2nr(round(duration)) % 60
                 if remainder > 0
-                    let minutes = printf(" and %f minute", remainder)
+                    let minutes = printf(" and %.f minute", remainder)
                     if remainder > 1
                         let minutes = minutes . 's'
                     endif
