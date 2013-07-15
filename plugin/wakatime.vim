@@ -171,7 +171,7 @@ let s:VERSION = '0.2.2'
             let units = units . 's'
         endif
         let answer = input(printf("You were away %.f %s%s. Add time to current file? (y/n)", duration, units, minutes))
-        if answer != "y"
+        if answer == "y"
             return 1
         endif
         return 0
