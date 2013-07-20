@@ -194,7 +194,11 @@ let s:VERSION = '0.2.4'
                     call s:Api(targetFile, now, 0.0, 0, last)
                 endif
             else
-                call s:Api(targetFile, now, last[0], 0, last)
+                if !s:fresh
+                    call s:Api(targetFile, now, last[0], 0, last)
+                else
+                    call s:Api(targetFile, now, 0, 0, last)
+                endif
             endif
         else
             if now - last[1] > 5
@@ -215,7 +219,11 @@ let s:VERSION = '0.2.4'
                     call s:Api(targetFile, now, 0.0, 1, last)
                 endif
             else
-                call s:Api(targetFile, now, last[0], 1, last)
+                if !s:fresh
+                    call s:Api(targetFile, now, last[0], 1, last)
+                else
+                    call s:Api(targetFile, now, 0, 1, last)
+                endif
             endif
         else
             call s:Api(targetFile, now, 0.0, 1, last)
