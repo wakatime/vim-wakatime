@@ -37,13 +37,14 @@ class Git(BaseProject):
     def tags(self):
         tags = []
         if self.config:
-            base = self._project_base()
-            if base:
-                tags.append(base)
+            proj_name = self.name()
+            if proj_name:
+                tags.append(proj_name)
             sections = self._parse_config()
             for section in sections:
                 if section.split(' ', 1)[0] == 'remote' and 'url' in sections[section]:
-                    tags.append(sections[section]['url'])
+                    remote = sections[section]['url'].rsplit(':', 1)[1].rsplit('/', 1)[1].split('.git', 1)[0]
+                    tags.append(remote)
             branch = self._current_branch()
             if branch is not None:
                 tags.append(branch)

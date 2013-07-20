@@ -4,7 +4,7 @@
 " Maintainer:  Wakati.Me <support@wakatime.com>
 " ============================================================================
 
-let s:VERSION = '0.2.3'
+let s:VERSION = '0.2.4'
 
 
 " Init {{{
@@ -84,7 +84,7 @@ let s:VERSION = '0.2.3'
             let targetFile = a:last[2]
         endif
         if targetFile != ''
-            let cmd = ['python2', s:plugin_directory . 'packages/wakatime/wakatime.py']
+            let cmd = ['python2', s:plugin_directory . 'packages/wakatime/wakatime-cli.py']
             let cmd = cmd + ['--file', shellescape(targetFile)]
             let cmd = cmd + ['--time', printf('%f', a:time)]
             let cmd = cmd + ['--plugin', printf('vim-wakatime/%s', s:VERSION)]
