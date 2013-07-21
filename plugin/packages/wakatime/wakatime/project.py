@@ -12,7 +12,6 @@
 import logging
 import os
 
-from .projects.base import BaseProject
 from .projects.git import Git
 from .projects.mercurial import Mercurial
 from .projects.subversion import Subversion
@@ -32,4 +31,4 @@ def find_project(path):
         project = plugin(path)
         if project.process():
             return project
-    return BaseProject(path)
+    return None

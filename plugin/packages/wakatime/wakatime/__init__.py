@@ -12,7 +12,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2013 Alan Hamlett'
@@ -88,10 +88,10 @@ def parseArguments(argv):
 
 def get_api_key(configFile):
     if not configFile:
-        configFile = '~/.wakatime.conf'
+        configFile = os.path.join(os.path.expanduser('~'), '.wakatime.conf')
     api_key = None
     try:
-        cf = open(os.path.expanduser(configFile))
+        cf = open(configFile)
         for line in cf:
             line = line.split('=', 1)
             if line[0] == 'api_key':
@@ -170,9 +170,13 @@ def main(argv=None):
     args = parseArguments(argv)
     setup_logging(args, __version__)
     if os.path.isfile(args.targetFile):
+        tags = []
+        name = None
         project = find_project(args.targetFile)
-        tags = project.tags()
-        if send_action(project=project.name(), tags=tags, **vars(args)):
+        if project:
+            tags = project.tags()
+            name = project.name()
+        if send_action(project=name, tags=tags, **vars(args)):
             return 0
         return 102
     else:
