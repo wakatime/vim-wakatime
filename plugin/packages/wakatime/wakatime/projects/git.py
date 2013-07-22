@@ -43,7 +43,11 @@ class Git(BaseProject):
             sections = self._parse_config()
             for section in sections:
                 if section.split(' ', 1)[0] == 'remote' and 'url' in sections[section]:
-                    remote = sections[section]['url'].rsplit(':', 1)[1].rsplit('/', 1)[1].split('.git', 1)[0]
+                    remote = sections[section]['url'].rsplit(':', 1)[1]
+                    try:
+                        remote = remote.rsplit('/' , 1)[1].split('.git' , 1)[0]
+                    except:
+                        pass
                     tags.append(remote)
             branch = self._current_branch()
             if branch is not None:
