@@ -107,7 +107,7 @@ def get_user_agent(plugin):
     python_version = '%d.%d.%d.%s.%d' % (ver.major, ver.minor, ver.micro,
         ver.releaselevel, ver.serial)
     user_agent = 'wakatime/%s (%s) Python%s' % (__version__,
-        python_version, platform.platform())
+        platform.platform(), python_version)
     if plugin:
         user_agent = user_agent+' '+plugin
     return user_agent
