@@ -7,6 +7,8 @@ Automatic time tracking for Vim.
 Installation
 ------------
 
+Heads Up! WakaTime depends on [Python](http://www.python.org/getit/) being installed to work correctly.
+
 1. Get an api key from: https://wakati.me
 
 2. Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
