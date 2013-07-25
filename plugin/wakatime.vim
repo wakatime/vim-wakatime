@@ -84,7 +84,7 @@ let s:VERSION = '0.2.5'
             let targetFile = a:last[2]
         endif
         if targetFile != ''
-            let cmd = ['python2', s:plugin_directory . 'packages/wakatime/wakatime-cli.py']
+            let cmd = ['python', s:plugin_directory . 'packages/wakatime/wakatime-cli.py']
             let cmd = cmd + ['--file', shellescape(targetFile)]
             let cmd = cmd + ['--time', printf('%f', a:time)]
             let cmd = cmd + ['--plugin', printf('vim-wakatime/%s', s:VERSION)]
