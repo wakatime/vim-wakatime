@@ -14,7 +14,10 @@ import os
 from subprocess import Popen, PIPE
 
 from .base import BaseProject
-from ..packages.ordereddict import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ..packages.ordereddict import OrderedDict
 
 
 log = logging.getLogger(__name__)
@@ -51,6 +54,8 @@ class Subversion(BaseProject):
                     'URL',
                 ]
                 for line in stdout.splitlines():
+                    if isinstance(line, bytes):
+                        line = bytes.decode(line)
                     line = line.split(': ', 1)
                     if line[0] in interesting:
                         info[line[0]] = line[1]

@@ -22,6 +22,9 @@ except ImportError:
 class CustomEncoder(json.JSONEncoder):
 
     def default(self, obj):
+        if isinstance(obj, bytes):
+            obj = bytes.decode(obj)
+            return json.dumps(obj)
         return super(CustomEncoder, self).default(obj)
 
 

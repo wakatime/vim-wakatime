@@ -12,7 +12,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '0.1.5'
+__version__ = '0.2.0'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2013 Alan Hamlett'
@@ -27,11 +27,18 @@ import re
 import sys
 import time
 import traceback
-import urllib2
+try:
+    from urllib2 import HTTPError, Request, urlopen
+except ImportError:
+    from urllib.error import HTTPError
+    from urllib.request import Request, urlopen
 
 from .log import setup_logging
 from .project import find_project
-from .packages import argparse
+try:
+    import argparse
+except ImportError:
+    from .packages import argparse
 
 
 log = logging.getLogger(__name__)
@@ -130,15 +137,16 @@ def send_action(project=None, tags=None, key=None, targetFile=None,
     if tags:
         data['tags'] = list(set(tags))
     log.debug(data)
-    request = urllib2.Request(url=url, data=json.dumps(data))
+    request = Request(url=url, data=str.encode(json.dumps(data)))
     user_agent = get_user_agent(plugin)
     request.add_header('User-Agent', user_agent)
     request.add_header('Content-Type', 'application/json')
-    request.add_header('Authorization', 'Basic %s' % base64.b64encode(key))
+    auth = 'Basic %s' % bytes.decode(base64.b64encode(str.encode(key)))
+    request.add_header('Authorization', auth)
     response = None
     try:
-        response = urllib2.urlopen(request)
-    except urllib2.HTTPError as exc:
+        response = urlopen(request)
+    except HTTPError as exc:
         data = {
             'response_code': exc.getcode(),
             'response_content': exc.read(),
