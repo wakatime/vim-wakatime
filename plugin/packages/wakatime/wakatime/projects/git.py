@@ -63,7 +63,7 @@ class Git(BaseProject):
         stdout = None
         try:
             stdout, stderr = Popen([
-                    'git', 'branch', '--no-color', '--list'
+                    'git', 'branch', '--no-color'
                 ], stdout=PIPE, stderr=PIPE, cwd=self._project_base()
             ).communicate()
         except OSError:
