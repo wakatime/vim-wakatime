@@ -12,7 +12,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '0.2.0'
+__version__ = '0.3.1'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2013 Alan Hamlett'
@@ -27,14 +27,11 @@ import re
 import sys
 import time
 import traceback
-try:
-    from urllib2 import HTTPError, Request, urlopen
-except ImportError:
-    from urllib.error import HTTPError
-    from urllib.request import Request, urlopen
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from .log import setup_logging
 from .project import find_project
+from .packages import requests
 try:
     import argparse
 except ImportError:
@@ -52,6 +49,10 @@ class FileAction(argparse.Action):
 
 
 def parseArguments(argv):
+    try:
+        sys.argv
+    except AttributeError:
+        sys.argv = argv
     parser = argparse.ArgumentParser(
             description='Wakati.Me event api appender')
     parser.add_argument('--file', dest='targetFile', metavar='file',
@@ -136,41 +137,34 @@ def send_action(project=None, tags=None, key=None, targetFile=None,
     if tags:
         data['tags'] = list(set(tags))
     log.debug(data)
-    request = Request(url=url, data=str.encode(json.dumps(data)))
-    user_agent = get_user_agent(plugin)
-    request.add_header('User-Agent', user_agent)
-    request.add_header('Content-Type', 'application/json')
+
+    # setup api request headers
     auth = 'Basic %s' % bytes.decode(base64.b64encode(str.encode(key)))
-    request.add_header('Authorization', auth)
-    response = None
+    headers = {
+        'User-Agent': get_user_agent(plugin),
+        'Content-Type': 'application/json',
+        'Authorization': auth,
+    }
+
+    # send action to api
     try:
-        response = urlopen(request)
-    except HTTPError as exc:
-        data = {
-            'response_code': exc.getcode(),
-            'response_content': exc.read(),
+        response = requests.post(url, data=str.encode(json.dumps(data)), headers=headers)
+    except requests.exceptions.RequestException as exc:
+        exception_data = {
             sys.exc_info()[0].__name__: str(sys.exc_info()[1]),
         }
         if log.isEnabledFor(logging.DEBUG):
-            data['traceback'] = traceback.format_exc()
-        log.error(data)
-    except:
-        data = {
-            sys.exc_info()[0].__name__: str(sys.exc_info()[1]),
-        }
-        if log.isEnabledFor(logging.DEBUG):
-            data['traceback'] = traceback.format_exc()
-        log.error(data)
+            exception_data['traceback'] = traceback.format_exc()
+        log.error(exception_data)
     else:
-        if response.getcode() >= 200 and response.getcode() < 300:
+        if response.status_code == requests.codes.created:
             log.debug({
-                'response_code': response.getcode(),
-                'response_content': response.read(),
+                'response_code': response.status_code,
             })
             return True
         log.error({
-            'response_code': response.getcode(),
-            'response_content': response.read(),
+            'response_code': response.status_code,
+            'response_content': response.text,
         })
     return False
 
