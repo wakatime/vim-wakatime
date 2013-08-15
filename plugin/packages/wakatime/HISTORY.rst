@@ -2,6 +2,12 @@
 History
 -------
 
+0.4.0 (2013-08-15)
+++++++++++++++++++
+
+- Sending single branch instead of multiple tags
+
+
 0.3.1 (2013-08-08)
 ++++++++++++++++++
 

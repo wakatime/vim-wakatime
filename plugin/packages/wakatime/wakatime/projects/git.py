@@ -37,29 +37,7 @@ class Git(BaseProject):
             return os.path.basename(base)
         return None
 
-    def tags(self):
-        tags = []
-        if self.config:
-            proj_name = self.name()
-            if proj_name:
-                tags.append(proj_name)
-            sections = self._parse_config()
-            for section in sections:
-                if section.split(' ', 1)[0] == 'remote' and 'url' in sections[section]:
-                    remote = sections[section]['url'].rsplit(':', 1)[-1].rsplit('/', 1)[-1].split('.git', 1)[0]
-                    if remote:
-                        tags.append(remote)
-            branch = self._current_branch()
-            if branch is not None:
-                tags.append(branch)
-        return tags
-
-    def _project_base(self):
-        if self.config:
-            return os.path.dirname(os.path.dirname(self.config))
-        return None
-
-    def _current_branch(self):
+    def branch(self):
         stdout = None
         try:
             stdout, stderr = Popen([
@@ -75,6 +53,12 @@ class Git(BaseProject):
                 line = line.split(' ', 1)
                 if line[0] == '*':
                     return line[1]
+        return None
+
+
+    def _project_base(self):
+        if self.config:
+            return os.path.dirname(os.path.dirname(self.config))
         return None
 
     def _find_config(self, path):

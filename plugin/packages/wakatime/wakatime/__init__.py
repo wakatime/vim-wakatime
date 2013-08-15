@@ -12,7 +12,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '0.3.1'
+__version__ = '0.4.0'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2013 Alan Hamlett'
@@ -120,7 +120,7 @@ def get_user_agent(plugin):
     return user_agent
 
 
-def send_action(project=None, tags=None, key=None, targetFile=None,
+def send_action(project=None, branch=None, key=None, targetFile=None,
         timestamp=None, endtime=None, isWrite=None, plugin=None, **kwargs):
     url = 'https://www.wakati.me/api/v1/actions'
     log.debug('Sending action to api at %s' % url)
@@ -134,8 +134,8 @@ def send_action(project=None, tags=None, key=None, targetFile=None,
         data['is_write'] = isWrite
     if project:
         data['project'] = project
-    if tags:
-        data['tags'] = list(set(tags))
+    if branch:
+        data['branch'] = branch
     log.debug(data)
 
     # setup api request headers
@@ -175,13 +175,13 @@ def main(argv=None):
     args = parseArguments(argv)
     setup_logging(args, __version__)
     if os.path.isfile(args.targetFile):
-        tags = []
+        branch = None
         name = None
         project = find_project(args.targetFile)
         if project:
-            tags = project.tags()
+            branch = project.branch()
             name = project.name()
-        if send_action(project=name, tags=tags, **vars(args)):
+        if send_action(project=name, branch=branch, **vars(args)):
             return 0
         return 102
     else:
