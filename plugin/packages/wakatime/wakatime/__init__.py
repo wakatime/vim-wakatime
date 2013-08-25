@@ -12,7 +12,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2013 Alan Hamlett'
@@ -148,7 +148,7 @@ def send_action(project=None, branch=None, key=None, targetFile=None,
 
     # send action to api
     try:
-        response = requests.post(url, data=str.encode(json.dumps(data)), headers=headers)
+        response = requests.post(url, data=str(json.dumps(data)), headers=headers)
     except requests.exceptions.RequestException as exc:
         exception_data = {
             sys.exc_info()[0].__name__: str(sys.exc_info()[1]),

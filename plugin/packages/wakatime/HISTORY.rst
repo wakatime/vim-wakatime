@@ -2,6 +2,12 @@
 History
 -------
 
+0.4.1 (2013-08-25)
+++++++++++++++++++
+
+- Fix bug causing requests library to omit POST content
+
+
 0.4.0 (2013-08-15)
 ++++++++++++++++++
 
