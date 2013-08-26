@@ -4,7 +4,7 @@
 " Maintainer:  Wakati.Me <support@wakatime.com>
 " ============================================================================
 
-let s:VERSION = '1.1.0'
+let s:VERSION = '1.1.1'
 
 
 " Init {{{
