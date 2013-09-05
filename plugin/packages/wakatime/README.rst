@@ -1,8 +1,8 @@
-Wakati.Me
-=========
+WakaTime
+========
 
-Wakati.Me is a time tracking api for text editors. This is the command line
-action event appender for the Wakati.Me api. You shouldn't need to directly
+Automatic time tracking for your text editor. This is the command line
+event appender for the WakaTime api. You shouldn't need to directly
 use this outside of a text editor plugin.
 
 

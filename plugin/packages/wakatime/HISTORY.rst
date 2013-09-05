@@ -3,6 +3,12 @@ History
 -------
 
 
+0.4.3 (2013-09-04)
+++++++++++++++++++
+
+- Encoding json as utf-8 before making request
+
+
 0.4.2 (2013-09-04)
 ++++++++++++++++++
 
