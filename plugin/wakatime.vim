@@ -1,10 +1,10 @@
 " ============================================================================
 " File:        wakatime.vim
 " Description: Automatic time tracking for Vim.
-" Maintainer:  Wakati.Me <support@wakatime.com>
+" Maintainer:  WakaTime <support@wakatime.com>
 " ============================================================================
 
-let s:VERSION = '1.1.1'
+let s:VERSION = '1.1.2'
 
 
 " Init {{{
