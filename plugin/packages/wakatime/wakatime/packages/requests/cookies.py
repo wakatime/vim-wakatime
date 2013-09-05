@@ -6,7 +6,6 @@ Compatibility code to be able to use `cookielib.CookieJar` with requests.
 requests.utils imports from here, so be careful with imports.
 """
 
-import time
 import collections
 from .compat import cookielib, urlparse, Morsel
 
@@ -73,10 +72,6 @@ class MockRequest(object):
     @property
     def origin_req_host(self):
         return self.get_origin_req_host()
-
-    @property
-    def host(self):
-        return self.get_host()
 
 
 class MockResponse(object):
@@ -263,11 +258,6 @@ class RequestsCookieJar(cookielib.CookieJar, collections.MutableMapping):
         """Deletes a cookie given a name. Wraps cookielib.CookieJar's remove_cookie_by_name()."""
         remove_cookie_by_name(self, name)
 
-    def set_cookie(self, cookie, *args, **kwargs):
-        if cookie.value.startswith('"') and cookie.value.endswith('"'):
-            cookie.value = cookie.value.replace('\\"', '')
-        return super(RequestsCookieJar, self).set_cookie(cookie, *args, **kwargs)
-
     def update(self, other):
         """Updates this jar with cookies from another CookieJar or dict-like"""
         if isinstance(other, cookielib.CookieJar):
@@ -364,23 +354,19 @@ def create_cookie(name, value, **kwargs):
 
 def morsel_to_cookie(morsel):
     """Convert a Morsel object into a Cookie containing the one k/v pair."""
-    expires = None
-    if morsel["max-age"]:
-        expires = time.time() + morsel["max-age"]
-    elif morsel['expires']:
-        expires = morsel['expires']
-        if type(expires) == type(""):
-            time_template = "%a, %d-%b-%Y %H:%M:%S GMT"
-            expires = time.mktime(time.strptime(expires, time_template))
     c = create_cookie(
         name=morsel.key,
         value=morsel.value,
         version=morsel['version'] or 0,
         port=None,
+        port_specified=False,
         domain=morsel['domain'],
+        domain_specified=bool(morsel['domain']),
+        domain_initial_dot=morsel['domain'].startswith('.'),
         path=morsel['path'],
+        path_specified=bool(morsel['path']),
         secure=bool(morsel['secure']),
-        expires=expires,
+        expires=morsel['max-age'] or morsel['expires'],
         discard=False,
         comment=morsel['comment'],
         comment_url=bool(morsel['comment']),
