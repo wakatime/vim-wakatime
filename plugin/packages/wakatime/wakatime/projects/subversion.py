@@ -31,11 +31,11 @@ class Subversion(BaseProject):
     def name(self):
         return self.info['Repository Root'].split('/')[-1]
 
-    def tags(self):
-        tags = []
+    def branch(self):
+        branch = None
         if self.base:
-            tags.append(os.path.basename(self.base))
-        return tags
+            branch = os.path.basename(self.base)
+        return branch
 
     def _get_info(self, path):
         info = OrderedDict()

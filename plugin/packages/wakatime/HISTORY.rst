@@ -2,6 +2,43 @@
 History
 -------
 
+
+0.4.4 (2013-09-06)
+++++++++++++++++++
+
+- Using urllib2 again because of intermittent problems sending json with requests library
+
+
+0.4.3 (2013-09-04)
+++++++++++++++++++
+
+- Encoding json as utf-8 before making request
+
+
+0.4.2 (2013-09-04)
+++++++++++++++++++
+
+- Using requests package v1.2.3 from pypi
+
+
+0.4.1 (2013-08-25)
+++++++++++++++++++
+
+- Fix bug causing requests library to omit POST content
+
+
+0.4.0 (2013-08-15)
+++++++++++++++++++
+
+- Sending single branch instead of multiple tags
+
+
+0.3.1 (2013-08-08)
+++++++++++++++++++
+
+- Using requests module instead of urllib2 to verify SSL certs
+
+
 0.3.0 (2013-08-08)
 ++++++++++++++++++
 

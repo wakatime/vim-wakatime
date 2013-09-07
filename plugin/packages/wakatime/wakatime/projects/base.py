@@ -47,8 +47,7 @@ class BaseProject(object):
         """
         return None
 
-    def tags(self):
-        """ Returns an array of tag strings for the
-        path and/or project.
+    def branch(self):
+        """ Returns the current branch.
         """
-        return []
+        return None

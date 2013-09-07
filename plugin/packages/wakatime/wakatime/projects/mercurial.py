@@ -26,5 +26,5 @@ class Mercurial(BaseProject):
     def name(self):
         return None
 
-    def tags(self):
-        return []
+    def branch(self):
+        return None
