@@ -12,7 +12,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '0.4.3'
+__version__ = '0.3.0'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2013 Alan Hamlett'
@@ -27,11 +27,15 @@ import re
 import sys
 import time
 import traceback
+try:
+    from urllib2 import HTTPError, Request, urlopen
+except ImportError:
+    from urllib.error import HTTPError
+    from urllib.request import Request, urlopen
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from .log import setup_logging
 from .project import find_project
-from .packages import requests
 try:
     import argparse
 except ImportError:
@@ -120,7 +124,7 @@ def get_user_agent(plugin):
     return user_agent
 
 
-def send_action(project=None, branch=None, key=None, targetFile=None,
+def send_action(project=None, tags=None, key=None, targetFile=None,
         timestamp=None, endtime=None, isWrite=None, plugin=None, **kwargs):
     url = 'https://www.wakati.me/api/v1/actions'
     log.debug('Sending action to api at %s' % url)
@@ -134,40 +138,44 @@ def send_action(project=None, branch=None, key=None, targetFile=None,
         data['is_write'] = isWrite
     if project:
         data['project'] = project
-    if branch:
-        data['branch'] = branch
+    if tags:
+        data['tags'] = list(set(tags))
     log.debug(data)
-
-    # setup api request headers
+    request = Request(url=url, data=str.encode(json.dumps(data)))
+    user_agent = get_user_agent(plugin)
+    request.add_header('User-Agent', user_agent)
+    request.add_header('Content-Type', 'application/json')
     auth = 'Basic %s' % bytes.decode(base64.b64encode(str.encode(key)))
-    headers = {
-        'User-Agent': get_user_agent(plugin),
-        'Content-Type': 'application/json',
-        'Authorization': auth,
-    }
-
-    # json request content
-    content = json.dumps(data).encode('utf-8')
-
-    # send action to api
+    request.add_header('Authorization', auth)
+    response = None
     try:
-        response = requests.post(url, data=content, headers=headers)
-    except requests.exceptions.RequestException as exc:
-        exception_data = {
+        response = urlopen(request)
+    except HTTPError as exc:
+        data = {
+            'response_code': exc.getcode(),
+            'response_content': exc.read(),
             sys.exc_info()[0].__name__: str(sys.exc_info()[1]),
         }
         if log.isEnabledFor(logging.DEBUG):
-            exception_data['traceback'] = traceback.format_exc()
-        log.error(exception_data)
+            data['traceback'] = traceback.format_exc()
+        log.error(data)
+    except:
+        data = {
+            sys.exc_info()[0].__name__: str(sys.exc_info()[1]),
+        }
+        if log.isEnabledFor(logging.DEBUG):
+            data['traceback'] = traceback.format_exc()
+        log.error(data)
     else:
-        if response.status_code == requests.codes.created:
+        if response.getcode() >= 200 and response.getcode() < 300:
             log.debug({
-                'response_code': response.status_code,
+                'response_code': response.getcode(),
+                'response_content': response.read(),
             })
             return True
         log.error({
-            'response_code': response.status_code,
-            'response_content': response.text,
+            'response_code': response.getcode(),
+            'response_content': response.read(),
         })
     return False
 
@@ -178,13 +186,13 @@ def main(argv=None):
     args = parseArguments(argv)
     setup_logging(args, __version__)
     if os.path.isfile(args.targetFile):
-        branch = None
+        tags = []
         name = None
         project = find_project(args.targetFile)
         if project:
-            branch = project.branch()
+            tags = project.tags()
             name = project.name()
-        if send_action(project=name, branch=branch, **vars(args)):
+        if send_action(project=name, tags=tags, **vars(args)):
             return 0
         return 102
     else:
