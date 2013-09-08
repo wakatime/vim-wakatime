@@ -4,7 +4,7 @@
 " Maintainer:  WakaTime <support@wakatime.com>
 " ============================================================================
 
-let s:VERSION = '1.1.4'
+let s:VERSION = '1.1.5'
 
 
 " Init {{{
