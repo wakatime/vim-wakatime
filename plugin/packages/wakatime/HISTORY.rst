@@ -3,6 +3,12 @@ History
 -------
 
 
+0.4.5 (2013-09-07)
+++++++++++++++++++
+
+- Fixed relative import error by adding packages directory to sys path
+
+
 0.4.4 (2013-09-06)
 ++++++++++++++++++
 
