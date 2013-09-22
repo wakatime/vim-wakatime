@@ -17,7 +17,7 @@ if sys.version_info[0] == 2:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'pygments2'))
 else:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'pygments3'))
-from pygments.lexers import guess_lexer
+from pygments.lexers import guess_lexer_for_filename
 from pygments.util import ClassNotFound
 
 
@@ -28,7 +28,7 @@ def guess_language(file_name):
     lexer = None
     try:
         with open(file_name) as f:
-            lexer = guess_lexer(f.read(512000))
+            lexer = guess_lexer_for_filename(file_name, f.read(512000))
     except (ClassNotFound, IOError):
         pass
     if lexer:
