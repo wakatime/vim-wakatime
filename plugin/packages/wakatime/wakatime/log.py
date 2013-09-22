@@ -30,9 +30,8 @@ class CustomEncoder(json.JSONEncoder):
 
 class JsonFormatter(logging.Formatter):
 
-    def setup(self, timestamp, endtime, isWrite, targetFile, version, plugin):
+    def setup(self, timestamp, isWrite, targetFile, version, plugin):
         self.timestamp = timestamp
-        self.endtime = endtime
         self.isWrite = isWrite
         self.targetFile = targetFile
         self.version = version
@@ -44,14 +43,11 @@ class JsonFormatter(logging.Formatter):
             ('version', self.version),
             ('plugin', self.plugin),
             ('time', self.timestamp),
-            ('endtime', self.endtime),
             ('isWrite', self.isWrite),
             ('file', self.targetFile),
             ('level', record.levelname),
             ('message', record.msg),
         ])
-        if not self.endtime:
-            del data['endtime']
         if not self.plugin:
             del data['plugin']
         if not self.isWrite:
@@ -73,6 +69,15 @@ def setup_logging(args, version):
     logger = logging.getLogger()
     set_log_level(logger, args)
     if len(logger.handlers) > 0:
+        formatter = JsonFormatter(datefmt='%a %b %d %H:%M:%S %Z %Y')
+        formatter.setup(
+            timestamp=args.timestamp,
+            isWrite=args.isWrite,
+            targetFile=args.targetFile,
+            version=version,
+            plugin=args.plugin,
+        )
+        logger.handlers[0].setFormatter(formatter)
         return logger
     logfile = args.logfile
     if not logfile:
@@ -81,7 +86,6 @@ def setup_logging(args, version):
     formatter = JsonFormatter(datefmt='%a %b %d %H:%M:%S %Z %Y')
     formatter.setup(
         timestamp=args.timestamp,
-        endtime=args.endtime,
         isWrite=args.isWrite,
         targetFile=args.targetFile,
         version=version,

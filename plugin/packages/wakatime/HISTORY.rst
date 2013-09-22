@@ -3,6 +3,12 @@ History
 -------
 
 
+0.4.6 (2013-09-22)
+++++++++++++++++++
+
+- Sending total lines in file and language name to api
+
+
 0.4.5 (2013-09-07)
 ++++++++++++++++++
 
