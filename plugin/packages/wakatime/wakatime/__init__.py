@@ -12,7 +12,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '0.4.6'
+__version__ = '0.4.7'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2013 Alan Hamlett'
@@ -34,6 +34,7 @@ from .project import find_project
 from .stats import get_file_stats
 from .packages import argparse
 from .packages import simplejson as json
+from .packages import tzlocal
 try:
     from urllib2 import HTTPError, Request, urlopen
 except ImportError:
@@ -145,6 +146,12 @@ def send_action(project=None, branch=None, stats={}, key=None, targetFile=None,
     request.add_header('Content-Type', 'application/json')
     auth = 'Basic %s' % bytes.decode(base64.b64encode(str.encode(key)))
     request.add_header('Authorization', auth)
+
+    # add Olson timezone to request
+    tz = tzlocal.get_localzone()
+    if tz:
+        request.add_header('TimeZone', str(tz.zone))
+        print(tz.zone)
 
     # log time to api
     response = None
