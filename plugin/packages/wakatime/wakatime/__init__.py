@@ -151,7 +151,6 @@ def send_action(project=None, branch=None, stats={}, key=None, targetFile=None,
     tz = tzlocal.get_localzone()
     if tz:
         request.add_header('TimeZone', str(tz.zone))
-        print(tz.zone)
 
     # log time to api
     response = None
