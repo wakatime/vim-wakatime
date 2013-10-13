@@ -11,7 +11,6 @@
 
 import logging
 import os
-from subprocess import Popen, PIPE
 
 from .base import BaseProject
 try:
@@ -38,23 +37,16 @@ class Git(BaseProject):
         return None
 
     def branch(self):
-        stdout = None
-        try:
-            stdout, stderr = Popen([
-                    'git', 'branch', '--no-color'
-                ], stdout=PIPE, stderr=PIPE, cwd=self._project_base()
-            ).communicate()
-        except OSError:
-            pass
-        if stdout:
-            for line in stdout.splitlines():
-                if isinstance(line, bytes):
-                    line = bytes.decode(line)
-                line = line.split(' ', 1)
-                if line[0] == '*':
-                    return line[1]
-        return None
-
+        branch = None
+        base = self._project_base()
+        if base:
+            head = os.path.join(self._project_base(), '.git', 'HEAD')
+            try:
+                with open(head) as f:
+                    branch = f.readline().strip().rsplit('/', 1)[-1]
+            except IOError:
+                pass
+        return branch
 
     def _project_base(self):
         if self.config:

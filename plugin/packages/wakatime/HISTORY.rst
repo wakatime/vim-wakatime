@@ -3,6 +3,18 @@ History
 -------
 
 
+0.4.8 (2013-10-13)
+++++++++++++++++++
+
+- Read git HEAD file to find current branch instead of running git command line
+
+
+0.4.7 (2013-09-30)
+++++++++++++++++++
+
+- Sending local olson timezone string in api request
+
+
 0.4.6 (2013-09-22)
 ++++++++++++++++++
 
