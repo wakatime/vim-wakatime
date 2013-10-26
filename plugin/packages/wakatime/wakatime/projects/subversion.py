@@ -11,6 +11,7 @@
 
 import logging
 import os
+import platform
 from subprocess import Popen, PIPE
 
 from .base import BaseProject
@@ -62,6 +63,8 @@ class Subversion(BaseProject):
         return info
 
     def _find_project_base(self, path, found=False):
+        if platform.system() == 'Windows':
+            return False
         path = os.path.realpath(path)
         if os.path.isfile(path):
             path = os.path.split(path)[0]

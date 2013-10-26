@@ -23,7 +23,17 @@ from pygments.lexers import guess_lexer_for_filename
 log = logging.getLogger(__name__)
 
 
+# force file name extensions to be recognized as a certain language
+EXTENSIONS = {
+    'md': 'Markdown',
+}
+
+
 def guess_language(file_name):
+    if file_name:
+        language = guess_language_from_extension(file_name.rsplit('.', 1)[-1])
+        if language:
+            return language
     lexer = None
     try:
         with open(file_name) as f:
@@ -34,6 +44,15 @@ def guess_language(file_name):
         return str(lexer.name)
     else:
         return None
+
+
+def guess_language_from_extension(extension):
+    if extension:
+        if extension in EXTENSIONS:
+            return EXTENSIONS[extension]
+        if extension.lower() in EXTENSIONS:
+            return mapping[EXTENSIONS.lower()]
+    return None
 
 
 def number_lines_in_file(file_name):
