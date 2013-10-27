@@ -28,9 +28,12 @@ EXTENSIONS = {
     'md': 'Markdown',
 }
 TRANSLATIONS = {
-    'JavaScript+Lasso': 'JavaScript',
-    'CSS+Lasso': 'CSS',
     'CSS+Genshi Text': 'CSS',
+    'CSS+Lasso': 'CSS',
+    'HTML+Django/Jinja': 'HTML',
+    'HTML+Lasso': 'HTML',
+    'JavaScript+Genshi Text': 'JavaScript',
+    'JavaScript+Lasso': 'JavaScript',
     'Perl6': 'Perl',
 }
 
