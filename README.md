@@ -1,7 +1,7 @@
 vim-wakatime
 ============
 
-Automatic time tracking for Vim.
+Fully automatic time tracking for Vim.
 
 
 Installation
