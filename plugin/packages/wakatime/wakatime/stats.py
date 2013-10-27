@@ -27,6 +27,12 @@ log = logging.getLogger(__name__)
 EXTENSIONS = {
     'md': 'Markdown',
 }
+TRANSLATIONS = {
+    'JavaScript+Lasso': 'JavaScript',
+    'CSS+Lasso': 'CSS',
+    'CSS+Genshi Text': 'CSS',
+    'Perl6': 'Perl',
+}
 
 
 def guess_language(file_name):
@@ -41,7 +47,7 @@ def guess_language(file_name):
     except:
         pass
     if lexer:
-        return str(lexer.name)
+        return translate_language(str(lexer.name))
     else:
         return None
 
@@ -53,6 +59,12 @@ def guess_language_from_extension(extension):
         if extension.lower() in EXTENSIONS:
             return mapping[EXTENSIONS.lower()]
     return None
+
+
+def translate_language(language):
+    if language in TRANSLATIONS:
+        language = TRANSLATIONS[language]
+    return language
 
 
 def number_lines_in_file(file_name):
