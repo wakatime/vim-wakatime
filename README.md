@@ -29,4 +29,4 @@ Heads Up! WakaTime depends on [Python](http://www.python.org/getit/) being insta
 Screen Shots
 ------------
 
-![Project Overview](https://www.wakati.me/static/img/ScreenShots/Screenshot%20from%202013-08-12%2002:55:03%20\(1\).png)
+![Project Overview](https://www.wakati.me/static/img/ScreenShots/Screen Shot 2013-10-26 at 5.04.01 PM.png)
