@@ -3,6 +3,13 @@ History
 -------
 
 
+0.4.9 (2013-10-27)
+++++++++++++++++++
+
+- New config for ignoring files from regular expressions
+- Parse more options from config file (verbose, logfile, ignore)
+
+
 0.4.8 (2013-10-13)
 ++++++++++++++++++
 

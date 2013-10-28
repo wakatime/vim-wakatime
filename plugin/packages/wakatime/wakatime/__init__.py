@@ -12,7 +12,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '0.4.8'
+__version__ = '0.4.9'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2013 Alan Hamlett'
@@ -52,6 +52,38 @@ class FileAction(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
+def parseConfigFile(configFile):
+    if not configFile:
+        configFile = os.path.join(os.path.expanduser('~'), '.wakatime.conf')
+
+    # define default config values
+    configs = {
+        'api_key': None,
+        'ignore': [],
+        'verbose': False,
+    }
+
+    try:
+        with open(configFile) as fh:
+            for line in fh:
+                line = line.split('=', 1)
+                if len(line) == 2 and line[0].strip() and line[1].strip():
+                    line[0] = line[0].strip()
+                    line[1] = line[1].strip()
+                    if line[0] in configs:
+                        if isinstance(configs[line[0]], list):
+                            configs[line[0]].append(line[1])
+                        elif isinstance(configs[line[0]], bool):
+                            configs[line[0]] = True if line[1].lower() == 'true' else False
+                        else:
+                            configs[line[0]] = line[1]
+                    else:
+                        configs[line[0]] = line[1]
+    except IOError:
+        print('Error: Could not read from config file ~/.wakatime.conf')
+    return configs
+
+
 def parseArguments(argv):
     try:
         sys.argv
@@ -75,6 +107,8 @@ def parseArguments(argv):
     parser.add_argument('--key', dest='key',
             help='your wakati.me api key; uses api_key from '+
                 '~/.wakatime.conf by default')
+    parser.add_argument('--ignore', dest='ignore', action='append',
+            help='filename patterns to ignore; POSIX regex syntax; can be used more than once')
     parser.add_argument('--logfile', dest='logfile',
             help='defaults to ~/.wakatime.log')
     parser.add_argument('--config', dest='config',
@@ -85,29 +119,35 @@ def parseArguments(argv):
     args = parser.parse_args(args=argv[1:])
     if not args.timestamp:
         args.timestamp = time.time()
+
+    # set arguments from config file
+    configs = parseConfigFile(args.config)
     if not args.key:
-        default_key = get_api_key(args.config)
+        default_key = configs.get('api_key')
         if default_key:
             args.key = default_key
         else:
             parser.error('Missing api key')
+    for pattern in configs.get('ignore', []):
+        if not args.ignore:
+            args.ignore = []
+        args.ignore.append(pattern)
+    if not args.verbose and 'verbose' in configs:
+        args.verbose = configs['verbose']
+    if not args.logfile and 'logfile' in configs:
+        args.logfile = configs['logfile']
     return args
 
 
-def get_api_key(configFile):
-    if not configFile:
-        configFile = os.path.join(os.path.expanduser('~'), '.wakatime.conf')
-    api_key = None
-    try:
-        cf = open(configFile)
-        for line in cf:
-            line = line.split('=', 1)
-            if line[0] == 'api_key':
-                api_key = line[1].strip()
-        cf.close()
-    except IOError:
-        print('Error: Could not read from config file.')
-    return api_key
+def should_ignore(fileName, patterns):
+    for pattern in patterns:
+        try:
+            compiled = re.compile(pattern, re.IGNORECASE)
+            if compiled.search(fileName):
+                return pattern
+        except re.error as ex:
+            log.warning('Regex error (%s) for ignore pattern: %s' % (str(ex), pattern))
+    return False
 
 
 def get_user_agent(plugin):
@@ -189,6 +229,10 @@ def main(argv=None):
         argv = sys.argv
     args = parseArguments(argv)
     setup_logging(args, __version__)
+    ignore = should_ignore(args.targetFile, args.ignore)
+    if ignore is not False:
+        log.debug('File ignored because matches pattern: %s' % ignore)
+        return 0
     if os.path.isfile(args.targetFile):
         branch = None
         name = None
@@ -208,4 +252,3 @@ def main(argv=None):
     else:
         log.debug('File does not exist; ignoring this action.')
     return 101
-
