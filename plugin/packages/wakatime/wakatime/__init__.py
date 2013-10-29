@@ -140,6 +140,8 @@ def parseArguments(argv):
 
 
 def should_ignore(fileName, patterns):
+    if not patterns:
+        patterns = []
     for pattern in patterns:
         try:
             compiled = re.compile(pattern, re.IGNORECASE)
