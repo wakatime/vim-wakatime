@@ -140,15 +140,16 @@ def parseArguments(argv):
 
 
 def should_ignore(fileName, patterns):
-    if not patterns:
-        patterns = []
-    for pattern in patterns:
-        try:
-            compiled = re.compile(pattern, re.IGNORECASE)
-            if compiled.search(fileName):
-                return pattern
-        except re.error as ex:
-            log.warning('Regex error (%s) for ignore pattern: %s' % (str(ex), pattern))
+    try:
+        for pattern in patterns:
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE)
+                if compiled.search(fileName):
+                    return pattern
+            except re.error as ex:
+                log.warning('Regex error (%s) for ignore pattern: %s' % (str(ex), pattern))
+    except TypeError:
+        pass
     return False
 
 
