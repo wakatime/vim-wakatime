@@ -26,6 +26,7 @@ log = logging.getLogger(__name__)
 # force file name extensions to be recognized as a certain language
 EXTENSIONS = {
     'md': 'Markdown',
+    'j2': 'HTML',
 }
 TRANSLATIONS = {
     'CSS+Genshi Text': 'CSS',
@@ -35,6 +36,7 @@ TRANSLATIONS = {
     'JavaScript+Genshi Text': 'JavaScript',
     'JavaScript+Lasso': 'JavaScript',
     'Perl6': 'Perl',
+    'RHTML': 'HTML',
 }
 
 
