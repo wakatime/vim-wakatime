@@ -105,7 +105,7 @@ let s:VERSION = '1.2.3'
     
     function! s:SetLastAction(time, last_update, targetFile)
         let s:fresh = 0
-        call writefile([printf('%f', a:time), printf('%f', a:last_update), a:targetFile], expand("$HOME/.wakatime.data"))
+        call writefile([substitute(printf('%f', a:time), ',', '.', ''), substitute(printf('%f', a:last_update), ',', '.', ''), a:targetFile], expand("$HOME/.wakatime.data"))
     endfunction
 
     function! s:GetChar()
