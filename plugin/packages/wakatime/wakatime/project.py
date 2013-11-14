@@ -12,6 +12,7 @@
 import logging
 import os
 
+from .projects.wakatime import WakaTime
 from .projects.git import Git
 from .projects.mercurial import Mercurial
 from .projects.subversion import Subversion
@@ -20,6 +21,7 @@ from .projects.subversion import Subversion
 log = logging.getLogger(__name__)
 
 PLUGINS = [
+    WakaTime,
     Git,
     Mercurial,
     Subversion,

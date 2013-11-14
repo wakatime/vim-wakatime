@@ -3,6 +3,12 @@ History
 -------
 
 
+0.4.10 (2013-11-13)
++++++++++++++++++++
+
+- Placing .wakatime-project file in a folder will read the project's name from that file
+
+
 0.4.9 (2013-10-27)
 ++++++++++++++++++
 
