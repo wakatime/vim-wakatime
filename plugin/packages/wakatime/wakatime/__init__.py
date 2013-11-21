@@ -63,6 +63,9 @@ def parseConfigFile(configFile):
         'verbose': False,
     }
 
+    if not os.path.isfile(configFile):
+        return configs
+
     try:
         with open(configFile) as fh:
             for line in fh:

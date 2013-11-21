@@ -25,7 +25,12 @@ class CustomEncoder(json.JSONEncoder):
         if isinstance(obj, bytes):
             obj = bytes.decode(obj)
             return json.dumps(obj)
-        return super(CustomEncoder, self).default(obj)
+        try:
+            encoded = super(CustomEncoder, self).default(obj)
+        except UnicodeDecodeError:
+            obj = obj.decode('utf-8', 'ignore')
+            encoded = super(CustomEncoder, self).default(obj)
+        return encoded
 
 
 class JsonFormatter(logging.Formatter):
