@@ -47,7 +47,7 @@ let s:VERSION = '1.2.3'
 
     " Set default action frequency in minutes
     if !exists("g:wakatime_ActionFrequency")
-        let g:wakatime_ActionFrequency = 5
+        let g:wakatime_ActionFrequency = 2
     endif
 
     " Globals
