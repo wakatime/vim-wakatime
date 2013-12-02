@@ -11,6 +11,7 @@
 
 import logging
 import os
+import sys
 
 from .packages import simplejson as json
 try:
@@ -28,7 +29,8 @@ class CustomEncoder(json.JSONEncoder):
         try:
             encoded = super(CustomEncoder, self).default(obj)
         except UnicodeDecodeError:
-            obj = obj.decode('utf-8', 'ignore')
+            encoding = sys.getfilesystemencoding()
+            obj = obj.decode(encoding, 'ignore').encode('utf-8')
             encoded = super(CustomEncoder, self).default(obj)
         return encoded
 
