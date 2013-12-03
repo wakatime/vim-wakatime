@@ -76,7 +76,7 @@ def setup_logging(args, version):
     logger = logging.getLogger()
     set_log_level(logger, args)
     if len(logger.handlers) > 0:
-        formatter = JsonFormatter(datefmt='%a %b %d %H:%M:%S %Z %Y')
+        formatter = JsonFormatter(datefmt='%Y/%m/%d %H:%M:%S %z')
         formatter.setup(
             timestamp=args.timestamp,
             isWrite=args.isWrite,
@@ -90,7 +90,7 @@ def setup_logging(args, version):
     if not logfile:
         logfile = '~/.wakatime.log'
     handler = logging.FileHandler(os.path.expanduser(logfile))
-    formatter = JsonFormatter(datefmt='%a %b %d %H:%M:%S %Z %Y')
+    formatter = JsonFormatter(datefmt='%Y/%m/%d %H:%M:%S %z')
     formatter.setup(
         timestamp=args.timestamp,
         isWrite=args.isWrite,
