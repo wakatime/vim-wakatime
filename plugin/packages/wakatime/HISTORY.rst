@@ -3,6 +3,12 @@ History
 -------
 
 
+0.5.1 (2013-12-13)
+++++++++++++++++++
+
+- second line in .wakatime-project file now sets branch name
+
+
 0.5.0 (2013-12-13)
 ++++++++++++++++++
 
