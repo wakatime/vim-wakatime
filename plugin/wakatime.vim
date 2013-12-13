@@ -35,13 +35,20 @@ let s:VERSION = '1.3.1'
     if filereadable(expand("$HOME/.wakatime"))
         exec "silent !mv" expand("$HOME/.wakatime") expand("$HOME/.wakatime.conf")
     endif
+    if filereadable(expand("$HOME/.wakatime.conf"))
+        if !filereadable(expand("$HOME/.wakatime.cfg"))
+            let contents = ['[settings]'] + readfile(expand("$HOME/.wakatime.conf"), '')
+            call writefile(contents, expand("$HOME/.wakatime.cfg"))
+            call delete(expand("$HOME/.wakatime.conf"))
+        endif
+    endif
     
     " Create config file if does not exist
-    if !filereadable(expand("$HOME/.wakatime.conf"))
-        let key = input("Enter your WakaTi.me api key: ")
+    if !filereadable(expand("$HOME/.wakatime.cfg"))
+        let key = input("[WakaTime] Enter your wakatime.com api key: ")
         if key != ''
-            call writefile([printf("api_key=%s", key)], expand("$HOME/.wakatime.conf"))
-            echo "WakaTi.me setup complete! Visit https://wakati.me to view your logged time."
+            call writefile(['[settings]', printf("api_key=%s", key)], expand("$HOME/.wakatime.cfg"))
+            echo "[WakaTime] Setup complete! Visit http://wakatime.com to view your logged time."
         endif
     endif
 
