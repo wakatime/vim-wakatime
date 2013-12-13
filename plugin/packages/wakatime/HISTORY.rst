@@ -3,6 +3,13 @@ History
 -------
 
 
+0.5.0 (2013-12-13)
+++++++++++++++++++
+
+- Convert ~/.wakatime.conf to ~/.wakatime.cfg and use configparser format
+- new [projectmap] section in cfg file for naming projects based on folders
+
+
 0.4.10 (2013-11-13)
 +++++++++++++++++++
 

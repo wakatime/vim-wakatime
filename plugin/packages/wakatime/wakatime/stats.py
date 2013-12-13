@@ -28,6 +28,7 @@ EXTENSIONS = {
     'j2': 'HTML',
     'markdown': 'Markdown',
     'md': 'Markdown',
+    'twig': 'Twig',
 }
 TRANSLATIONS = {
     'CSS+Genshi Text': 'CSS',

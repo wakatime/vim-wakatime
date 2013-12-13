@@ -30,13 +30,12 @@ class Subversion(BaseProject):
         return self._find_project_base(self.path)
 
     def name(self):
-        return self.info['Repository Root'].split('/')[-1]
+        return unicode(self.info['Repository Root'].split('/')[-1])
 
     def branch(self):
-        branch = None
         if self.base:
-            branch = os.path.basename(self.base)
-        return branch
+            unicode(os.path.basename(self.base))
+        return None
 
     def _get_info(self, path):
         info = OrderedDict()

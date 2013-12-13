@@ -3,7 +3,7 @@
     wakatime-cli
     ~~~~~~~~~~~~
 
-    Action event appender for Wakati.Me, auto time tracking for text editors.
+    Command-line entry point.
 
     :copyright: (c) 2013 Alan Hamlett.
     :license: BSD, see LICENSE for more details.

@@ -28,13 +28,12 @@ class WakaTime(BaseProject):
         return False
 
     def name(self):
-        project_name = None
         try:
             with open(self.config) as fh:
-                project_name = fh.readline().strip()
+                return unicode(fh.readline().strip())
         except IOError as e:
             log.exception("Exception:")
-        return project_name
+        return None
 
     def branch(self):
         return None

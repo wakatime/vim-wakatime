@@ -22,18 +22,19 @@ class BaseProject(object):
     be found for the current path.
     """
 
-    def __init__(self, path):
+    def __init__(self, path, configs=None):
         self.path = path
+        self._configs = configs
 
-    def type(self):
+    def project_type(self):
         """ Returns None if this is the base class.
         Returns the type of project if this is a
         valid project.
         """
-        type = self.__class__.__name__.lower()
-        if type == 'baseproject':
-            type = None
-        return type
+        project_type = self.__class__.__name__.lower()
+        if project_type == 'baseproject':
+            project_type = None
+        return project_type
 
     def process(self):
         """ Processes self.path into a project and
