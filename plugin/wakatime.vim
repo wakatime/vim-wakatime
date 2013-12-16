@@ -15,12 +15,6 @@ let s:VERSION = '1.4.0'
         finish
     endif
 
-    " Check for Python support
-    if !has('python')
-        echoerr "This plugin requires Vim to be compiled with Python support."
-        finish
-    endif
-
     " Only load plugin once
     if exists("g:loaded_wakatime")
         finish
@@ -62,10 +56,6 @@ let s:VERSION = '1.4.0'
     let s:last_action = 0
     let s:fresh = 1
 
-    " Import things python needs
-    python import time
-    python import vim
-
 " }}}
 
 
@@ -73,11 +63,6 @@ let s:VERSION = '1.4.0'
 
     function! s:GetCurrentFile()
         return expand("%:p")
-    endfunction
-
-    function! s:GetCurrentTime()
-        python vim.command('let current_time=%f' % time.time())
-        return current_time
     endfunction
 
     function! s:Api(targetFile, time, is_write, last)
@@ -88,7 +73,6 @@ let s:VERSION = '1.4.0'
         if targetFile != ''
             let cmd = ['python', '-W', 'ignore', s:plugin_directory . 'packages/wakatime/wakatime-cli.py']
             let cmd = cmd + ['--file', shellescape(targetFile)]
-            let cmd = cmd + ['--time', substitute(printf('%f', a:time), ',', '.', '')]
             let cmd = cmd + ['--plugin', printf('vim-wakatime/%s', s:VERSION)]
             if a:is_write
                 let cmd = cmd + ['--write']
@@ -101,18 +85,18 @@ let s:VERSION = '1.4.0'
     
     function! s:GetLastAction()
         if !filereadable(expand("$HOME/.wakatime.data"))
-            return [0.0, '', 0.0]
+            return [0, 0, '']
         endif
         let last = readfile(expand("$HOME/.wakatime.data"), '', 3)
         if len(last) != 3
-            return [0.0, '', 0.0]
+            return [0, 0, '']
         endif
-        return [str2float(last[0]), str2float(last[1]), last[2]]
+        return last
     endfunction
     
     function! s:SetLastAction(time, last_update, targetFile)
         let s:fresh = 0
-        call writefile([substitute(printf('%f', a:time), ',', '.', ''), substitute(printf('%f', a:last_update), ',', '.', ''), a:targetFile], expand("$HOME/.wakatime.data"))
+        call writefile([substitute(printf('%d', a:time), ',', '.', ''), substitute(printf('%d', a:last_update), ',', '.', ''), a:targetFile], expand("$HOME/.wakatime.data"))
     endfunction
 
     function! s:GetChar()
@@ -138,7 +122,7 @@ let s:VERSION = '1.4.0'
 
     function! s:normalAction()
         let targetFile = s:GetCurrentFile()
-        let now = s:GetCurrentTime()
+        let now = localtime()
         let last = s:GetLastAction()
         if s:EnoughTimePassed(now, last) || targetFile != last[2]
             call s:Api(targetFile, now, 0, last)
@@ -151,7 +135,7 @@ let s:VERSION = '1.4.0'
 
     function! s:writeAction()
         let targetFile = s:GetCurrentFile()
-        let now = s:GetCurrentTime()
+        let now = localtime()
         let last = s:GetLastAction()
         call s:Api(targetFile, now, 1, last)
     endfunction
