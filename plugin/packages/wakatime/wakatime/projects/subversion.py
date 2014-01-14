@@ -41,6 +41,7 @@ class Subversion(BaseProject):
         info = OrderedDict()
         stdout = None
         try:
+            os.environ['LANG'] = 'en_US'
             stdout, stderr = Popen([
                 'svn', 'info', os.path.realpath(path)
             ], stdout=PIPE, stderr=PIPE).communicate()

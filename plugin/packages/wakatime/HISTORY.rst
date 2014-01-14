@@ -3,6 +3,12 @@ History
 -------
 
 
+0.5.2 (2014-01-14)
+++++++++++++++++++
+
+- minor bug fix for Subversion on non-English systems
+
+
 0.5.1 (2013-12-13)
 ++++++++++++++++++
 
