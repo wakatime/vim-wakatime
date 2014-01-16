@@ -29,6 +29,13 @@ from .base import BaseProject
 log = logging.getLogger(__name__)
 
 
+# str is unicode in Python3
+try:
+    unicode
+except NameError:
+    unicode = str
+
+
 class ProjectMap(BaseProject):
 
     def process(self):

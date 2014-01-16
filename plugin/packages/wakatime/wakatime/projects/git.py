@@ -22,6 +22,13 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
+# str is unicode in Python3
+try:
+    unicode
+except NameError:
+    unicode = str
+
+
 class Git(BaseProject):
 
     def process(self):
