@@ -3,6 +3,13 @@ History
 -------
 
 
+1.5.2 (2014-02-05)
+++++++++++++++++++
+
+- upgrade external wakatime package to v1.0.0
+- support for mercurial revision control
+
+
 1.5.1 (2014-01-15)
 ++++++++++++++++++
 
