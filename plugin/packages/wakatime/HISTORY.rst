@@ -3,6 +3,12 @@ History
 -------
 
 
+1.0.0 (2014-02-05)
+++++++++++++++++++
+
+- detect project name and branch name from mercurial revision control
+
+
 0.5.3 (2014-01-15)
 ++++++++++++++++++
 

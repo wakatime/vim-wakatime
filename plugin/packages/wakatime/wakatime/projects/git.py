@@ -13,10 +13,6 @@ import logging
 import os
 
 from .base import BaseProject
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ..packages.ordereddict import OrderedDict
 
 
 log = logging.getLogger(__name__)
