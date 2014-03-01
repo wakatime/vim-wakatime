@@ -3,6 +3,12 @@ History
 -------
 
 
+1.5.3 (2014-02-28)
+++++++++++++++++++
+
+- only save last action to ~/.wakatime.data when calling external wakatime-cli
+
+
 1.5.2 (2014-02-05)
 ++++++++++++++++++
 
