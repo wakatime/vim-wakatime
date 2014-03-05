@@ -11,4 +11,4 @@ Go to http://wakatime.com to install the plugin for your text editor.
 Installation
 ------------
 
-https://www.wakati.me/help/plugins/installing-plugins
+https://www.wakatime.com/help/plugins/installing-plugins
