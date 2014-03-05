@@ -3,6 +3,13 @@ History
 -------
 
 
+1.5.4 (2014-03-05)
+++++++++++++++++++
+
+- upgrade external wakatime package to v1.0.1
+- use new domain wakatime.com
+
+
 1.5.3 (2014-02-28)
 ++++++++++++++++++
 
