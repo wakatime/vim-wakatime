@@ -2,7 +2,7 @@
 " File:        wakatime.vim
 " Description: Automatic time tracking for Vim.
 " Maintainer:  WakaTime <support@wakatime.com>
-" License:     BSD, see LICENSE for more details.
+" License:     BSD, see LICENSE.txt for more details.
 " Website:     https://www.wakatime.com/
 " ============================================================================
 
