@@ -227,7 +227,7 @@ def get_user_agent(plugin):
 
 def send_action(project=None, branch=None, stats={}, key=None, targetFile=None,
         timestamp=None, isWrite=None, plugin=None, **kwargs):
-    url = 'https://www.wakatime.com/api/v1/actions'
+    url = 'https://wakatime.com/api/v1/actions'
     log.debug('Sending action to api at %s' % url)
     data = {
         'time': timestamp,

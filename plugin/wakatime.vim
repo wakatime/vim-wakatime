@@ -3,7 +3,7 @@
 " Description: Automatic time tracking for Vim.
 " Maintainer:  WakaTime <support@wakatime.com>
 " License:     BSD, see LICENSE.txt for more details.
-" Website:     https://www.wakatime.com/
+" Website:     https://wakatime.com/
 " ============================================================================
 
 let s:VERSION = '1.5.4'
