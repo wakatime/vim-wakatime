@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2013 Alan Hamlett'
@@ -148,6 +148,8 @@ def parseArguments(argv):
     parser.add_argument('--plugin', dest='plugin',
             help='optional text editor plugin name and version '+
                 'for User-Agent header')
+    parser.add_argument('--project', dest='project_name',
+            help='optional project name; will auto-discover by default')
     parser.add_argument('--key', dest='key',
             help='your wakatime api key; uses api_key from '+
                 '~/.wakatime.conf by default')
@@ -313,7 +315,7 @@ def main(argv=None):
         project_name = None
         if project:
             branch = project.branch()
-            project_name = project.name()
+            project_name = args.project_name or project.name()
 
         if send_action(
                 project=project_name,
