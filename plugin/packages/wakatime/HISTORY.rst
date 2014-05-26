@@ -3,6 +3,18 @@ History
 -------
 
 
+2.0.0 (2014-05-25)
+++++++++++++++++++
+
+- offline time logging using sqlite3 to queue editor events
+
+
+1.0.2 (2014-05-06)
+++++++++++++++++++
+
+- ability to set project from command line argument
+
+
 1.0.1 (2014-03-05)
 ++++++++++++++++++
 

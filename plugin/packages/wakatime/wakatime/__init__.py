@@ -13,10 +13,10 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '1.0.2'
+__version__ = '2.0.0'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
-__copyright__ = 'Copyright 2013 Alan Hamlett'
+__copyright__ = 'Copyright 2014 Alan Hamlett'
 
 
 import base64
@@ -39,6 +39,7 @@ except ImportError:
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages'))
+from .queue import Queue
 from .log import setup_logging
 from .project import find_project
 from .stats import get_file_stats
@@ -153,6 +154,9 @@ def parseArguments(argv):
     parser.add_argument('--key', dest='key',
             help='your wakatime api key; uses api_key from '+
                 '~/.wakatime.conf by default')
+    parser.add_argument('--disableoffline', dest='offline',
+            action='store_false',
+            help='disables offline time logging instead of queuing logged time')
     parser.add_argument('--ignore', dest='ignore', action='append',
             help='filename patterns to ignore; POSIX regex syntax; can be used more than once')
     parser.add_argument('--logfile', dest='logfile',
@@ -193,6 +197,8 @@ def parseArguments(argv):
                     args.ignore.append(pattern)
         except TypeError:
             pass
+    if args.offline and configs.has_option('settings', 'offline'):
+        args.offline = configs.getboolean('settings', 'offline')
     if not args.verbose and configs.has_option('settings', 'verbose'):
         args.verbose = configs.getboolean('settings', 'verbose')
     if not args.verbose and configs.has_option('settings', 'debug'):
@@ -227,8 +233,8 @@ def get_user_agent(plugin):
     return user_agent
 
 
-def send_action(project=None, branch=None, stats={}, key=None, targetFile=None,
-        timestamp=None, isWrite=None, plugin=None, **kwargs):
+def send_action(project=None, branch=None, stats=None, key=None, targetFile=None,
+        timestamp=None, isWrite=None, plugin=None, offline=None, **kwargs):
     url = 'https://wakatime.com/api/v1/actions'
     log.debug('Sending action to api at %s' % url)
     data = {
@@ -270,24 +276,45 @@ def send_action(project=None, branch=None, stats={}, key=None, targetFile=None,
         }
         if log.isEnabledFor(logging.DEBUG):
             exception_data['traceback'] = traceback.format_exc()
-        log.error(exception_data)
+        if offline:
+            queue = Queue()
+            queue.push(data, plugin)
+            if log.isEnabledFor(logging.DEBUG):
+                log.warn(exception_data)
+        else:
+            log.error(exception_data)
     except:
         exception_data = {
             sys.exc_info()[0].__name__: str(sys.exc_info()[1]),
         }
         if log.isEnabledFor(logging.DEBUG):
             exception_data['traceback'] = traceback.format_exc()
-        log.error(exception_data)
+        if offline:
+            queue = Queue()
+            queue.push(data, plugin)
+            if log.isEnabledFor(logging.DEBUG):
+                log.warn(exception_data)
+        else:
+            log.error(exception_data)
     else:
         if response.getcode() == 201:
             log.debug({
                 'response_code': response.getcode(),
             })
             return True
-        log.error({
-            'response_code': response.getcode(),
-            'response_content': response.read(),
-        })
+        if offline:
+            queue = Queue()
+            queue.push(data, plugin)
+            if log.isEnabledFor(logging.DEBUG):
+                log.warn({
+                    'response_code': response.getcode(),
+                    'response_content': response.read(),
+                })
+        else:
+            log.error({
+                'response_code': response.getcode(),
+                'response_content': response.read(),
+            })
     return False
 
 
@@ -323,6 +350,15 @@ def main(argv=None):
                 stats=stats,
                 **vars(args)
             ):
+            queue = Queue()
+            while True:
+                action = queue.pop()
+                if action is None:
+                    break
+                if not send_action(project=action['project'], targetFile=action['file'], timestamp=action['time'],
+                        branch=action['branch'], stats={'language': action['language'], 'lines': action['lines']},
+                        key=args.key, isWrite=action['is_write'], plugin=action['plugin'], offline=args.offline):
+                    break
             return 0 # success
 
         return 102 # api error
