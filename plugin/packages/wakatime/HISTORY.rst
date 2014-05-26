@@ -3,6 +3,12 @@ History
 -------
 
 
+2.0.1 (2014-05-26)
+++++++++++++++++++
+
+- fix bug in queue preventing actions with NULL values from being purged
+
+
 2.0.0 (2014-05-25)
 ++++++++++++++++++
 
