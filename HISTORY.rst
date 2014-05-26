@@ -3,6 +3,13 @@ History
 -------
 
 
+2.0.0 (2014-05-25)
+++++++++++++++++++
+
+- upgrade external wakatime package to v2.0.0
+- offline time logging using sqlite3 to queue editor events
+
+
 1.5.4 (2014-03-05)
 ++++++++++++++++++
 
