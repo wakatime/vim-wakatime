@@ -73,14 +73,22 @@ let s:VERSION = '2.0.1'
             let targetFile = a:last[2]
         endif
         if targetFile != ''
-            let cmd = ['python', '-W', 'ignore', s:plugin_directory . 'packages/wakatime/wakatime-cli.py']
+            let python_bin = 'python'
+            if has('win32')
+                let python_bin = 'pythonw'
+            endif
+            let cmd = [python_bin, '-W', 'ignore', s:plugin_directory . 'packages/wakatime/wakatime-cli.py']
             let cmd = cmd + ['--file', shellescape(targetFile)]
             let cmd = cmd + ['--plugin', printf('vim-wakatime/%s', s:VERSION)]
             if a:is_write
                 let cmd = cmd + ['--write']
             endif
             "let cmd = cmd + ['--verbose']
-            exec 'silent !' . join(cmd, ' ') . ' &'
+            if has('win32')
+                exec 'silent !start /min cmd /c "' . join(cmd, ' ') . '"'
+            else
+                exec 'silent !' . join(cmd, ' ') . ' &'
+            endif
             call s:SetLastAction(a:time, a:time, targetFile)
         endif
     endfunction
