@@ -56,8 +56,8 @@ class Queue(object):
             c.execute('INSERT INTO action VALUES (:file,:time,:project,:language,:lines,:branch,:is_write,:plugin)', action)
             conn.commit()
             conn.close()
-        except sqlite3.Error, e:
-            log.error(str(e))
+        except sqlite3.Error:
+            log.error(traceback.format_exc())
 
 
     def pop(self):
@@ -66,7 +66,7 @@ class Queue(object):
         action = None
         try:
             conn, c = self.connect()
-        except sqlite3.Error, e:
+        except sqlite3.Error:
             log.debug(traceback.format_exc())
             return None
         loop = True
@@ -103,12 +103,12 @@ class Queue(object):
                         'plugin': row[7],
                     }
                 loop = False
-            except sqlite3.Error, e:
+            except sqlite3.Error:
                 log.debug(traceback.format_exc())
                 sleep(wait)
                 tries -= 1
         try:
             conn.close()
-        except sqlite3.Error, e:
+        except sqlite3.Error:
             log.debug(traceback.format_exc())
         return action
