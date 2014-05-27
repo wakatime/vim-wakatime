@@ -310,6 +310,11 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
                     'response_code': response.getcode(),
                     'response_content': response.read(),
                 })
+            else:
+                log.error({
+                    'response_code': response.getcode(),
+                    'response_content': response.read(),
+                })
         else:
             log.error({
                 'response_code': response.getcode(),
