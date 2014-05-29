@@ -74,7 +74,7 @@ let s:VERSION = '2.0.2'
         endif
         if targetFile != ''
             let python_bin = 'python'
-            if has('win32')
+            if has('win32') || has('win64')
                 let python_bin = 'pythonw'
             endif
             let cmd = [python_bin, '-W', 'ignore', s:plugin_directory . 'packages/wakatime/wakatime-cli.py']
@@ -84,7 +84,7 @@ let s:VERSION = '2.0.2'
                 let cmd = cmd + ['--write']
             endif
             "let cmd = cmd + ['--verbose']
-            if has('win32')
+            if has('win32') || has('win64')
                 exec 'silent !start /min cmd /c "' . join(cmd, ' ') . '"'
             else
                 exec 'silent !' . join(cmd, ' ') . ' &'
