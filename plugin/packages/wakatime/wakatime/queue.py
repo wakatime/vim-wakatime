@@ -13,9 +13,13 @@
 
 import logging
 import os
-import sqlite3
 import traceback
 from time import sleep
+try:
+    import sqlite3
+    HAS_SQL = True
+except ImportError:
+    HAS_SQL = False
 
 
 log = logging.getLogger(__name__)
@@ -41,6 +45,8 @@ class Queue(object):
 
 
     def push(self, data, plugin):
+        if not HAS_SQL:
+            return
         try:
             conn, c = self.connect()
             action = {
@@ -61,6 +67,8 @@ class Queue(object):
 
 
     def pop(self):
+        if not HAS_SQL:
+            return None
         tries = 3
         wait = 0.1
         action = None
@@ -87,9 +95,9 @@ class Queue(object):
                             clauses.append('{0} IS NULL'.format(row_name))
                         index += 1
                     if len(values) > 0:
-                        c.execute('DELETE FROM action WHERE {0}'.format(u' AND '.join(clauses)), values)
+                        c.execute('DELETE FROM action WHERE {0}'.format(' AND '.join(clauses)), values)
                     else:
-                        c.execute('DELETE FROM action WHERE {0}'.format(u' AND '.join(clauses)))
+                        c.execute('DELETE FROM action WHERE {0}'.format(' AND '.join(clauses)))
                 conn.commit()
                 if row is not None:
                     action = {
