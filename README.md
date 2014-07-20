@@ -11,13 +11,13 @@ Heads Up! WakaTime depends on [Python](http://www.python.org/getit/) being insta
 
 1. Get an api key from: https://wakatime.com/#apikey
 
-2. Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
+2. If you're using [Vundle](https://github.com/gmarik/vundle) to manage your Vim plugins:
 
     a) Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`.
 
     b) Then inside Vim, type `:BundleInstall`.
 
-3. Using [Pathogen](https://github.com/tpope/vim-pathogen):
+3. If you're using [Pathogen](https://github.com/tpope/vim-pathogen):
 
     a) In your Terminal:
 		
