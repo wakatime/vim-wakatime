@@ -13,17 +13,26 @@ Heads Up! WakaTime depends on [Python](http://www.python.org/getit/) being insta
 
 2. Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:
 
-  a) Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`.
+    a) Add `Bundle 'wakatime/vim-wakatime'` to your `~/.vimrc`.
 
-  b) Then inside Vim, type `:BundleInstall`.
+    b) Then inside Vim, type `:BundleInstall`.
 
-3. You will see a prompt at the bottom asking for your [api key](https://wakatime.com/#apikey). Enter your api key, then press `enter`.
+3. Using [Pathogen](https://github.com/tpope/vim-pathogen):
 
-4. Use Vim and your time will automatically be tracked for you.
+    a) In your Terminal:
+		
+	```bash
+	cd ~/.vim/bundle
+	git clone git@github.com:wakatime/vim-wakatime.git
+	```
 
-5. Visit https://wakatime.com to see your logged time.
+4. You will see a prompt at the bottom asking for your [api key](https://wakatime.com/#apikey). Enter your api key, then press `enter`.
 
-6. Consider installing [BIND9](https://help.ubuntu.com/community/BIND9ServerHowto#Caching_Server_configuration) to cache your repeated DNS requests: `sudo apt-get install bind9`
+5. Use Vim and your time will automatically be tracked for you.
+
+6. Visit https://wakatime.com to see your logged time.
+
+7. Consider installing [BIND9](https://help.ubuntu.com/community/BIND9ServerHowto#Caching_Server_configuration) to cache your repeated DNS requests: `sudo apt-get install bind9`
 
 
 Screen Shots
