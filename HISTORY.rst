@@ -3,6 +3,20 @@ History
 -------
 
 
+2.0.4 (2014-07-25)
+++++++++++++++++++
+
+- upgrade external wakatime package to v2.0.5
+- use unique logger namespace to prevent collisions in shared plugin environments
+- option in .wakatime.cfg to obfuscate file names
+
+
+2.0.3 (2014-06-09)
+++++++++++++++++++
+
+- upgrade external wakatime package to v2.0.2
+
+
 2.0.2 (2014-05-26)
 ++++++++++++++++++
 

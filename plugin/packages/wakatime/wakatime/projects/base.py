@@ -13,7 +13,7 @@ import logging
 import os
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('WakaTime')
 
 
 class BaseProject(object):

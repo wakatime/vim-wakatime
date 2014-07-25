@@ -19,7 +19,7 @@ from .projects.subversion import Subversion
 from .projects.wakatime import WakaTime
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('WakaTime')
 
 
 # List of plugin classes to find a project for the current file path.

@@ -26,7 +26,7 @@ import os
 from .base import BaseProject
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('WakaTime')
 
 
 # str is unicode in Python3

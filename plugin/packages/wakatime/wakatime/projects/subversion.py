@@ -21,7 +21,7 @@ except ImportError:
     from ..packages.ordereddict import OrderedDict
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('WakaTime')
 
 
 # str is unicode in Python3

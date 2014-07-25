@@ -3,6 +3,31 @@ History
 -------
 
 
+2.0.5 (2014-07-25)
+++++++++++++++++++
+
+- option in .wakatime.cfg to obfuscate file names
+
+
+2.0.4 (2014-07-25)
+++++++++++++++++++
+
+- use unique logger namespace to prevent collisions in shared plugin environments
+
+
+2.0.3 (2014-06-18)
+++++++++++++++++++
+
+- use project from command line arg when no revision control project is found
+
+
+2.0.2 (2014-06-09)
+++++++++++++++++++
+
+- include python3.2 compatible versions of simplejson, pytz, and tzlocal
+- disable offline logging when Python was not compiled with sqlite3 module
+
+
 2.0.1 (2014-05-26)
 ++++++++++++++++++
 

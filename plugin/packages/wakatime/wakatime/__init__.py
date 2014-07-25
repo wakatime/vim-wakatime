@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '2.0.2'
+__version__ = '2.0.5'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2014 Alan Hamlett'
@@ -52,7 +52,12 @@ except:
     from .packages import tzlocal3
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('WakaTime')
+
+try:
+    unicode
+except NameError:
+    unicode = str
 
 
 class FileAction(argparse.Action):
@@ -161,6 +166,9 @@ def parseArguments(argv):
     parser.add_argument('--disableoffline', dest='offline',
             action='store_false',
             help='disables offline time logging instead of queuing logged time')
+    parser.add_argument('--hidefilenames', dest='hidefilenames',
+            action='store_true',
+            help='obfuscate file names; will not send file names to api')
     parser.add_argument('--ignore', dest='ignore', action='append',
             help='filename patterns to ignore; POSIX regex syntax; can be used more than once')
     parser.add_argument('--logfile', dest='logfile',
@@ -203,6 +211,8 @@ def parseArguments(argv):
             pass
     if args.offline and configs.has_option('settings', 'offline'):
         args.offline = configs.getboolean('settings', 'offline')
+    if not args.hidefilenames and configs.has_option('settings', 'hidefilenames'):
+        args.hidefilenames = configs.getboolean('settings', 'hidefilenames')
     if not args.verbose and configs.has_option('settings', 'verbose'):
         args.verbose = configs.getboolean('settings', 'verbose')
     if not args.verbose and configs.has_option('settings', 'debug'):
@@ -221,7 +231,10 @@ def should_ignore(fileName, patterns):
                 if compiled.search(fileName):
                     return pattern
             except re.error as ex:
-                log.warning('Regex error (%s) for ignore pattern: %s' % (str(ex), pattern))
+                log.warning(unicode('Regex error ({msg}) for ignore pattern: {pattern}').format(
+                    msg=str(ex),
+                    pattern=pattern,
+                ))
     except TypeError:
         pass
     return False
@@ -230,21 +243,34 @@ def should_ignore(fileName, patterns):
 def get_user_agent(plugin):
     ver = sys.version_info
     python_version = '%d.%d.%d.%s.%d' % (ver[0], ver[1], ver[2], ver[3], ver[4])
-    user_agent = 'wakatime/%s (%s) Python%s' % (__version__,
-        platform.platform(), python_version)
+    user_agent = unicode('wakatime/{ver} ({platform}) Python{py_ver}').format(
+        ver=__version__,
+        platform=platform.platform(),
+        py_ver=python_version,
+    )
     if plugin:
-        user_agent = user_agent+' '+plugin
+        user_agent = unicode('{user_agent} {plugin}').format(
+            user_agent=user_agent,
+            plugin=plugin,
+        )
     return user_agent
 
 
 def send_action(project=None, branch=None, stats=None, key=None, targetFile=None,
-        timestamp=None, isWrite=None, plugin=None, offline=None, **kwargs):
+        timestamp=None, isWrite=None, plugin=None, offline=None,
+        hidefilenames=None, **kwargs):
     url = 'https://wakatime.com/api/v1/actions'
-    log.debug('Sending action to api at %s' % url)
+    log.debug('Sending heartbeat to api at %s' % url)
     data = {
         'time': timestamp,
         'file': targetFile,
     }
+    if hidefilenames and targetFile is not None:
+        data['file'] = data['file'].rsplit('/', 1)[-1].rsplit('\\', 1)[-1]
+        if len(data['file'].strip('.').split('.', 1)) > 1:
+            data['file'] = unicode('HIDDEN.{ext}').format(ext=data['file'].strip('.').rsplit('.', 1)[-1])
+        else:
+            data['file'] = unicode('HIDDEN')
     if stats.get('lines'):
         data['lines'] = stats['lines']
     if stats.get('language'):
@@ -258,16 +284,16 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
     log.debug(data)
 
     # setup api request
-    request = Request(url=url, data=str.encode(json.dumps(data)))
+    request = Request(url=url, data=json.dumps(data))
     request.add_header('User-Agent', get_user_agent(plugin))
     request.add_header('Content-Type', 'application/json')
-    auth = 'Basic %s' % bytes.decode(base64.b64encode(str.encode(key)))
+    auth = unicode('Basic {key}').format(key=bytes.decode(base64.b64encode(str.encode(key))))
     request.add_header('Authorization', auth)
 
     # add Olson timezone to request
     tz = tzlocal.get_localzone()
     if tz:
-        request.add_header('TimeZone', str(tz.zone))
+        request.add_header('TimeZone', unicode(tz.zone))
 
     # log time to api
     response = None
@@ -276,7 +302,7 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
     except HTTPError as exc:
         exception_data = {
             'response_code': exc.getcode(),
-            sys.exc_info()[0].__name__: str(sys.exc_info()[1]),
+            sys.exc_info()[0].__name__: unicode(sys.exc_info()[1]),
         }
         if log.isEnabledFor(logging.DEBUG):
             exception_data['traceback'] = traceback.format_exc()
@@ -289,7 +315,7 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
             log.error(exception_data)
     except:
         exception_data = {
-            sys.exc_info()[0].__name__: str(sys.exc_info()[1]),
+            sys.exc_info()[0].__name__: unicode(sys.exc_info()[1]),
         }
         if log.isEnabledFor(logging.DEBUG):
             exception_data['traceback'] = traceback.format_exc()
@@ -339,7 +365,9 @@ def main(argv=None):
 
     ignore = should_ignore(args.targetFile, args.ignore)
     if ignore is not False:
-        log.debug('File ignored because matches pattern: %s' % ignore)
+        log.debug(unicode('File ignored because matches pattern: {pattern}').format(
+            pattern=ignore,
+        ))
         return 0
 
     if os.path.isfile(args.targetFile):
@@ -348,10 +376,10 @@ def main(argv=None):
 
         project = find_project(args.targetFile, configs=configs)
         branch = None
-        project_name = None
+        project_name = args.project_name
         if project:
             branch = project.branch()
-            project_name = args.project_name or project.name()
+            project_name = project.name()
 
         if send_action(
                 project=project_name,
@@ -364,9 +392,16 @@ def main(argv=None):
                 action = queue.pop()
                 if action is None:
                     break
-                if not send_action(project=action['project'], targetFile=action['file'], timestamp=action['time'],
-                        branch=action['branch'], stats={'language': action['language'], 'lines': action['lines']},
-                        key=args.key, isWrite=action['is_write'], plugin=action['plugin'], offline=args.offline):
+                sent = send_action(project=action['project'],
+                                   targetFile=action['file'],
+                                   timestamp=action['time'],
+                                   branch=action['branch'],
+                                   stats={'language': action['language'], 'lines': action['lines']},
+                                   key=args.key, isWrite=action['is_write'],
+                                   plugin=action['plugin'],
+                                   offline=args.offline,
+                                   hidefilenames=args.hidefilenames)
+                if not sent:
                     break
             return 0 # success
 

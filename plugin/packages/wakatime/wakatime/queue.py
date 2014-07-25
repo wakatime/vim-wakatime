@@ -22,7 +22,7 @@ except ImportError:
     HAS_SQL = False
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('WakaTime')
 
 
 class Queue(object):
