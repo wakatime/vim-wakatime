@@ -3,6 +3,13 @@ History
 -------
 
 
+2.0.5 (2014-08-07)
+++++++++++++++++++
+
+- upgrade external wakatime package to v2.0.6
+- fix unicode bug by encoding json POST data
+
+
 2.0.4 (2014-07-25)
 ++++++++++++++++++
 

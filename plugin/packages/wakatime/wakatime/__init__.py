@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '2.0.5'
+__version__ = '2.0.6'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2014 Alan Hamlett'
@@ -127,7 +127,7 @@ def parseConfigFile(configFile):
                 return None
     except IOError:
         if not os.path.isfile(configFile):
-            print('Error: Could not read from config file ~/.wakatime.conf')
+            print('Error: Could not read from config file ~/.wakatime.cfg')
     return configs
 
 
@@ -284,7 +284,7 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
     log.debug(data)
 
     # setup api request
-    request = Request(url=url, data=json.dumps(data))
+    request = Request(url=url, data=str.encode(json.dumps(data)))
     request.add_header('User-Agent', get_user_agent(plugin))
     request.add_header('Content-Type', 'application/json')
     auth = unicode('Basic {key}').format(key=bytes.decode(base64.b64encode(str.encode(key))))

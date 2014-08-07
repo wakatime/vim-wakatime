@@ -36,3 +36,4 @@ nosetests.xml
 
 virtualenv
 venv
+.DS_Store
