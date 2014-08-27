@@ -3,6 +3,18 @@ History
 -------
 
 
+2.0.7 (2014-08-27)
+++++++++++++++++++
+
+- find svn binary location from common install directories
+
+
+2.0.6 (2014-08-07)
+++++++++++++++++++
+
+- encode json data as str when passing to urllib
+
+
 2.0.5 (2014-07-25)
 ++++++++++++++++++
 
