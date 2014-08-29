@@ -12,7 +12,7 @@
 import logging
 import os
 import platform
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, DEVNULL
 
 from .base import BaseProject
 try:
@@ -55,7 +55,7 @@ class Subversion(BaseProject):
         ]
         for location in locations:
             try:
-                Popen([location, '--version'])
+                Popen([location, '--version'], stdout=DEVNULL, stderr=DEVNULL)
                 self.binary_location = location
                 return location
             except:
