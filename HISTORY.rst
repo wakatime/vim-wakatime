@@ -3,6 +3,13 @@ History
 -------
 
 
+2.0.6 (2014-08-29)
+++++++++++++++++++
+
+- upgrade external wakatime package to v2.0.8
+- supress output from svn command
+
+
 2.0.5 (2014-08-07)
 ++++++++++++++++++
 
