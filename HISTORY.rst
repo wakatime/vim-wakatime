@@ -3,6 +3,13 @@ History
 -------
 
 
+2.0.8 (2014-09-30)
+++++++++++++++++++
+
+- upgrade external wakatime package to v2.1.1
+- fix bug where binary file opened as utf-8
+
+
 2.0.7 (2014-09-30)
 ++++++++++++++++++
 
