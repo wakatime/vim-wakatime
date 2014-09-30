@@ -14,6 +14,7 @@ import os
 import sys
 
 from .packages import simplejson as json
+from .compat import u
 try:
     from collections import OrderedDict
 except ImportError:
@@ -30,7 +31,7 @@ class CustomEncoder(json.JSONEncoder):
             encoded = super(CustomEncoder, self).default(obj)
         except UnicodeDecodeError:
             encoding = sys.getfilesystemencoding()
-            obj = obj.decode(encoding, 'ignore').encode('utf-8')
+            obj = u(obj)
             encoded = super(CustomEncoder, self).default(obj)
         return encoded
 

@@ -13,16 +13,10 @@ import logging
 import os
 
 from .base import BaseProject
+from ..compat import u, open
 
 
 log = logging.getLogger('WakaTime')
-
-
-# str is unicode in Python3
-try:
-    unicode
-except NameError:
-    unicode = str
 
 
 class Mercurial(BaseProject):
@@ -33,18 +27,18 @@ class Mercurial(BaseProject):
 
     def name(self):
         if self.configDir:
-            return unicode(os.path.basename(os.path.dirname(self.configDir)))
+            return u(os.path.basename(os.path.dirname(self.configDir)))
         return None
 
     def branch(self):
         if self.configDir:
             branch_file = os.path.join(self.configDir, 'branch')
             try:
-                with open(branch_file) as fh:
-                    return unicode(fh.readline().strip().rsplit('/', 1)[-1])
+                with open(branch_file, 'r', encoding='utf-8') as fh:
+                    return u(fh.readline().strip().rsplit('/', 1)[-1])
             except IOError:
                 pass
-        return unicode('default')
+        return u('default')
 
     def _find_hg_config_dir(self, path):
         path = os.path.realpath(path)

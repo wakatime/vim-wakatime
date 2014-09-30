@@ -15,16 +15,10 @@ import logging
 import os
 
 from .base import BaseProject
+from ..compat import u, open
 
 
 log = logging.getLogger('WakaTime')
-
-
-# str is unicode in Python3
-try:
-    unicode
-except NameError:
-    unicode = str
 
 
 class WakaTime(BaseProject):
@@ -37,9 +31,9 @@ class WakaTime(BaseProject):
         if self.config:
 
             try:
-                with open(self.config) as fh:
-                    self._project_name = unicode(fh.readline().strip())
-                    self._project_branch = unicode(fh.readline().strip())
+                with open(self.config, 'r', encoding='utf-8') as fh:
+                    self._project_name = u(fh.readline().strip())
+                    self._project_branch = u(fh.readline().strip())
             except IOError as e:
                 log.exception("Exception:")
 

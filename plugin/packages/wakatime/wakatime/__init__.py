@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '2.0.8'
+__version__ = '2.1.0'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2014 Alan Hamlett'
@@ -40,6 +40,7 @@ except ImportError:
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages'))
 
+from .compat import u, open, is_py2, is_py3
 from .queue import Queue
 from .log import setup_logging
 from .project import find_project
@@ -53,11 +54,6 @@ except:
 
 
 log = logging.getLogger('WakaTime')
-
-try:
-    unicode
-except NameError:
-    unicode = str
 
 
 class FileAction(argparse.Action):
@@ -82,7 +78,7 @@ def upgradeConfigFile(configFile):
             'ignore': [],
         }
 
-        with open(oldConfig) as fh:
+        with open(oldConfig, 'r', encoding='utf-8') as fh:
             for line in fh.readlines():
                 line = line.split('=', 1)
                 if len(line) == 2 and line[0].strip() and line[1].strip():
@@ -91,7 +87,7 @@ def upgradeConfigFile(configFile):
                     else:
                         configs[line[0].strip()] = line[1].strip()
 
-        with open(configFile, 'w') as fh:
+        with open(configFile, 'w', encoding='utf-8') as fh:
             fh.write("[settings]\n")
             for name, value in configs.items():
                 if isinstance(value, list):
@@ -119,7 +115,7 @@ def parseConfigFile(configFile):
 
     configs = configparser.SafeConfigParser()
     try:
-        with open(configFile) as fh:
+        with open(configFile, 'r', encoding='utf-8') as fh:
             try:
                 configs.readfp(fh)
             except configparser.Error:
@@ -231,7 +227,7 @@ def should_ignore(fileName, patterns):
                 if compiled.search(fileName):
                     return pattern
             except re.error as ex:
-                log.warning(unicode('Regex error ({msg}) for ignore pattern: {pattern}').format(
+                log.warning(u('Regex error ({msg}) for ignore pattern: {pattern}').format(
                     msg=str(ex),
                     pattern=pattern,
                 ))
@@ -243,13 +239,13 @@ def should_ignore(fileName, patterns):
 def get_user_agent(plugin):
     ver = sys.version_info
     python_version = '%d.%d.%d.%s.%d' % (ver[0], ver[1], ver[2], ver[3], ver[4])
-    user_agent = unicode('wakatime/{ver} ({platform}) Python{py_ver}').format(
+    user_agent = u('wakatime/{ver} ({platform}) Python{py_ver}').format(
         ver=__version__,
         platform=platform.platform(),
         py_ver=python_version,
     )
     if plugin:
-        user_agent = unicode('{user_agent} {plugin}').format(
+        user_agent = u('{user_agent} {plugin}').format(
             user_agent=user_agent,
             plugin=plugin,
         )
@@ -268,9 +264,9 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
     if hidefilenames and targetFile is not None:
         data['file'] = data['file'].rsplit('/', 1)[-1].rsplit('\\', 1)[-1]
         if len(data['file'].strip('.').split('.', 1)) > 1:
-            data['file'] = unicode('HIDDEN.{ext}').format(ext=data['file'].strip('.').rsplit('.', 1)[-1])
+            data['file'] = u('HIDDEN.{ext}').format(ext=data['file'].strip('.').rsplit('.', 1)[-1])
         else:
-            data['file'] = unicode('HIDDEN')
+            data['file'] = u('HIDDEN')
     if stats.get('lines'):
         data['lines'] = stats['lines']
     if stats.get('language'):
@@ -284,16 +280,17 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
     log.debug(data)
 
     # setup api request
-    request = Request(url=url, data=str.encode(json.dumps(data)))
+    request_body = json.dumps(data)
+    request = Request(url=url, data=str.encode(request_body) if is_py3 else request_body)
     request.add_header('User-Agent', get_user_agent(plugin))
     request.add_header('Content-Type', 'application/json')
-    auth = unicode('Basic {key}').format(key=bytes.decode(base64.b64encode(str.encode(key))))
+    auth = u('Basic {key}').format(key=u(base64.b64encode(str.encode(key) if is_py3 else key)))
     request.add_header('Authorization', auth)
 
     # add Olson timezone to request
     tz = tzlocal.get_localzone()
     if tz:
-        request.add_header('TimeZone', unicode(tz.zone))
+        request.add_header('TimeZone', u(tz.zone))
 
     # log time to api
     response = None
@@ -302,7 +299,7 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
     except HTTPError as exc:
         exception_data = {
             'response_code': exc.getcode(),
-            sys.exc_info()[0].__name__: unicode(sys.exc_info()[1]),
+            sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
         }
         if log.isEnabledFor(logging.DEBUG):
             exception_data['traceback'] = traceback.format_exc()
@@ -315,7 +312,7 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
             log.error(exception_data)
     except:
         exception_data = {
-            sys.exc_info()[0].__name__: unicode(sys.exc_info()[1]),
+            sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
         }
         if log.isEnabledFor(logging.DEBUG):
             exception_data['traceback'] = traceback.format_exc()
@@ -365,7 +362,7 @@ def main(argv=None):
 
     ignore = should_ignore(args.targetFile, args.ignore)
     if ignore is not False:
-        log.debug(unicode('File ignored because matches pattern: {pattern}').format(
+        log.debug(u('File ignored because matches pattern: {pattern}').format(
             pattern=ignore,
         ))
         return 0

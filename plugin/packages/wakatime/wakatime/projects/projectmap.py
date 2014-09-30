@@ -24,16 +24,10 @@ import logging
 import os
 
 from .base import BaseProject
+from ..compat import u
 
 
 log = logging.getLogger('WakaTime')
-
-
-# str is unicode in Python3
-try:
-    unicode
-except NameError:
-    unicode = str
 
 
 class ProjectMap(BaseProject):
@@ -68,5 +62,5 @@ class ProjectMap(BaseProject):
 
     def name(self):
         if self.project:
-            return unicode(self.project)
+            return u(self.project)
         return None

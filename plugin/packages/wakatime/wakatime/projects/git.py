@@ -13,16 +13,10 @@ import logging
 import os
 
 from .base import BaseProject
+from ..compat import u, open
 
 
 log = logging.getLogger('WakaTime')
-
-
-# str is unicode in Python3
-try:
-    unicode
-except NameError:
-    unicode = str
 
 
 class Git(BaseProject):
@@ -34,7 +28,7 @@ class Git(BaseProject):
     def name(self):
         base = self._project_base()
         if base:
-            return unicode(os.path.basename(base))
+            return u(os.path.basename(base))
         return None
 
     def branch(self):
@@ -42,8 +36,8 @@ class Git(BaseProject):
         if base:
             head = os.path.join(self._project_base(), '.git', 'HEAD')
             try:
-                with open(head) as fh:
-                    return unicode(fh.readline().strip().rsplit('/', 1)[-1])
+                with open(head, 'r', encoding='utf-8') as fh:
+                    return u(fh.readline().strip().rsplit('/', 1)[-1])
             except IOError:
                 pass
         return None

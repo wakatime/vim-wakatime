@@ -13,6 +13,8 @@ import logging
 import os
 import sys
 
+from .compat import u, open
+
 if sys.version_info[0] == 2:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'pygments2'))
 else:
@@ -21,11 +23,6 @@ from pygments.lexers import guess_lexer_for_filename
 
 
 log = logging.getLogger('WakaTime')
-
-try:
-    unicode
-except NameError:
-    unicode = str
 
 
 # force file name extensions to be recognized as a certain language
@@ -54,12 +51,12 @@ def guess_language(file_name):
             return language
     lexer = None
     try:
-        with open(file_name) as f:
-            lexer = guess_lexer_for_filename(file_name, f.read(512000))
+        with open(file_name, 'r', encoding='utf-8') as fh:
+            lexer = guess_lexer_for_filename(file_name, fh.read(512000))
     except:
         pass
     if lexer:
-        return translate_language(unicode(lexer.name))
+        return translate_language(u(lexer.name))
     else:
         return None
 
@@ -82,8 +79,8 @@ def translate_language(language):
 def number_lines_in_file(file_name):
     lines = 0
     try:
-        with open(file_name) as f:
-            for line in f:
+        with open(file_name, 'r', encoding='utf-8') as fh:
+            for line in fh:
                 lines += 1
     except IOError:
         return None
