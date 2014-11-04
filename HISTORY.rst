@@ -3,6 +3,13 @@ History
 -------
 
 
+2.0.9 (2014-11-03)
+++++++++++++++++++
+
+- upgrade external wakatime package to v2.1.2
+- catch UnicodeDecodeErrors to prevent error messages propegating into Vim
+
+
 2.0.8 (2014-09-30)
 ++++++++++++++++++
 
