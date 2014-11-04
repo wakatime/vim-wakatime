@@ -3,6 +3,12 @@ History
 -------
 
 
+2.1.2 (2014-10-07)
+++++++++++++++++++
+
+- still log heartbeat when something goes wrong while reading num lines in file
+
+
 2.1.1 (2014-09-30)
 ++++++++++++++++++
 

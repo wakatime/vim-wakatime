@@ -82,7 +82,7 @@ def number_lines_in_file(file_name):
         with open(file_name, 'r', encoding='utf-8') as fh:
             for line in fh:
                 lines += 1
-    except IOError:
+    except:
         return None
     return lines
 

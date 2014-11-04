@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '2.1.1'
+__version__ = '2.1.2'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2014 Alan Hamlett'
@@ -122,8 +122,7 @@ def parseConfigFile(configFile):
                 print(traceback.format_exc())
                 return None
     except IOError:
-        if not os.path.isfile(configFile):
-            print('Error: Could not read from config file ~/.wakatime.cfg')
+        print(u('Error: Could not read from config file {0}').format(configFile))
     return configs
 
 
