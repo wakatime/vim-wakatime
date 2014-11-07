@@ -9,9 +9,9 @@ Installation
 
 Heads Up! WakaTime depends on [Python](http://www.python.org/getit/) being installed to work correctly.
 
-1. Install [Vundle](https://github.com/gmarik/vundle).
+1. Install [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager.
 
-2. Using [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager:<br />
+2. Using [Vundle](https://github.com/gmarik/vundle):<br />
   `echo "Bundle 'wakatime/vim-wakatime'" >> ~/.vimrc && vim +BundleInstall`
 
   or using [Pathogen](https://github.com/tpope/vim-pathogen):<br />
