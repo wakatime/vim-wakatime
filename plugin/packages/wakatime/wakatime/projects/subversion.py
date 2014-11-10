@@ -35,9 +35,7 @@ class Subversion(BaseProject):
         return u(self.info['Repository Root'].split('/')[-1])
 
     def branch(self):
-        if self.base:
-            u(os.path.basename(self.base))
-        return None
+        return u(self.info['URL'].split('/')[-1])
 
     def _find_binary(self):
         if self.binary_location:
@@ -70,17 +68,11 @@ class Subversion(BaseProject):
             pass
         else:
             if stdout:
-                interesting = [
-                    'Repository Root',
-                    'Repository UUID',
-                    'URL',
-                ]
                 for line in stdout.splitlines():
                     if isinstance(line, bytes):
                         line = bytes.decode(line)
                     line = line.split(': ', 1)
-                    if line[0] in interesting:
-                        info[line[0]] = line[1]
+                    info[line[0]] = line[1]
         return info
 
     def _find_project_base(self, path, found=False):
