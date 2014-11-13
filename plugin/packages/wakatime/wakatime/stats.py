@@ -30,6 +30,7 @@ EXTENSIONS = {
     'j2': 'HTML',
     'markdown': 'Markdown',
     'md': 'Markdown',
+    'mdown': 'Markdown',
     'twig': 'Twig',
 }
 TRANSLATIONS = {

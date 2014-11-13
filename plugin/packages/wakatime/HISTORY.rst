@@ -3,6 +3,18 @@ History
 -------
 
 
+2.1.4 (2014-11-12)
+++++++++++++++++++
+
+- when Python was not compiled with https support, log an error to the log file
+
+
+2.1.3 (2014-11-10)
+++++++++++++++++++
+
+- correctly detect branch name for subversion projects
+
+
 2.1.2 (2014-10-07)
 ++++++++++++++++++
 
