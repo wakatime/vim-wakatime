@@ -3,6 +3,13 @@ History
 -------
 
 
+2.0.12 (2014-11-18)
++++++++++++++++++++
+
+- upgrade external wakatime package to v2.1.6
+- fix list index error when detecting subversion project
+
+
 2.0.11 (2014-11-12)
 +++++++++++++++++++
 
