@@ -72,7 +72,8 @@ class Subversion(BaseProject):
                     if isinstance(line, bytes):
                         line = bytes.decode(line)
                     line = line.split(': ', 1)
-                    info[line[0]] = line[1]
+                    if len(line) == 2:
+                        info[line[0]] = line[1]
         return info
 
     def _find_project_base(self, path, found=False):
