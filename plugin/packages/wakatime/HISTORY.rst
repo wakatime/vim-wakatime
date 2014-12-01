@@ -3,6 +3,13 @@ History
 -------
 
 
+2.1.7 (2014-11-30)
+++++++++++++++++++
+
+- upgrade pygments to v2.0.1
+- always log an error when api key is incorrect
+
+
 2.1.6 (2014-11-18)
 ++++++++++++++++++
 

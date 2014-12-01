@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '2.1.6'
+__version__ = '2.1.7'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2014 Alan Hamlett'
@@ -286,6 +286,10 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
     auth = u('Basic {key}').format(key=u(base64.b64encode(str.encode(key) if is_py3 else key)))
     request.add_header('Authorization', auth)
 
+    ALWAYS_LOG_CODES = [
+        401,
+    ]
+
     # add Olson timezone to request
     try:
         tz = tzlocal.get_localzone()
@@ -310,6 +314,10 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
             queue.push(data, plugin)
             if log.isEnabledFor(logging.DEBUG):
                 log.warn(exception_data)
+            if response.getcode() in ALWAYS_LOG_CODES:
+                log.error({
+                    'response_code': response.getcode(),
+                })
         else:
             log.error(exception_data)
     except:
@@ -325,6 +333,10 @@ def send_action(project=None, branch=None, stats=None, key=None, targetFile=None
                 log.error(exception_data)
             elif log.isEnabledFor(logging.DEBUG):
                 log.warn(exception_data)
+            if response.getcode() in ALWAYS_LOG_CODES:
+                log.error({
+                    'response_code': response.getcode(),
+                })
         else:
             log.error(exception_data)
     else:
