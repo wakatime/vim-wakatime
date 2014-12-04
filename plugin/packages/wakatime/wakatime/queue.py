@@ -15,6 +15,9 @@ import logging
 import os
 import traceback
 from time import sleep
+
+from .compat import u
+
 try:
     import sqlite3
     HAS_SQL = True
@@ -90,7 +93,7 @@ class Queue(object):
                     for row_name in ['file', 'time', 'project', 'language', 'lines', 'branch', 'is_write']:
                         if row[index] is not None:
                             clauses.append('{0}=?'.format(row_name))
-                            values.append(row[index])
+                            values.append(u(row[index]))
                         else:
                             clauses.append('{0} IS NULL'.format(row_name))
                         index += 1

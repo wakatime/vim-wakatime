@@ -3,6 +3,13 @@ History
 -------
 
 
+2.1.8 (2014-12-04)
+++++++++++++++++++
+
+- fix UnicodeDecodeError when building user agent string
+- handle case where response is None
+
+
 2.1.7 (2014-11-30)
 ++++++++++++++++++
 

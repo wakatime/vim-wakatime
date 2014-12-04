@@ -21,9 +21,13 @@ is_py3 = (sys.version_info[0] == 3)
 if is_py2:
 
     def u(text):
-        if isinstance(text, str):
+        try:
             return text.decode('utf-8')
-        return unicode(text)
+        except:
+            try:
+                return unicode(text)
+            except:
+                return text
     open = codecs.open
     basestring = basestring
 
