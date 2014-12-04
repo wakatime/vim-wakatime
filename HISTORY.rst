@@ -3,6 +3,14 @@ History
 -------
 
 
+2.0.14 (2014-12-04)
++++++++++++++++++++
+
+- upgrade external wakatime package to v2.1.8
+- fix UnicodeDecodeError when building user agent string
+- handle case where response is None
+
+
 2.0.13 (2014-11-30)
 +++++++++++++++++++
 
