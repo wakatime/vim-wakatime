@@ -3,6 +3,12 @@ History
 -------
 
 
+2.1.9 (2014-12-05)
+++++++++++++++++++
+
+- fix bug preventing offline heartbeats from being purged after uploaded
+
+
 2.1.8 (2014-12-04)
 ++++++++++++++++++
 
