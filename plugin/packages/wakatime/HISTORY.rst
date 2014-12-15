@@ -3,6 +3,12 @@ History
 -------
 
 
+2.1.10 (2014-12-15)
++++++++++++++++++++
+
+- prevent queuing offline heartbeats which will never be valid (400 errors)
+
+
 2.1.9 (2014-12-05)
 ++++++++++++++++++
 
