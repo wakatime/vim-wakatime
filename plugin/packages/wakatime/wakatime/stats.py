@@ -89,8 +89,10 @@ def number_lines_in_file(file_name):
 
 
 def get_file_stats(file_name):
+    dependencies = []
     stats = {
         'language': guess_language(file_name),
+        'dependencies': dependencies,
         'lines': number_lines_in_file(file_name),
     }
     return stats

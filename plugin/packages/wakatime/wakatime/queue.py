@@ -32,35 +32,35 @@ class Queue(object):
     def connect(self):
         conn = sqlite3.connect(self.DB_FILE)
         c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS action (
+        c.execute('''CREATE TABLE IF NOT EXISTS heartbeat (
             file text,
             time real,
             project text,
-            language text,
-            lines integer,
             branch text,
             is_write integer,
+            stats text,
+            misc text,
             plugin text)
         ''')
         return (conn, c)
 
 
-    def push(self, data, plugin):
+    def push(self, data, stats, plugin, misc=None):
         if not HAS_SQL:
             return
         try:
             conn, c = self.connect()
-            action = {
+            heartbeat = {
                 'file': data.get('file'),
                 'time': data.get('time'),
                 'project': data.get('project'),
-                'language': data.get('language'),
-                'lines': data.get('lines'),
                 'branch': data.get('branch'),
                 'is_write': 1 if data.get('is_write') else 0,
+                'stats': stats,
+                'misc': misc,
                 'plugin': plugin,
             }
-            c.execute('INSERT INTO action VALUES (:file,:time,:project,:language,:lines,:branch,:is_write,:plugin)', action)
+            c.execute('INSERT INTO heartbeat VALUES (:file,:time,:project,:branch,:is_write,:stats,:misc,:plugin)', heartbeat)
             conn.commit()
             conn.close()
         except sqlite3.Error:
@@ -72,7 +72,7 @@ class Queue(object):
             return None
         tries = 3
         wait = 0.1
-        action = None
+        heartbeat = None
         try:
             conn, c = self.connect()
         except sqlite3.Error:
@@ -82,13 +82,13 @@ class Queue(object):
         while loop and tries > -1:
             try:
                 c.execute('BEGIN IMMEDIATE')
-                c.execute('SELECT * FROM action LIMIT 1')
+                c.execute('SELECT * FROM heartbeat LIMIT 1')
                 row = c.fetchone()
                 if row is not None:
                     values = []
                     clauses = []
                     index = 0
-                    for row_name in ['file', 'time', 'project', 'language', 'lines', 'branch', 'is_write']:
+                    for row_name in ['file', 'time', 'project', 'branch', 'is_write']:
                         if row[index] is not None:
                             clauses.append('{0}=?'.format(row_name))
                             values.append(row[index])
@@ -96,19 +96,19 @@ class Queue(object):
                             clauses.append('{0} IS NULL'.format(row_name))
                         index += 1
                     if len(values) > 0:
-                        c.execute('DELETE FROM action WHERE {0}'.format(' AND '.join(clauses)), values)
+                        c.execute('DELETE FROM heartbeat WHERE {0}'.format(' AND '.join(clauses)), values)
                     else:
-                        c.execute('DELETE FROM action WHERE {0}'.format(' AND '.join(clauses)))
+                        c.execute('DELETE FROM heartbeat WHERE {0}'.format(' AND '.join(clauses)))
                 conn.commit()
                 if row is not None:
-                    action = {
+                    heartbeat = {
                         'file': row[0],
                         'time': row[1],
                         'project': row[2],
-                        'language': row[3],
-                        'lines': row[4],
-                        'branch': row[5],
-                        'is_write': True if row[6] is 1 else False,
+                        'branch': row[3],
+                        'is_write': True if row[4] is 1 else False,
+                        'stats': row[5],
+                        'misc': row[6],
                         'plugin': row[7],
                     }
                 loop = False
@@ -120,4 +120,4 @@ class Queue(object):
             conn.close()
         except sqlite3.Error:
             log.debug(traceback.format_exc())
-        return action
+        return heartbeat
