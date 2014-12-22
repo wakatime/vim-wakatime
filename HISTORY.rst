@@ -3,6 +3,13 @@ History
 -------
 
 
+2.0.16 (2014-12-22)
++++++++++++++++++++
+
+- upgrade external wakatime package to v2.1.11
+- fix bug in offline logging when no response from api
+
+
 2.0.15 (2014-12-05)
 +++++++++++++++++++
 
