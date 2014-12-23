@@ -42,8 +42,10 @@ class TokenParser(object):
         self._save_dependency(dep, truncate=truncate)
 
     def _extract_tokens(self):
-        with open(self.source_file, 'r', encoding='utf-8') as fh:
-            return self.lexer.get_tokens_unprocessed(fh.read(512000))
+        if self.lexer:
+            with open(self.source_file, 'r', encoding='utf-8') as fh:
+                return self.lexer.get_tokens_unprocessed(fh.read(512000))
+        return []
 
     def _save_dependency(self, dep, truncate=True):
         dep = dep.strip().split('.')[0].strip() if truncate else dep.strip()
@@ -60,13 +62,14 @@ class DependencyParser(object):
         self.source_file = source_file
         self.lexer = lexer
 
-        try:
-            module_name = self.lexer.__module__.split('.')[-1]
-            class_name = self.lexer.__class__.__name__.replace('Lexer', 'Parser', 1)
-            module = import_module('.%s' % module_name, package=__package__)
-            self.parser = getattr(module, class_name)
-        except ImportError as ex:
-            log.debug(ex)
+        if self.lexer:
+            try:
+                module_name = self.lexer.__module__.split('.')[-1]
+                class_name = self.lexer.__class__.__name__.replace('Lexer', 'Parser', 1)
+                module = import_module('.%s' % module_name, package=__package__)
+                self.parser = getattr(module, class_name)
+            except ImportError as ex:
+                log.debug(ex)
 
     def parse(self):
         if self.parser:

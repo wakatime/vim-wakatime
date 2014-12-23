@@ -3,6 +3,12 @@ History
 -------
 
 
+3.0.1 (2014-12-23)
+++++++++++++++++++
+
+- handle unknown language when parsing dependencies
+
+
 3.0.0 (2014-12-23)
 ++++++++++++++++++
 
