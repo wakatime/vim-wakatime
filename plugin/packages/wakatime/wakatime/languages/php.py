@@ -29,6 +29,10 @@ class PhpParser(TokenParser):
             self._process_keyword(token, content)
         elif u(token) == 'Token.Literal.String.Single' or u(token) == 'Token.Literal.String.Double':
             self._process_literal_string(token, content)
+        elif u(token) == 'Token.Name.Other':
+            self._process_name(token, content)
+        elif u(token) == 'Token.Name.Function':
+            self._process_function(token, content)
         elif u(token).split('.')[-1] == 'Punctuation':
             self._process_punctuation(token, content)
         elif u(token).split('.')[-1] == 'Text':
@@ -36,9 +40,28 @@ class PhpParser(TokenParser):
         else:
             self._process_other(token, content)
 
+    def _process_name(self, token, content):
+        if self.state == 'use':
+            content = content.split("\\")
+            content = content[0] if len(content) == 1 else "\\".join(content[0:len(content)-1])
+            self.append(content, truncate=False)
+
+    def _process_function(self, token, content):
+        if self.state == 'use function':
+            content = content.split("\\")
+            content = content[0] if len(content) == 1 else "\\".join(content[0:len(content)-1])
+            self.append(content, truncate=False)
+            self.state = 'use'
+
     def _process_keyword(self, token, content):
         if content == 'include' or content == 'include_once' or content == 'require' or content == 'require_once':
             self.state = 'include'
+        elif content == 'use':
+            self.state = 'use'
+        elif content == 'as':
+            self.state = 'as'
+        elif self.state == 'use' and content == 'function':
+            self.state = 'use function'
         else:
             self.state = None
 
@@ -46,8 +69,8 @@ class PhpParser(TokenParser):
         if self.state == 'include':
             if content != '"':
                 content = content.strip()
-                if u(token) == 'Token.Literal.String.Single':
-                    content = content.strip("'")
+                if u(token) == 'Token.Literal.String.Double':
+                    content = u('"{0}"').format(content)
                 self.append(content, truncate=False)
                 self.state = None
 
@@ -56,6 +79,8 @@ class PhpParser(TokenParser):
             self.parens += 1
         elif content == ')':
             self.parens -= 1
+        elif (self.state == 'use' or self.state == 'as') and content == ',':
+            self.state = 'use'
         else:
             self.state = None
 
