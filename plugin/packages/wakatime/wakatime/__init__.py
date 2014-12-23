@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '2.1.11'
+__version__ = '3.0.0'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2014 Alan Hamlett'
@@ -40,7 +40,7 @@ except ImportError:
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages'))
 
-from .compat import u, open, is_py2, is_py3
+from .compat import u, open, is_py3
 from .queue import Queue
 from .log import setup_logging
 from .project import find_project
@@ -251,10 +251,10 @@ def get_user_agent(plugin):
     return user_agent
 
 
-def send_action(project=None, branch=None, stats={}, key=None, targetFile=None,
+def send_heartbeat(project=None, branch=None, stats={}, key=None, targetFile=None,
         timestamp=None, isWrite=None, plugin=None, offline=None,
         hidefilenames=None, **kwargs):
-    url = 'https://wakatime.com/api/v1/actions'
+    url = 'https://wakatime.com/api/v1/heartbeats'
     log.debug('Sending heartbeat to api at %s' % url)
     data = {
         'time': timestamp,
@@ -401,7 +401,7 @@ def main(argv=None):
             branch = project.branch()
             project_name = project.name()
 
-        if send_action(
+        if send_heartbeat(
                 project=project_name,
                 branch=branch,
                 stats=stats,
@@ -412,7 +412,7 @@ def main(argv=None):
                 heartbeat = queue.pop()
                 if heartbeat is None:
                     break
-                sent = send_action(project=heartbeat['project'],
+                sent = send_heartbeat(project=heartbeat['project'],
                                    targetFile=heartbeat['file'],
                                    timestamp=heartbeat['time'],
                                    branch=heartbeat['branch'],

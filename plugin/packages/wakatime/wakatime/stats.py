@@ -14,6 +14,7 @@ import os
 import sys
 
 from .compat import u, open
+from .languages import DependencyParser
 
 if sys.version_info[0] == 2:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'pygments_py2'))
@@ -46,20 +47,17 @@ TRANSLATIONS = {
 
 
 def guess_language(file_name):
-    if file_name:
-        language = guess_language_from_extension(file_name.rsplit('.', 1)[-1])
-        if language:
-            return language
-    lexer = None
+    language, lexer = None, None
     try:
         with open(file_name, 'r', encoding='utf-8') as fh:
             lexer = guess_lexer_for_filename(file_name, fh.read(512000))
     except:
         pass
-    if lexer:
-        return translate_language(u(lexer.name))
-    else:
-        return None
+    if file_name:
+        language = guess_language_from_extension(file_name.rsplit('.', 1)[-1])
+    if lexer and language is None:
+        language = translate_language(u(lexer.name))
+    return language, lexer
 
 
 def guess_language_from_extension(extension):
@@ -89,9 +87,11 @@ def number_lines_in_file(file_name):
 
 
 def get_file_stats(file_name):
-    dependencies = []
+    language, lexer = guess_language(file_name)
+    parser = DependencyParser(file_name, lexer)
+    dependencies = parser.parse()
     stats = {
-        'language': guess_language(file_name),
+        'language': language,
         'dependencies': dependencies,
         'lines': number_lines_in_file(file_name),
     }
