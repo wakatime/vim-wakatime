@@ -3,6 +3,13 @@ History
 -------
 
 
+3.0.1 (2014-12-23)
+++++++++++++++++++
+
+- upgrade external wakatime package to v3.0.1
+- handle unknown language when parsing dependencies
+
+
 3.0.0 (2014-12-23)
 ++++++++++++++++++
 
