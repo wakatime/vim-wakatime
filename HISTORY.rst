@@ -3,6 +3,13 @@ History
 -------
 
 
+3.0.0 (2014-12-23)
+++++++++++++++++++
+
+- upgrade external wakatime package to v3.0.0
+- detect libraries and frameworks for C++, Java, .NET, PHP, and Python files
+
+
 2.0.16 (2014-12-22)
 +++++++++++++++++++
 
