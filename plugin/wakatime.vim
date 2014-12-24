@@ -43,7 +43,7 @@ let s:VERSION = '3.0.1'
     if !filereadable(expand("$HOME/.wakatime.cfg"))
         let key = input("[WakaTime] Enter your wakatime.com api key: ")
         if key != ''
-            call writefile(['[settings]', printf("api_key = %s", key), 'ignore =', '    ^COMMIT_EDITMSG$', '    ^TAG_EDITMSG$'], expand("$HOME/.wakatime.cfg"))
+            call writefile(['[settings]', 'debug = false', printf("api_key = %s", key), 'hidefilenames = false', 'ignore =', '    ^COMMIT_EDITMSG$', '    ^TAG_EDITMSG$'], expand("$HOME/.wakatime.cfg"))
             echo "[WakaTime] Setup complete! Visit http://wakatime.com to view your logged time."
         endif
     endif
