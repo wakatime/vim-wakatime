@@ -94,7 +94,7 @@ class DependencyParser(object):
             try:
                 self.parser = getattr(module, class_name)
             except AttributeError:
-                log.debug(traceback.format_exc())
+                log.debug('Module {0} is missing class {1}'.format(module.__name__, class_name))
         except ImportError:
             log.debug(traceback.format_exc())
 

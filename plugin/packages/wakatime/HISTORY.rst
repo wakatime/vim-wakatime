@@ -3,6 +3,12 @@ History
 -------
 
 
+3.0.3 (2014-12-25)
+++++++++++++++++++
+
+- detect JavaScript frameworks from script tags in Html template files
+
+
 3.0.2 (2014-12-25)
 ++++++++++++++++++
 
