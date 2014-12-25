@@ -42,15 +42,11 @@ class PhpParser(TokenParser):
 
     def _process_name(self, token, content):
         if self.state == 'use':
-            content = content.split("\\")
-            content = content[0] if len(content) == 1 else "\\".join(content[0:len(content)-1])
-            self.append(content, truncate=False)
+            self.append(content, truncate=True, separator=u("\\"))
 
     def _process_function(self, token, content):
         if self.state == 'use function':
-            content = content.split("\\")
-            content = content[0] if len(content) == 1 else "\\".join(content[0:len(content)-1])
-            self.append(content, truncate=False)
+            self.append(content, truncate=True, separator=u("\\"))
             self.state = 'use'
 
     def _process_keyword(self, token, content):
@@ -71,7 +67,7 @@ class PhpParser(TokenParser):
                 content = content.strip()
                 if u(token) == 'Token.Literal.String.Double':
                     content = u('"{0}"').format(content)
-                self.append(content, truncate=False)
+                self.append(content)
                 self.state = None
 
     def _process_punctuation(self, token, content):

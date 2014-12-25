@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '3.0.1'
+__version__ = '3.0.2'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2014 Alan Hamlett'
@@ -102,7 +102,7 @@ def upgradeConfigFile(configFile):
         pass
 
 
-def parseConfigFile(configFile):
+def parseConfigFile(configFile=None):
     """Returns a configparser.SafeConfigParser instance with configs
     read from the config file. Default location of the config file is
     at ~/.wakatime.cfg.

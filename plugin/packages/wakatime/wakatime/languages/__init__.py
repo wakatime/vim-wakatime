@@ -10,8 +10,9 @@
 """
 
 import logging
+import traceback
 
-from ..compat import open, import_module
+from ..compat import u, open, import_module
 
 
 log = logging.getLogger('WakaTime')
@@ -38,8 +39,17 @@ class TokenParser(object):
             self.tokens = self._extract_tokens()
         raise Exception('Not yet implemented.')
 
-    def append(self, dep, truncate=True):
-        self._save_dependency(dep, truncate=truncate)
+    def append(self, dep, truncate=False, separator=None, truncate_to=None,
+               strip_whitespace=True):
+        if dep == 'as':
+            print('***************** as')
+        self._save_dependency(
+            dep,
+            truncate=truncate,
+            truncate_to=truncate_to,
+            separator=separator,
+            strip_whitespace=strip_whitespace,
+        )
 
     def _extract_tokens(self):
         if self.lexer:
@@ -47,8 +57,18 @@ class TokenParser(object):
                 return self.lexer.get_tokens_unprocessed(fh.read(512000))
         return []
 
-    def _save_dependency(self, dep, truncate=True):
-        dep = dep.strip().split('.')[0].strip() if truncate else dep.strip()
+    def _save_dependency(self, dep, truncate=False, separator=None,
+                         truncate_to=None, strip_whitespace=True):
+        if truncate:
+            if separator is None:
+                separator = u('.')
+            separator = u(separator)
+            dep = dep.split(separator)
+            if truncate_to is None or truncate_to < 0 or truncate_to > len(dep) - 1:
+                truncate_to = len(dep) - 1
+            dep = dep[0] if len(dep) == 1 else separator.join(dep[0:truncate_to])
+        if strip_whitespace:
+            dep = dep.strip()
         if dep:
             self.dependencies.append(dep)
 
@@ -63,13 +83,20 @@ class DependencyParser(object):
         self.lexer = lexer
 
         if self.lexer:
+            module_name = self.lexer.__module__.split('.')[-1]
+            class_name = self.lexer.__class__.__name__.replace('Lexer', 'Parser', 1)
+        else:
+            module_name = 'unknown'
+            class_name = 'UnknownParser'
+
+        try:
+            module = import_module('.%s' % module_name, package=__package__)
             try:
-                module_name = self.lexer.__module__.split('.')[-1]
-                class_name = self.lexer.__class__.__name__.replace('Lexer', 'Parser', 1)
-                module = import_module('.%s' % module_name, package=__package__)
                 self.parser = getattr(module, class_name)
-            except ImportError as ex:
-                log.debug(ex)
+            except AttributeError:
+                log.debug(traceback.format_exc())
+        except ImportError:
+            log.debug(traceback.format_exc())
 
     def parse(self):
         if self.parser:

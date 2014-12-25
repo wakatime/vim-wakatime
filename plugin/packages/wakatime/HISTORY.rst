@@ -3,6 +3,12 @@ History
 -------
 
 
+3.0.2 (2014-12-25)
+++++++++++++++++++
+
+- detect frameworks from JavaScript and JSON files
+
+
 3.0.1 (2014-12-23)
 ++++++++++++++++++
 

@@ -5,7 +5,7 @@
 
     Parse dependencies from Python code.
 
-    :copyright: (c) 2013 Alan Hamlett.
+    :copyright: (c) 2014 Alan Hamlett.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -45,7 +45,10 @@ class PythonParser(TokenParser):
         if self.state is None:
             self.state = content
         else:
-            self._process_import(token, content)
+            if content == 'as':
+                self.nonpackage = True
+            else:
+                self._process_import(token, content)
 
     def _process_name(self, token, content):
         if self.state is not None:
@@ -53,13 +56,13 @@ class PythonParser(TokenParser):
                 self.nonpackage = False
             else:
                 if self.state == 'from':
-                    self.append(content)
+                    self.append(content, truncate=True, truncate_to=0)
                 if self.state == 'from-2' and content != 'import':
-                    self.append(content)
+                    self.append(content, truncate=True, truncate_to=0)
                 elif self.state == 'import':
-                    self.append(content)
+                    self.append(content, truncate=True, truncate_to=0)
                 elif self.state == 'import-2':
-                    self.append(content)
+                    self.append(content, truncate=True, truncate_to=0)
                 else:
                     self.state = None
 
@@ -69,13 +72,13 @@ class PythonParser(TokenParser):
                 self.nonpackage = False
             else:
                 if self.state == 'from':
-                    self.append(content)
+                    self.append(content, truncate=True, truncate_to=0)
                 if self.state == 'from-2' and content != 'import':
-                    self.append(content)
+                    self.append(content, truncate=True, truncate_to=0)
                 elif self.state == 'import':
-                    self.append(content)
+                    self.append(content, truncate=True, truncate_to=0)
                 elif self.state == 'import-2':
-                    self.append(content)
+                    self.append(content, truncate=True, truncate_to=0)
                 else:
                     self.state = None
 
@@ -101,16 +104,17 @@ class PythonParser(TokenParser):
         pass
 
     def _process_import(self, token, content):
+        if not self.nonpackage:
+            if self.state == 'from':
+                self.append(content, truncate=True, truncate_to=0)
+                self.state = 'from-2'
+            elif self.state == 'from-2' and content != 'import':
+                self.append(content, truncate=True, truncate_to=0)
+            elif self.state == 'import':
+                self.append(content, truncate=True, truncate_to=0)
+                self.state = 'import-2'
+            elif self.state == 'import-2':
+                self.append(content, truncate=True, truncate_to=0)
+            else:
+                self.state = None
         self.nonpackage = False
-        if self.state == 'from':
-            self.append(content)
-            self.state = 'from-2'
-        elif self.state == 'from-2' and content != 'import':
-            self.append(content)
-        elif self.state == 'import':
-            self.append(content)
-            self.state = 'import-2'
-        elif self.state == 'import-2':
-            self.append(content)
-        else:
-            self.state = None

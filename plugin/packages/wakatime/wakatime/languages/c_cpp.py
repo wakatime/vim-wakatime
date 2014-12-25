@@ -31,7 +31,7 @@ class CppParser(TokenParser):
     def _process_preproc(self, token, content):
         if content.strip().startswith('include ') or content.strip().startswith("include\t"):
             content = content.replace('include', '', 1).strip()
-            self.append(content, truncate=False)
+            self.append(content)
 
     def _process_other(self, token, content):
         pass
