@@ -10,7 +10,6 @@
 """
 
 import codecs
-import io
 import sys
 
 
