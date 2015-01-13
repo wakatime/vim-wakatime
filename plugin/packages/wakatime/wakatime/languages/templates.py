@@ -120,7 +120,11 @@ class HtmlDjangoParser(TokenParser):
 
     def _process_tag(self, token, content):
         if content.startswith('</') or content.startswith('/'):
-            self.tags.pop(0)
+            try:
+                self.tags.pop(0)
+            except IndexError:
+                # ignore errors from malformed markup
+                pass
             self.getting_attrs = False
         elif content.startswith('<'):
             self.tags.insert(0, content.replace('<', '', 1).strip().lower())
