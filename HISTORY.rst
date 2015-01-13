@@ -3,6 +3,13 @@ History
 -------
 
 
+3.0.5 (2015-01-13)
+++++++++++++++++++
+
+- upgrade external wakatime package to v3.0.5
+- ignore errors from malformed markup (too many closing tags)
+
+
 3.0.4 (2015-01-06)
 ++++++++++++++++++
 
