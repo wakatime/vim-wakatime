@@ -83,7 +83,7 @@ let s:VERSION = '3.0.5'
             endif
             let cmd = [python_bin, '-W', 'ignore', s:plugin_directory . 'packages/wakatime/wakatime-cli.py']
             let cmd = cmd + ['--file', shellescape(targetFile)]
-            let cmd = cmd + ['--plugin', printf('vim-wakatime/%s', s:VERSION)]
+            let cmd = cmd + ['--plugin', shellescape(printf('vim/%d vim-wakatime/%s', v:version, s:VERSION))]
             if a:is_write
                 let cmd = cmd + ['--write']
             endif
