@@ -3,6 +3,13 @@ History
 -------
 
 
+3.0.6 (2015-01-19)
+++++++++++++++++++
+
+- prompt for api key only after first buffer window opened
+- include vim version number in plugin user agent string
+
+
 3.0.5 (2015-01-13)
 ++++++++++++++++++
 
