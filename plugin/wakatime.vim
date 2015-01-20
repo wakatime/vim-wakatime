@@ -38,15 +38,6 @@ let s:VERSION = '3.0.5'
             call delete(expand("$HOME/.wakatime.conf"))
         endif
     endif
-    
-    " Create config file if does not exist
-    if !filereadable(expand("$HOME/.wakatime.cfg"))
-        let key = input("[WakaTime] Enter your wakatime.com api key: ")
-        if key != ''
-            call writefile(['[settings]', 'debug = false', printf("api_key = %s", key), 'hidefilenames = false', 'ignore =', '    ^COMMIT_EDITMSG$', '    ^TAG_EDITMSG$'], expand("$HOME/.wakatime.cfg"))
-            echo "[WakaTime] Setup complete! Visit http://wakatime.com to view your logged time."
-        endif
-    endif
 
     " Set default action frequency in minutes
     if !exists("g:wakatime_ActionFrequency")
@@ -55,13 +46,26 @@ let s:VERSION = '3.0.5'
 
     " Globals
     let s:plugin_directory = expand("<sfile>:p:h") . '/'
-    let s:last_action = 0
-    let s:fresh = 1
+    let s:config_file_exists = 0
 
 " }}}
 
 
 " Function Definitions {{{
+
+    function! s:SetupConfigFile()
+        if !s:config_file_exists
+            " Create config file if does not exist
+            if !filereadable(expand("$HOME/.wakatime.cfg"))
+                let key = input("[WakaTime] Enter your wakatime.com api key: ")
+                if key != ''
+                    call writefile(['[settings]', 'debug = false', printf("api_key = %s", key), 'hidefilenames = false', 'ignore =', '    ^COMMIT_EDITMSG$', '    ^TAG_EDITMSG$'], expand("$HOME/.wakatime.cfg"))
+                    echo "[WakaTime] Setup complete! Visit http://wakatime.com to view your logged time."
+                endif
+            endif
+            let s:config_file_exists = 1
+        endif
+    endfunction
 
     function! s:GetCurrentFile()
         return expand("%:p")
@@ -105,7 +109,6 @@ let s:VERSION = '3.0.5'
     endfunction
     
     function! s:SetLastAction(time, last_update, targetFile)
-        let s:fresh = 0
         call writefile([substitute(printf('%d', a:time), ',', '.', ''), substitute(printf('%d', a:last_update), ',', '.', ''), a:targetFile], expand("$HOME/.wakatime.data"))
     endfunction
 
@@ -131,6 +134,7 @@ let s:VERSION = '3.0.5'
 " Event Handlers {{{
 
     function! s:normalAction()
+        call s:SetupConfigFile()
         let targetFile = s:GetCurrentFile()
         let now = localtime()
         let last = s:GetLastAction()
