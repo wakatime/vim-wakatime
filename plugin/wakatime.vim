@@ -39,9 +39,14 @@ let s:VERSION = '3.0.7'
         endif
     endif
 
-    " Set default action frequency in minutes
-    if !exists("g:wakatime_ActionFrequency")
-        let g:wakatime_ActionFrequency = 2
+    " Set default python binary location
+    if !exists("g:wakatime_PythonBinary")
+        let g:wakatime_PythonBinary = 'python'
+    endif
+
+    " Set default heartbeat frequency in minutes
+    if !exists("g:wakatime_HeartbeatFrequency")
+        let g:wakatime_HeartbeatFrequency = 2
     endif
 
     " Globals
@@ -77,9 +82,11 @@ let s:VERSION = '3.0.7'
             let targetFile = a:last[2]
         endif
         if targetFile != ''
-            let python_bin = 'python'
+            let python_bin = g:wakatime_PythonBinary
             if has('win32') || has('win64')
-                let python_bin = 'pythonw'
+                if python_bin == 'python'
+                    let python_bin = 'pythonw'
+                endif
             endif
             let cmd = [python_bin, '-W', 'ignore', s:plugin_directory . 'packages/wakatime/wakatime-cli.py']
             let cmd = cmd + ['--file', shellescape(targetFile)]
@@ -122,7 +129,7 @@ let s:VERSION = '3.0.7'
 
     function! s:EnoughTimePassed(now, last)
         let prev = a:last[0]
-        if a:now - prev > g:wakatime_ActionFrequency * 60
+        if a:now - prev > g:wakatime_HeartbeatFrequency * 60
             return 1
         endif
         return 0

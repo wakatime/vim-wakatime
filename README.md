@@ -28,3 +28,16 @@ Screen Shots
 ------------
 
 ![Project Overview](https://wakatime.com/static/img/ScreenShots/ScreenShot-2014-10-29.png)
+
+
+Configuring
+-----------
+
+To use a custom python binary:
+
+    let g:wakatime_PythonBinary = '/usr/bin/python'
+
+The default is to use `python` from your system PATH.
+
+More configs can be set in your `$HOME/.wakatime.cfg` file, which will be read
+by `wakatime-cli.py`. Learn more [here](https://github.com/wakatime/wakatime#configuring).
