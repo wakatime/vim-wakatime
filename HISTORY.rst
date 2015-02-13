@@ -3,6 +3,14 @@ History
 -------
 
 
+3.0.7 (2015-02-12)
+++++++++++++++++++
+
+- upgrade external wakatime-cli to v4.0.0
+- use requests library instead of urllib2, so api SSL cert is verified
+- new proxy config file item for https proxy support
+
+
 3.0.6 (2015-01-19)
 ++++++++++++++++++
 
