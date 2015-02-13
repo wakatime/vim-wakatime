@@ -3,6 +3,14 @@ History
 -------
 
 
+4.0.0 (2015-02-12)
+++++++++++++++++++
+
+- use requests library instead of urllib2, so api SSL cert is verified
+- new --notfile argument to support logging time without a real file
+- new --proxy argument for https proxy support
+
+
 3.0.5 (2015-01-13)
 ++++++++++++++++++
 

@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '3.0.5'
+__version__ = '4.0.0'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2014 Alan Hamlett'
@@ -31,26 +31,23 @@ try:
     import ConfigParser as configparser
 except ImportError:
     import configparser
-try:
-    from urllib2 import HTTPError, Request, urlopen
-except ImportError:
-    from urllib.error import HTTPError
-    from urllib.request import Request, urlopen
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages'))
 
 from .compat import u, open, is_py3
-from .queue import Queue
+from .offlinequeue import Queue
 from .log import setup_logging
 from .project import find_project
 from .stats import get_file_stats
 from .packages import argparse
 from .packages import simplejson as json
+from .packages import requests
+from .packages.requests.exceptions import RequestException
 try:
     from .packages import tzlocal
 except:
-    from .packages import tzlocal3
+    from .packages import tzlocal3 as tzlocal
 
 
 log = logging.getLogger('WakaTime')
@@ -143,21 +140,28 @@ def parseArguments(argv):
     parser.add_argument('--file', dest='targetFile', metavar='file',
             action=FileAction, required=True,
             help='absolute path to file for current heartbeat')
-    parser.add_argument('--time', dest='timestamp', metavar='time',
-            type=float,
-            help='optional floating-point unix epoch timestamp; '+
-                'uses current time by default')
-    parser.add_argument('--write', dest='isWrite',
-            action='store_true',
-            help='note heartbeat was triggered from writing to a file')
-    parser.add_argument('--plugin', dest='plugin',
-            help='optional text editor plugin name and version '+
-                'for User-Agent header')
-    parser.add_argument('--project', dest='project_name',
-            help='optional project name; will auto-discover by default')
     parser.add_argument('--key', dest='key',
             help='your wakatime api key; uses api_key from '+
                 '~/.wakatime.conf by default')
+    parser.add_argument('--write', dest='isWrite',
+            action='store_true',
+            help='when set, tells api this heartbeat was triggered from '+
+                 'writing to a file')
+    parser.add_argument('--plugin', dest='plugin',
+            help='optional text editor plugin name and version '+
+                 'for User-Agent header')
+    parser.add_argument('--time', dest='timestamp', metavar='time',
+            type=float,
+            help='optional floating-point unix epoch timestamp; '+
+                 'uses current time by default')
+    parser.add_argument('--notfile', dest='notfile', action='store_true',
+            help='when set, will accept any value for the file. for example, '+
+                 'a domain name or other item you want to log time towards.')
+    parser.add_argument('--proxy', dest='proxy',
+                        help='optional https proxy url; for example: '+
+                        'https://user:pass@localhost:8080')
+    parser.add_argument('--project', dest='project_name',
+            help='optional project name; will auto-discover by default')
     parser.add_argument('--disableoffline', dest='offline',
             action='store_false',
             help='disables offline time logging instead of queuing logged time')
@@ -165,7 +169,8 @@ def parseArguments(argv):
             action='store_true',
             help='obfuscate file names; will not send file names to api')
     parser.add_argument('--ignore', dest='ignore', action='append',
-            help='filename patterns to ignore; POSIX regex syntax; can be used more than once')
+            help='filename patterns to ignore; POSIX regex syntax; can be used'+
+                 ' more than once')
     parser.add_argument('--logfile', dest='logfile',
             help='defaults to ~/.wakatime.log')
     parser.add_argument('--config', dest='config',
@@ -191,6 +196,8 @@ def parseArguments(argv):
         default_key = None
         if configs.has_option('settings', 'api_key'):
             default_key = configs.get('settings', 'api_key')
+        elif configs.has_option('settings', 'apikey'):
+            default_key = configs.get('settings', 'apikey')
         if default_key:
             args.key = default_key
         else:
@@ -208,6 +215,8 @@ def parseArguments(argv):
         args.offline = configs.getboolean('settings', 'offline')
     if not args.hidefilenames and configs.has_option('settings', 'hidefilenames'):
         args.hidefilenames = configs.getboolean('settings', 'hidefilenames')
+    if not args.proxy and configs.has_option('settings', 'proxy'):
+        args.proxy = configs.get('settings', 'proxy')
     if not args.verbose and configs.has_option('settings', 'verbose'):
         args.verbose = configs.getboolean('settings', 'verbose')
     if not args.verbose and configs.has_option('settings', 'debug'):
@@ -219,19 +228,20 @@ def parseArguments(argv):
 
 
 def should_ignore(fileName, patterns):
-    try:
-        for pattern in patterns:
-            try:
-                compiled = re.compile(pattern, re.IGNORECASE)
-                if compiled.search(fileName):
-                    return pattern
-            except re.error as ex:
-                log.warning(u('Regex error ({msg}) for ignore pattern: {pattern}').format(
-                    msg=u(ex),
-                    pattern=u(pattern),
-                ))
-    except TypeError:
-        pass
+    if fileName is not None and fileName.strip() != '':
+        try:
+            for pattern in patterns:
+                try:
+                    compiled = re.compile(pattern, re.IGNORECASE)
+                    if compiled.search(fileName):
+                        return pattern
+                except re.error as ex:
+                    log.warning(u('Regex error ({msg}) for ignore pattern: {pattern}').format(
+                        msg=u(ex),
+                        pattern=u(pattern),
+                    ))
+        except TypeError:
+            pass
     return False
 
 
@@ -248,19 +258,23 @@ def get_user_agent(plugin):
             user_agent=user_agent,
             plugin=u(plugin),
         )
+    else:
+        user_agent = u('{user_agent} Unknown/0').format(
+            user_agent=user_agent,
+        )
     return user_agent
 
 
 def send_heartbeat(project=None, branch=None, stats={}, key=None, targetFile=None,
         timestamp=None, isWrite=None, plugin=None, offline=None,
-        hidefilenames=None, **kwargs):
+        hidefilenames=None, notfile=False, proxy=None, **kwargs):
     url = 'https://wakatime.com/api/v1/heartbeats'
     log.debug('Sending heartbeat to api at %s' % url)
     data = {
         'time': timestamp,
         'file': targetFile,
     }
-    if hidefilenames and targetFile is not None:
+    if hidefilenames and targetFile is not None and not notfile:
         data['file'] = data['file'].rsplit('/', 1)[-1].rsplit('\\', 1)[-1]
         if len(data['file'].strip('.').split('.', 1)) > 1:
             data['file'] = u('HIDDEN.{ext}').format(ext=u(data['file'].strip('.').rsplit('.', 1)[-1]))
@@ -282,15 +296,17 @@ def send_heartbeat(project=None, branch=None, stats={}, key=None, targetFile=Non
 
     # setup api request
     request_body = json.dumps(data)
-    request = Request(url=url, data=str.encode(request_body) if is_py3 else request_body)
-    request.add_header('User-Agent', get_user_agent(plugin))
-    request.add_header('Content-Type', 'application/json')
-    auth = u('Basic {key}').format(key=u(base64.b64encode(str.encode(key) if is_py3 else key)))
-    request.add_header('Authorization', auth)
-
-    ALWAYS_LOG_CODES = [
-        401,
-    ]
+    api_key = u(base64.b64encode(str.encode(key) if is_py3 else key))
+    auth = u('Basic {api_key}').format(api_key=api_key)
+    headers = {
+        'User-Agent': get_user_agent(plugin),
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': auth,
+    }
+    proxies = {}
+    if proxy:
+        proxies['https'] = proxy
 
     # add Olson timezone to request
     try:
@@ -298,68 +314,48 @@ def send_heartbeat(project=None, branch=None, stats={}, key=None, targetFile=Non
     except:
         tz = None
     if tz:
-        request.add_header('TimeZone', u(tz.zone))
+        headers['TimeZone'] = u(tz.zone)
 
     # log time to api
     response = None
     try:
-        response = urlopen(request)
-    except HTTPError as exc:
+        response = requests.post(url, data=request_body, headers=headers,
+                                 proxies=proxies)
+    except RequestException:
         exception_data = {
-            'response_code': exc.getcode(),
             sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
         }
         if log.isEnabledFor(logging.DEBUG):
             exception_data['traceback'] = traceback.format_exc()
         if offline:
-            if response is None or response.getcode() != 400:
-                queue = Queue()
-                queue.push(data, json.dumps(stats), plugin)
+            queue = Queue()
+            queue.push(data, json.dumps(stats), plugin)
             if log.isEnabledFor(logging.DEBUG):
                 log.warn(exception_data)
-            if response is not None and response.getcode() in ALWAYS_LOG_CODES:
-                log.error({
-                    'response_code': response.getcode(),
-                })
-        else:
-            log.error(exception_data)
-    except:
-        exception_data = {
-            sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
-        }
-        if log.isEnabledFor(logging.DEBUG):
-            exception_data['traceback'] = traceback.format_exc()
-        if offline:
-            if response is None or response.getcode() != 400:
-                queue = Queue()
-                queue.push(data, json.dumps(stats), plugin)
-            if 'unknown url type: https' in u(sys.exc_info()[1]):
-                log.error(exception_data)
-            elif log.isEnabledFor(logging.DEBUG):
-                log.warn(exception_data)
-            if response is not None and response.getcode() in ALWAYS_LOG_CODES:
-                log.error({
-                    'response_code': response.getcode(),
-                })
         else:
             log.error(exception_data)
     else:
-        if response is not None and response.getcode() == 201:
+        response_code = response.status_code if response is not None else None
+        response_content = response.text if response is not None else None
+        if response_code == 201:
             log.debug({
-                'response_code': response.getcode(),
+                'response_code': response_code,
             })
             return True
-        response_code = response.getcode() if response is not None else None
-        response_content = response.read() if response is not None else None
         if offline:
-            if response is None or response.getcode() != 400:
+            if response_code != 400:
                 queue = Queue()
                 queue.push(data, json.dumps(stats), plugin)
-            if log.isEnabledFor(logging.DEBUG):
-                log.warn({
-                    'response_code': response_code,
-                    'response_content': response_content,
-                })
+                if response_code == 401:
+                    log.error({
+                        'response_code': response_code,
+                        'response_content': response_content,
+                    })
+                elif log.isEnabledFor(logging.DEBUG):
+                    log.warn({
+                        'response_code': response_code,
+                        'response_content': response_content,
+                    })
             else:
                 log.error({
                     'response_code': response_code,
@@ -390,11 +386,13 @@ def main(argv=None):
         ))
         return 0
 
-    if os.path.isfile(args.targetFile):
+    if os.path.isfile(args.targetFile) or args.notfile:
 
-        stats = get_file_stats(args.targetFile)
+        stats = get_file_stats(args.targetFile, notfile=args.notfile)
 
-        project = find_project(args.targetFile, configs=configs)
+        project = None
+        if not args.notfile:
+            project = find_project(args.targetFile, configs=configs)
         branch = None
         project_name = args.project_name
         if project:
@@ -421,7 +419,9 @@ def main(argv=None):
                                    isWrite=heartbeat['is_write'],
                                    plugin=heartbeat['plugin'],
                                    offline=args.offline,
-                                   hidefilenames=args.hidefilenames)
+                                   hidefilenames=args.hidefilenames,
+                                   notfile=args.notfile,
+                                   proxy=args.proxy)
                 if not sent:
                     break
             return 0 # success

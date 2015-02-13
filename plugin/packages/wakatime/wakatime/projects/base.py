@@ -10,7 +10,6 @@
 """
 
 import logging
-import os
 
 
 log = logging.getLogger('WakaTime')

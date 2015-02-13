@@ -12,7 +12,6 @@
 import os
 
 from . import TokenParser
-from ..compat import u
 
 
 FILES = {

@@ -65,7 +65,7 @@ def guess_language_from_extension(extension):
         if extension in EXTENSIONS:
             return EXTENSIONS[extension]
         if extension.lower() in EXTENSIONS:
-            return mapping[EXTENSIONS.lower()]
+            return EXTENSIONS[extension.lower()]
     return None
 
 
@@ -86,13 +86,20 @@ def number_lines_in_file(file_name):
     return lines
 
 
-def get_file_stats(file_name):
-    language, lexer = guess_language(file_name)
-    parser = DependencyParser(file_name, lexer)
-    dependencies = parser.parse()
-    stats = {
-        'language': language,
-        'dependencies': dependencies,
-        'lines': number_lines_in_file(file_name),
-    }
+def get_file_stats(file_name, notfile=False):
+    if notfile:
+        stats = {
+            'language': None,
+            'dependencies': [],
+            'lines': None,
+        }
+    else:
+        language, lexer = guess_language(file_name)
+        parser = DependencyParser(file_name, lexer)
+        dependencies = parser.parse()
+        stats = {
+            'language': language,
+            'dependencies': dependencies,
+            'lines': number_lines_in_file(file_name),
+        }
     return stats

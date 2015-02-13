@@ -10,7 +10,6 @@
 """
 
 import logging
-import os
 
 from .projects.git import Git
 from .projects.mercurial import Mercurial

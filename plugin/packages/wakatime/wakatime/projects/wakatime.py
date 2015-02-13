@@ -34,7 +34,7 @@ class WakaTime(BaseProject):
                 with open(self.config, 'r', encoding='utf-8') as fh:
                     self._project_name = u(fh.readline().strip())
                     self._project_branch = u(fh.readline().strip())
-            except IOError as e:
+            except IOError:
                 log.exception("Exception:")
 
             return True

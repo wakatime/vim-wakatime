@@ -30,7 +30,6 @@ class CustomEncoder(json.JSONEncoder):
         try:
             encoded = super(CustomEncoder, self).default(obj)
         except UnicodeDecodeError:
-            encoding = sys.getfilesystemencoding()
             obj = u(obj)
             encoded = super(CustomEncoder, self).default(obj)
         return encoded
@@ -63,7 +62,7 @@ class JsonFormatter(logging.Formatter):
         return CustomEncoder().encode(data)
 
     def formatException(self, exc_info):
-        return exec_info[2].format_exc()
+        return sys.exec_info[2].format_exc()
 
 
 def set_log_level(logger, args):
