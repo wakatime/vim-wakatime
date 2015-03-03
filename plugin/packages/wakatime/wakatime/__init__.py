@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 __title__ = 'wakatime'
-__version__ = '4.0.0'
+__version__ = '4.0.1'
 __author__ = 'Alan Hamlett'
 __license__ = 'BSD'
 __copyright__ = 'Copyright 2014 Alan Hamlett'
@@ -168,9 +168,13 @@ def parseArguments(argv):
     parser.add_argument('--hidefilenames', dest='hidefilenames',
             action='store_true',
             help='obfuscate file names; will not send file names to api')
-    parser.add_argument('--ignore', dest='ignore', action='append',
-            help='filename patterns to ignore; POSIX regex syntax; can be used'+
-                 ' more than once')
+    parser.add_argument('--exclude', dest='exclude', action='append',
+            help='filename patterns to exclude from logging; POSIX regex '+
+                 'syntax; can be used more than once')
+    parser.add_argument('--include', dest='include', action='append',
+            help='filename patterns to log; when used in combination with '+
+                 '--exclude, files matching include will still be logged; '+
+                 'POSIX regex syntax; can be used more than once')
     parser.add_argument('--logfile', dest='logfile',
             help='defaults to ~/.wakatime.log')
     parser.add_argument('--config', dest='config',
@@ -202,13 +206,29 @@ def parseArguments(argv):
             args.key = default_key
         else:
             parser.error('Missing api key')
-    if not args.ignore:
-        args.ignore = []
+    if not args.exclude:
+        args.exclude = []
     if configs.has_option('settings', 'ignore'):
         try:
             for pattern in configs.get('settings', 'ignore').split("\n"):
                 if pattern.strip() != '':
-                    args.ignore.append(pattern)
+                    args.exclude.append(pattern)
+        except TypeError:
+            pass
+    if configs.has_option('settings', 'exclude'):
+        try:
+            for pattern in configs.get('settings', 'exclude').split("\n"):
+                if pattern.strip() != '':
+                    args.exclude.append(pattern)
+        except TypeError:
+            pass
+    if not args.include:
+        args.include = []
+    if configs.has_option('settings', 'include'):
+        try:
+            for pattern in configs.get('settings', 'include').split("\n"):
+                if pattern.strip() != '':
+                    args.include.append(pattern)
         except TypeError:
             pass
     if args.offline and configs.has_option('settings', 'offline'):
@@ -227,16 +247,29 @@ def parseArguments(argv):
     return args, configs
 
 
-def should_ignore(fileName, patterns):
+def should_exclude(fileName, include, exclude):
     if fileName is not None and fileName.strip() != '':
         try:
-            for pattern in patterns:
+            for pattern in include:
+                try:
+                    compiled = re.compile(pattern, re.IGNORECASE)
+                    if compiled.search(fileName):
+                        return False
+                except re.error as ex:
+                    log.warning(u('Regex error ({msg}) for include pattern: {pattern}').format(
+                        msg=u(ex),
+                        pattern=u(pattern),
+                    ))
+        except TypeError:
+            pass
+        try:
+            for pattern in exclude:
                 try:
                     compiled = re.compile(pattern, re.IGNORECASE)
                     if compiled.search(fileName):
                         return pattern
                 except re.error as ex:
-                    log.warning(u('Regex error ({msg}) for ignore pattern: {pattern}').format(
+                    log.warning(u('Regex error ({msg}) for exclude pattern: {pattern}').format(
                         msg=u(ex),
                         pattern=u(pattern),
                     ))
@@ -379,10 +412,10 @@ def main(argv=None):
 
     setup_logging(args, __version__)
 
-    ignore = should_ignore(args.targetFile, args.ignore)
-    if ignore is not False:
-        log.debug(u('File ignored because matches pattern: {pattern}').format(
-            pattern=u(ignore),
+    exclude = should_exclude(args.targetFile, args.include, args.exclude)
+    if exclude is not False:
+        log.debug(u('File not logged because matches exclude pattern: {pattern}').format(
+            pattern=u(exclude),
         ))
         return 0
 

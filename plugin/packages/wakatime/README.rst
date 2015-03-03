@@ -29,11 +29,13 @@ format. An example config file looks like::
     debug = false
     api_key = your-api-key
     hidefilenames = false
-    ignore =
+    exclude =
         ^COMMIT_EDITMSG$
         ^TAG_EDITMSG$
         ^/var/
         ^/etc/
+    include =
+        .*
     offline = true
     proxy = https://user:pass@localhost:8080
 

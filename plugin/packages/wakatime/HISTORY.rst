@@ -3,6 +3,13 @@ History
 -------
 
 
+4.0.1 (2015-03-03)
+++++++++++++++++++
+
+- upgrade requests library to v2.5.3 to fix SSL problem on CentOS
+- new options for excluding and including directories
+
+
 4.0.0 (2015-02-12)
 ++++++++++++++++++
 
