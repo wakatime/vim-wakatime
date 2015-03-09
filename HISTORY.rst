@@ -3,6 +3,13 @@ History
 -------
 
 
+3.0.8 (2015-03-09)
+++++++++++++++++++
+
+- upgrade wakatime cli to v4.0.4
+- new options for excluding and including directories
+
+
 3.0.7 (2015-02-12)
 ++++++++++++++++++
 
