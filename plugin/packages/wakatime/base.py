@@ -1,23 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime
-    ~~~~~~~~
+    wakatime.base
+    ~~~~~~~~~~~~~
 
-    Common interface to the WakaTime api.
-    http://wakatime.com
+    wakatime module entry point.
 
     :copyright: (c) 2013 Alan Hamlett.
     :license: BSD, see LICENSE for more details.
 """
 
 from __future__ import print_function
-
-__title__ = 'wakatime'
-__version__ = '4.0.1'
-__author__ = 'Alan Hamlett'
-__license__ = 'BSD'
-__copyright__ = 'Copyright 2014 Alan Hamlett'
-
 
 import base64
 import logging
@@ -35,6 +27,7 @@ except ImportError:
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages'))
 
+from .__about__ import __version__
 from .compat import u, open, is_py3
 from .offlinequeue import Queue
 from .log import setup_logging
@@ -175,6 +168,8 @@ def parseArguments(argv):
             help='filename patterns to log; when used in combination with '+
                  '--exclude, files matching include will still be logged; '+
                  'POSIX regex syntax; can be used more than once')
+    parser.add_argument('--ignore', dest='ignore', action='append',
+            help=argparse.SUPPRESS)
     parser.add_argument('--logfile', dest='logfile',
             help='defaults to ~/.wakatime.log')
     parser.add_argument('--config', dest='config',
