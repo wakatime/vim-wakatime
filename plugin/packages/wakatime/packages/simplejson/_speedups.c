@@ -168,7 +168,8 @@ typedef struct _PyEncoderObject {
     int use_decimal;
     int namedtuple_as_object;
     int tuple_as_array;
-    int bigint_as_string;
+    PyObject *max_long_size;
+    PyObject *min_long_size;
     PyObject *item_sort_key;
     PyObject *item_sort_kw;
     int for_json;
@@ -187,6 +188,8 @@ static PyMemberDef encoder_members[] = {
     {"skipkeys", T_OBJECT, offsetof(PyEncoderObject, skipkeys_bool), READONLY, "skipkeys"},
     {"key_memo", T_OBJECT, offsetof(PyEncoderObject, key_memo), READONLY, "key_memo"},
     {"item_sort_key", T_OBJECT, offsetof(PyEncoderObject, item_sort_key), READONLY, "item_sort_key"},
+    {"max_long_size", T_OBJECT, offsetof(PyEncoderObject, max_long_size), READONLY, "max_long_size"},
+    {"min_long_size", T_OBJECT, offsetof(PyEncoderObject, min_long_size), READONLY, "min_long_size"},
     {NULL}
 };
 
@@ -197,7 +200,7 @@ JSON_ParseEncoding(PyObject *encoding);
 static PyObject *
 JSON_UnicodeFromChar(JSON_UNICHR c);
 static PyObject *
-maybe_quote_bigint(PyObject *encoded, PyObject *obj);
+maybe_quote_bigint(PyEncoderObject* s, PyObject *encoded, PyObject *obj);
 static Py_ssize_t
 ascii_char_size(JSON_UNICHR c);
 static Py_ssize_t
@@ -384,35 +387,22 @@ JSON_UnicodeFromChar(JSON_UNICHR c)
 }
 
 static PyObject *
-maybe_quote_bigint(PyObject *encoded, PyObject *obj)
+maybe_quote_bigint(PyEncoderObject* s, PyObject *encoded, PyObject *obj)
 {
-    static PyObject *big_long = NULL;
-    static PyObject *small_long = NULL;
-    if (big_long == NULL) {
-        big_long = PyLong_FromLongLong(1LL << 53);
-        if (big_long == NULL) {
-            Py_DECREF(encoded);
-            return NULL;
-        }
-    }
-    if (small_long == NULL) {
-        small_long = PyLong_FromLongLong(-1LL << 53);
-        if (small_long == NULL) {
-            Py_DECREF(encoded);
-            return NULL;
-        }
-    }
-    if (PyObject_RichCompareBool(obj, big_long, Py_GE) ||
-        PyObject_RichCompareBool(obj, small_long, Py_LE)) {
+    if (s->max_long_size != Py_None && s->min_long_size != Py_None) {
+        if (PyObject_RichCompareBool(obj, s->max_long_size, Py_GE) ||
+            PyObject_RichCompareBool(obj, s->min_long_size, Py_LE)) {
 #if PY_MAJOR_VERSION >= 3
-        PyObject* quoted = PyUnicode_FromFormat("\"%U\"", encoded);
+            PyObject* quoted = PyUnicode_FromFormat("\"%U\"", encoded);
 #else
-        PyObject* quoted = PyString_FromFormat("\"%s\"",
-                                               PyString_AsString(encoded));
+            PyObject* quoted = PyString_FromFormat("\"%s\"",
+                                                   PyString_AsString(encoded));
 #endif
-        Py_DECREF(encoded);
-        encoded = quoted;
+            Py_DECREF(encoded);
+            encoded = quoted;
+        }
     }
+
     return encoded;
 }
 
@@ -1023,13 +1013,13 @@ scanstring_str(PyObject *pystr, Py_ssize_t end, char *encoding, int strict, Py_s
             /* Surrogate pair */
             if ((c & 0xfc00) == 0xd800) {
                 if (end + 6 < len && buf[next] == '\\' && buf[next+1] == 'u') {
-		    JSON_UNICHR c2 = 0;
-		    end += 6;
-		    /* Decode 4 hex digits */
-		    for (next += 2; next < end; next++) {
-			c2 <<= 4;
-			JSON_UNICHR digit = buf[next];
-			switch (digit) {
+                    JSON_UNICHR c2 = 0;
+                    end += 6;
+                    /* Decode 4 hex digits */
+                    for (next += 2; next < end; next++) {
+                        c2 <<= 4;
+                        JSON_UNICHR digit = buf[next];
+                        switch (digit) {
                         case '0': case '1': case '2': case '3': case '4':
                         case '5': case '6': case '7': case '8': case '9':
                             c2 |= (digit - '0'); break;
@@ -1042,18 +1032,18 @@ scanstring_str(PyObject *pystr, Py_ssize_t end, char *encoding, int strict, Py_s
                         default:
                             raise_errmsg(ERR_STRING_ESC4, pystr, end - 5);
                             goto bail;
-			}
-		    }
-		    if ((c2 & 0xfc00) != 0xdc00) {
-			/* not a low surrogate, rewind */
-			end -= 6;
-			next = end;
-		    }
-		    else {
-			c = 0x10000 + (((c - 0xd800) << 10) | (c2 - 0xdc00));
-		    }
-		}
-	    }
+                        }
+                    }
+                    if ((c2 & 0xfc00) != 0xdc00) {
+                        /* not a low surrogate, rewind */
+                        end -= 6;
+                        next = end;
+                    }
+                    else {
+                        c = 0x10000 + (((c - 0xd800) << 10) | (c2 - 0xdc00));
+                    }
+                }
+            }
 #endif /* PY_MAJOR_VERSION >= 3 || Py_UNICODE_WIDE */
         }
         if (c > 0x7f) {
@@ -1224,15 +1214,15 @@ scanstring_unicode(PyObject *pystr, Py_ssize_t end, int strict, Py_ssize_t *next
             /* Surrogate pair */
             if ((c & 0xfc00) == 0xd800) {
                 JSON_UNICHR c2 = 0;
-		if (end + 6 < len &&
-		    PyUnicode_READ(kind, buf, next) == '\\' &&
-		    PyUnicode_READ(kind, buf, next + 1) == 'u') {
-		    end += 6;
-		    /* Decode 4 hex digits */
-		    for (next += 2; next < end; next++) {
-			JSON_UNICHR digit = PyUnicode_READ(kind, buf, next);
-			c2 <<= 4;
-			switch (digit) {
+                if (end + 6 < len &&
+                    PyUnicode_READ(kind, buf, next) == '\\' &&
+                    PyUnicode_READ(kind, buf, next + 1) == 'u') {
+                    end += 6;
+                    /* Decode 4 hex digits */
+                    for (next += 2; next < end; next++) {
+                        JSON_UNICHR digit = PyUnicode_READ(kind, buf, next);
+                        c2 <<= 4;
+                        switch (digit) {
                         case '0': case '1': case '2': case '3': case '4':
                         case '5': case '6': case '7': case '8': case '9':
                             c2 |= (digit - '0'); break;
@@ -1245,18 +1235,18 @@ scanstring_unicode(PyObject *pystr, Py_ssize_t end, int strict, Py_ssize_t *next
                         default:
                             raise_errmsg(ERR_STRING_ESC4, pystr, end - 5);
                             goto bail;
-			}
-		    }
-		    if ((c2 & 0xfc00) != 0xdc00) {
-			/* not a low surrogate, rewind */
-			end -= 6;
-			next = end;
-		    }
-		    else {
-			c = 0x10000 + (((c - 0xd800) << 10) | (c2 - 0xdc00));
-		    }
-		}
-	    }
+                        }
+                    }
+                    if ((c2 & 0xfc00) != 0xdc00) {
+                        /* not a low surrogate, rewind */
+                        end -= 6;
+                        next = end;
+                    }
+                    else {
+                        c = 0x10000 + (((c - 0xd800) << 10) | (c2 - 0xdc00));
+                    }
+                }
+            }
 #endif
         }
         APPEND_OLD_CHUNK
@@ -1443,10 +1433,10 @@ _parse_object_str(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ssize_
 
     /* only loop if the object is non-empty */
     if (idx <= end_idx && str[idx] != '}') {
-	int trailing_delimiter = 0;
+        int trailing_delimiter = 0;
         while (idx <= end_idx) {
             PyObject *memokey;
-	    trailing_delimiter = 0;
+            trailing_delimiter = 0;
 
             /* read key */
             if (str[idx] != '"') {
@@ -1506,7 +1496,7 @@ _parse_object_str(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ssize_
             while (idx <= end_idx && IS_WHITESPACE(str[idx])) idx++;
 
             /* bail if the object is closed or we didn't get the , delimiter */
-	    did_parse = 1;
+            did_parse = 1;
             if (idx > end_idx) break;
             if (str[idx] == '}') {
                 break;
@@ -1519,20 +1509,20 @@ _parse_object_str(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ssize_
 
             /* skip whitespace after , delimiter */
             while (idx <= end_idx && IS_WHITESPACE(str[idx])) idx++;
-	    trailing_delimiter = 1;
+            trailing_delimiter = 1;
         }
-	if (trailing_delimiter) {
-	    raise_errmsg(ERR_OBJECT_PROPERTY, pystr, idx);
-	    goto bail;
-	}
+        if (trailing_delimiter) {
+            raise_errmsg(ERR_OBJECT_PROPERTY, pystr, idx);
+            goto bail;
+        }
     }
     /* verify that idx < end_idx, str[idx] should be '}' */
     if (idx > end_idx || str[idx] != '}') {
-	if (did_parse) {
-	    raise_errmsg(ERR_OBJECT_DELIMITER, pystr, idx);
-	} else {
-	    raise_errmsg(ERR_OBJECT_PROPERTY_FIRST, pystr, idx);
-	}
+        if (did_parse) {
+            raise_errmsg(ERR_OBJECT_DELIMITER, pystr, idx);
+        } else {
+            raise_errmsg(ERR_OBJECT_PROPERTY_FIRST, pystr, idx);
+        }
         goto bail;
     }
 
@@ -1605,10 +1595,10 @@ _parse_object_unicode(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ss
 
     /* only loop if the object is non-empty */
     if (idx <= end_idx && PyUnicode_READ(kind, str, idx) != '}') {
-	int trailing_delimiter = 0;
+        int trailing_delimiter = 0;
         while (idx <= end_idx) {
             PyObject *memokey;
-	    trailing_delimiter = 0;
+            trailing_delimiter = 0;
 
             /* read key */
             if (PyUnicode_READ(kind, str, idx) != '"') {
@@ -1670,7 +1660,7 @@ _parse_object_unicode(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ss
 
             /* bail if the object is closed or we didn't get the ,
                delimiter */
-	    did_parse = 1;
+            did_parse = 1;
             if (idx > end_idx) break;
             if (PyUnicode_READ(kind, str, idx) == '}') {
                 break;
@@ -1683,21 +1673,21 @@ _parse_object_unicode(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ss
 
             /* skip whitespace after , delimiter */
             while (idx <= end_idx && IS_WHITESPACE(PyUnicode_READ(kind, str, idx))) idx++;
-	    trailing_delimiter = 1;
+            trailing_delimiter = 1;
         }
-	if (trailing_delimiter) {
-	    raise_errmsg(ERR_OBJECT_PROPERTY, pystr, idx);
-	    goto bail;
-	}
+        if (trailing_delimiter) {
+            raise_errmsg(ERR_OBJECT_PROPERTY, pystr, idx);
+            goto bail;
+        }
     }
 
     /* verify that idx < end_idx, str[idx] should be '}' */
     if (idx > end_idx || PyUnicode_READ(kind, str, idx) != '}') {
-	if (did_parse) {
-	    raise_errmsg(ERR_OBJECT_DELIMITER, pystr, idx);
-	} else {
-	    raise_errmsg(ERR_OBJECT_PROPERTY_FIRST, pystr, idx);
-	}
+        if (did_parse) {
+            raise_errmsg(ERR_OBJECT_DELIMITER, pystr, idx);
+        } else {
+            raise_errmsg(ERR_OBJECT_PROPERTY_FIRST, pystr, idx);
+        }
         goto bail;
     }
 
@@ -1754,9 +1744,9 @@ _parse_array_str(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ssize_t
 
     /* only loop if the array is non-empty */
     if (idx <= end_idx && str[idx] != ']') {
-	int trailing_delimiter = 0;
+        int trailing_delimiter = 0;
         while (idx <= end_idx) {
-	    trailing_delimiter = 0;
+            trailing_delimiter = 0;
             /* read any JSON term and de-tuplefy the (rval, idx) */
             val = scan_once_str(s, pystr, idx, &next_idx);
             if (val == NULL) {
@@ -1785,21 +1775,21 @@ _parse_array_str(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ssize_t
 
             /* skip whitespace after , */
             while (idx <= end_idx && IS_WHITESPACE(str[idx])) idx++;
-	    trailing_delimiter = 1;
+            trailing_delimiter = 1;
         }
-	if (trailing_delimiter) {
-	    raise_errmsg(ERR_EXPECTING_VALUE, pystr, idx);
-	    goto bail;
-	}
+        if (trailing_delimiter) {
+            raise_errmsg(ERR_EXPECTING_VALUE, pystr, idx);
+            goto bail;
+        }
     }
 
     /* verify that idx < end_idx, str[idx] should be ']' */
     if (idx > end_idx || str[idx] != ']') {
-	if (PyList_GET_SIZE(rval)) {
-	    raise_errmsg(ERR_ARRAY_DELIMITER, pystr, idx);
-	} else {
-	    raise_errmsg(ERR_ARRAY_VALUE_FIRST, pystr, idx);
-	}
+        if (PyList_GET_SIZE(rval)) {
+            raise_errmsg(ERR_ARRAY_DELIMITER, pystr, idx);
+        } else {
+            raise_errmsg(ERR_ARRAY_VALUE_FIRST, pystr, idx);
+        }
         goto bail;
     }
     *next_idx_ptr = idx + 1;
@@ -1835,9 +1825,9 @@ _parse_array_unicode(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ssi
 
     /* only loop if the array is non-empty */
     if (idx <= end_idx && PyUnicode_READ(kind, str, idx) != ']') {
-	int trailing_delimiter = 0;
+        int trailing_delimiter = 0;
         while (idx <= end_idx) {
-	    trailing_delimiter = 0;
+            trailing_delimiter = 0;
             /* read any JSON term  */
             val = scan_once_unicode(s, pystr, idx, &next_idx);
             if (val == NULL) {
@@ -1866,21 +1856,21 @@ _parse_array_unicode(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ssi
 
             /* skip whitespace after , */
             while (idx <= end_idx && IS_WHITESPACE(PyUnicode_READ(kind, str, idx))) idx++;
-	    trailing_delimiter = 1;
+            trailing_delimiter = 1;
         }
-	if (trailing_delimiter) {
-	    raise_errmsg(ERR_EXPECTING_VALUE, pystr, idx);
-	    goto bail;
-	}
+        if (trailing_delimiter) {
+            raise_errmsg(ERR_EXPECTING_VALUE, pystr, idx);
+            goto bail;
+        }
     }
 
     /* verify that idx < end_idx, str[idx] should be ']' */
     if (idx > end_idx || PyUnicode_READ(kind, str, idx) != ']') {
-	if (PyList_GET_SIZE(rval)) {
-	    raise_errmsg(ERR_ARRAY_DELIMITER, pystr, idx);
-	} else {
-	    raise_errmsg(ERR_ARRAY_VALUE_FIRST, pystr, idx);
-	}
+        if (PyList_GET_SIZE(rval)) {
+            raise_errmsg(ERR_ARRAY_DELIMITER, pystr, idx);
+        } else {
+            raise_errmsg(ERR_ARRAY_VALUE_FIRST, pystr, idx);
+        }
         goto bail;
     }
     *next_idx_ptr = idx + 1;
@@ -2150,8 +2140,8 @@ scan_once_str(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ssize_t *n
     Py_ssize_t length = PyString_GET_SIZE(pystr);
     PyObject *rval = NULL;
     int fallthrough = 0;
-    if (idx >= length) {
-	raise_errmsg(ERR_EXPECTING_VALUE, pystr, idx);
+    if (idx < 0 || idx >= length) {
+        raise_errmsg(ERR_EXPECTING_VALUE, pystr, idx);
         return NULL;
     }
     switch (str[idx]) {
@@ -2258,8 +2248,8 @@ scan_once_unicode(PyScannerObject *s, PyObject *pystr, Py_ssize_t idx, Py_ssize_
     Py_ssize_t length = PyUnicode_GetLength(pystr);
     PyObject *rval = NULL;
     int fallthrough = 0;
-    if (idx >= length) {
-	raise_errmsg(ERR_EXPECTING_VALUE, pystr, idx);
+    if (idx < 0 || idx >= length) {
+        raise_errmsg(ERR_EXPECTING_VALUE, pystr, idx);
         return NULL;
     }
     switch (PyUnicode_READ(kind, str, idx)) {
@@ -2568,6 +2558,8 @@ encoder_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         s->item_sort_key = NULL;
         s->item_sort_kw = NULL;
         s->Decimal = NULL;
+        s->max_long_size = NULL;
+        s->min_long_size = NULL;
     }
     return (PyObject *)s;
 }
@@ -2576,13 +2568,33 @@ static int
 encoder_init(PyObject *self, PyObject *args, PyObject *kwds)
 {
     /* initialize Encoder object */
-    static char *kwlist[] = {"markers", "default", "encoder", "indent", "key_separator", "item_separator", "sort_keys", "skipkeys", "allow_nan", "key_memo", "use_decimal", "namedtuple_as_object", "tuple_as_array", "bigint_as_string", "item_sort_key", "encoding", "for_json", "ignore_nan", "Decimal", NULL};
+    static char *kwlist[] = {
+        "markers",
+        "default",
+        "encoder",
+        "indent",
+        "key_separator",
+        "item_separator",
+        "sort_keys",
+        "skipkeys",
+        "allow_nan",
+        "key_memo",
+        "use_decimal",
+        "namedtuple_as_object",
+        "tuple_as_array",
+        "int_as_string_bitcount",
+        "item_sort_key",
+        "encoding",
+        "for_json",
+        "ignore_nan",
+        "Decimal",
+        NULL};
 
     PyEncoderObject *s;
     PyObject *markers, *defaultfn, *encoder, *indent, *key_separator;
     PyObject *item_separator, *sort_keys, *skipkeys, *allow_nan, *key_memo;
     PyObject *use_decimal, *namedtuple_as_object, *tuple_as_array;
-    PyObject *bigint_as_string, *item_sort_key, *encoding, *for_json;
+    PyObject *int_as_string_bitcount, *item_sort_key, *encoding, *for_json;
     PyObject *ignore_nan, *Decimal;
 
     assert(PyEncoder_Check(self));
@@ -2591,21 +2603,30 @@ encoder_init(PyObject *self, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "OOOOOOOOOOOOOOOOOOO:make_encoder", kwlist,
         &markers, &defaultfn, &encoder, &indent, &key_separator, &item_separator,
         &sort_keys, &skipkeys, &allow_nan, &key_memo, &use_decimal,
-        &namedtuple_as_object, &tuple_as_array, &bigint_as_string,
-        &item_sort_key, &encoding, &for_json, &ignore_nan, &Decimal))
+        &namedtuple_as_object, &tuple_as_array,
+        &int_as_string_bitcount, &item_sort_key, &encoding, &for_json,
+        &ignore_nan, &Decimal))
         return -1;
 
+    Py_INCREF(markers);
     s->markers = markers;
+    Py_INCREF(defaultfn);
     s->defaultfn = defaultfn;
+    Py_INCREF(encoder);
     s->encoder = encoder;
     s->encoding = JSON_ParseEncoding(encoding);
     if (s->encoding == NULL)
         return -1;
+    Py_INCREF(indent);
     s->indent = indent;
+    Py_INCREF(key_separator);
     s->key_separator = key_separator;
+    Py_INCREF(item_separator);
     s->item_separator = item_separator;
+    Py_INCREF(skipkeys);
     s->skipkeys_bool = skipkeys;
     s->skipkeys = PyObject_IsTrue(skipkeys);
+    Py_INCREF(key_memo);
     s->key_memo = key_memo;
     s->fast_encode = (PyCFunction_Check(s->encoder) && PyCFunction_GetFunction(s->encoder) == (PyCFunction)py_encode_basestring_ascii);
     s->allow_or_ignore_nan = (
@@ -2614,10 +2635,38 @@ encoder_init(PyObject *self, PyObject *args, PyObject *kwds)
     s->use_decimal = PyObject_IsTrue(use_decimal);
     s->namedtuple_as_object = PyObject_IsTrue(namedtuple_as_object);
     s->tuple_as_array = PyObject_IsTrue(tuple_as_array);
-    s->bigint_as_string = PyObject_IsTrue(bigint_as_string);
+    if (PyInt_Check(int_as_string_bitcount) || PyLong_Check(int_as_string_bitcount)) {
+        static const unsigned int long_long_bitsize = SIZEOF_LONG_LONG * 8;
+        int int_as_string_bitcount_val = PyLong_AsLong(int_as_string_bitcount);
+        if (int_as_string_bitcount_val > 0 && int_as_string_bitcount_val < long_long_bitsize) {
+            s->max_long_size = PyLong_FromUnsignedLongLong(1ULL << int_as_string_bitcount_val);
+            s->min_long_size = PyLong_FromLongLong(-1LL << int_as_string_bitcount_val);
+            if (s->min_long_size == NULL || s->max_long_size == NULL) {
+                return -1;
+            }
+        }
+        else {
+            PyErr_Format(PyExc_TypeError,
+                         "int_as_string_bitcount (%d) must be greater than 0 and less than the number of bits of a `long long` type (%u bits)",
+                         int_as_string_bitcount_val, long_long_bitsize);
+            return -1;
+        }
+    }
+    else if (int_as_string_bitcount == Py_None) {
+        Py_INCREF(Py_None);
+        s->max_long_size = Py_None;
+        Py_INCREF(Py_None);
+        s->min_long_size = Py_None;
+    }
+    else {
+        PyErr_SetString(PyExc_TypeError, "int_as_string_bitcount must be None or an integer");
+        return -1;
+    }
     if (item_sort_key != Py_None) {
-        if (!PyCallable_Check(item_sort_key))
+        if (!PyCallable_Check(item_sort_key)) {
             PyErr_SetString(PyExc_TypeError, "item_sort_key must be None or callable");
+            return -1;
+        }
     }
     else if (PyObject_IsTrue(sort_keys)) {
         static PyObject *itemgetter0 = NULL;
@@ -2643,22 +2692,14 @@ encoder_init(PyObject *self, PyObject *args, PyObject *kwds)
         if (PyDict_SetItemString(s->item_sort_kw, "key", item_sort_key))
             return -1;
     }
+    Py_INCREF(sort_keys);
     s->sort_keys = sort_keys;
+    Py_INCREF(item_sort_key);
     s->item_sort_key = item_sort_key;
+    Py_INCREF(Decimal);
     s->Decimal = Decimal;
     s->for_json = PyObject_IsTrue(for_json);
 
-    Py_INCREF(s->markers);
-    Py_INCREF(s->defaultfn);
-    Py_INCREF(s->encoder);
-    Py_INCREF(s->indent);
-    Py_INCREF(s->key_separator);
-    Py_INCREF(s->item_separator);
-    Py_INCREF(s->key_memo);
-    Py_INCREF(s->skipkeys_bool);
-    Py_INCREF(s->sort_keys);
-    Py_INCREF(s->item_sort_key);
-    Py_INCREF(s->Decimal);
     return 0;
 }
 
@@ -2801,11 +2842,9 @@ encoder_listencode_obj(PyEncoderObject *s, JSON_Accu *rval, PyObject *obj, Py_ss
         else if (PyInt_Check(obj) || PyLong_Check(obj)) {
             PyObject *encoded = PyObject_Str(obj);
             if (encoded != NULL) {
-                if (s->bigint_as_string) {
-                    encoded = maybe_quote_bigint(encoded, obj);
-                    if (encoded == NULL)
-                        break;
-                }
+                encoded = maybe_quote_bigint(s, encoded, obj);
+                if (encoded == NULL)
+                    break;
                 rv = _steal_accumulate(rval, encoded);
             }
         }
@@ -3031,6 +3070,7 @@ encoder_listencode_dict(PyEncoderObject *s, JSON_Accu *rval, PyObject *dct, Py_s
 bail:
     Py_XDECREF(encoded);
     Py_XDECREF(items);
+    Py_XDECREF(item);
     Py_XDECREF(iter);
     Py_XDECREF(kstr);
     Py_XDECREF(ident);
@@ -3157,6 +3197,8 @@ encoder_traverse(PyObject *self, visitproc visit, void *arg)
     Py_VISIT(s->sort_keys);
     Py_VISIT(s->item_sort_kw);
     Py_VISIT(s->item_sort_key);
+    Py_VISIT(s->max_long_size);
+    Py_VISIT(s->min_long_size);
     Py_VISIT(s->Decimal);
     return 0;
 }
@@ -3180,6 +3222,8 @@ encoder_clear(PyObject *self)
     Py_CLEAR(s->sort_keys);
     Py_CLEAR(s->item_sort_kw);
     Py_CLEAR(s->item_sort_key);
+    Py_CLEAR(s->max_long_size);
+    Py_CLEAR(s->min_long_size);
     Py_CLEAR(s->Decimal);
     return 0;
 }
