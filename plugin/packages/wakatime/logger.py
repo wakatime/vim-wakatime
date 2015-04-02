@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.log
-    ~~~~~~~~~~~~
+    wakatime.logger
+    ~~~~~~~~~~~~~~~
 
     Provides the configured logger for writing JSON to the log file.
 
