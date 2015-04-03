@@ -73,6 +73,7 @@ def set_log_level(logger, args):
 
 
 def setup_logging(args, version):
+    logging.captureWarnings(True)
     logger = logging.getLogger('WakaTime')
     set_log_level(logger, args)
     if len(logger.handlers) > 0:

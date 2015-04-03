@@ -26,9 +26,6 @@ except ImportError:
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages'))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'requests', 'packages'))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'requests', 'packages', 'urllib3'))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'requests', 'packages', 'urllib3', 'util'))
 
 from .__about__ import __version__
 from .compat import u, open, is_py3
@@ -157,7 +154,7 @@ def parseArguments(argv):
                         help='optional https proxy url; for example: '+
                         'https://user:pass@localhost:8080')
     parser.add_argument('--project', dest='project_name',
-            help='optional project name; will auto-discover by default')
+            help='optional project name; auto-discovered project takes priority')
     parser.add_argument('--disableoffline', dest='offline',
             action='store_false',
             help='disables offline time logging instead of queuing logged time')
