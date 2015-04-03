@@ -3,6 +3,15 @@ History
 -------
 
 
+3.0.9 (2015-04-02)
+++++++++++++++++++
+
+- upgrade wakatime cli to v4.0.7
+- update requests package to v2.0.6
+- update simplejson to v3.6.5
+- capture warnings in log file
+
+
 3.0.8 (2015-03-09)
 ++++++++++++++++++
 
