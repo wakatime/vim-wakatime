@@ -39,5 +39,4 @@ To use a custom python binary:
 
 The default is to use `python` from your system PATH.
 
-More configs can be set in your `$HOME/.wakatime.cfg` file, which will be read
-by `wakatime-cli.py`. Learn more [here](https://github.com/wakatime/wakatime#configuring).
+WakaTime plugins share a common config file `.wakatime.cfg` located in your user home directory with [these options](https://github.com/wakatime/wakatime#configuring) available.
