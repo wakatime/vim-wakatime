@@ -101,4 +101,5 @@ def setup_logging(args, version):
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    logging.getLogger('py.warnings').addHandler(handler)
     return logger
