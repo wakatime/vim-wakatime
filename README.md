@@ -40,3 +40,8 @@ To use a custom python binary:
 The default is to use `python` from your system PATH.
 
 WakaTime plugins share a common config file `.wakatime.cfg` located in your user home directory with [these options](https://github.com/wakatime/wakatime#configuring) available.
+
+Uninstalling
+------------
+
+Remove `Bundle 'wakatime/vim-wakatime'` from your `.vimrc` file, then delete your `~/.wakatime.cfg` config file.
