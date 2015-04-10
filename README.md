@@ -17,7 +17,7 @@ Heads Up! WakaTime depends on [Python](http://www.python.org/getit/) being insta
   or using [Pathogen](https://github.com/tpope/vim-pathogen):<br />
   `cd ~/.vim/bundle && git clone git://github.com/wakatime/vim-wakatime.git`
 
-3. Enter your [api key](https://wakatime.com/settings#apikey) from [https://wakatime.com/settings#apikey](https://wakatime.com/settings#apikey), then press `enter`.
+3. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`.
 
 4. Use Vim like you normally do and your time will be tracked for you automatically.
 
