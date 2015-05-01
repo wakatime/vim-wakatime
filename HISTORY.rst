@@ -3,6 +3,13 @@ History
 -------
 
 
+4.0.0 (2015-05-01)
+++++++++++++++++++
+
+- upgrade wakatime cli to v4.0.8
+- check for api_key in config file instead of just checking if file exists
+
+
 3.0.9 (2015-04-02)
 ++++++++++++++++++
 
