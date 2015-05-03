@@ -74,6 +74,22 @@ let s:VERSION = '4.0.0'
                 if key != ''
                     call writefile(['[settings]', 'debug = false', printf("api_key = %s", key), 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    TAG_EDITMSG$'], s:config_file)
                 endif
+
+            " Make sure config file has api_key
+            else
+                let found_api_key = 0
+                let lines = readfile(s:config_file)
+                for line in lines
+                    let group = split(line, '=')
+                    if len(group) == 2 && s:StripWhitespace(group[0]) == 'api_key' && s:StripWhitespace(group[1]) != ''
+                        let found_api_key = 1
+                    endif
+                endfor
+                if !found_api_key
+                    let key = input("[WakaTime] Enter your wakatime.com api key: ")
+                    let lines = lines + [join(['api_key', key], '=')]
+                    call writefile(lines, s:config_file)
+                endif
             endif
 
             let s:config_file_already_setup = 1
