@@ -163,8 +163,10 @@ let s:VERSION = '4.0.0'
         let targetFile = s:GetCurrentFile()
         let now = localtime()
         let last = s:GetLastHeartbeat()
-        if a:is_write || s:EnoughTimePassed(now, last) || targetFile != last[2]
-            call s:Api(targetFile, now, a:is_write, last)
+        if targetFile !~ "-MiniBufExplorer-" && targetFile !~ "--NO NAME--" && targetFile != ""
+            if a:is_write || s:EnoughTimePassed(now, last) || targetFile != last[2]
+                call s:Api(targetFile, now, a:is_write, last)
+            endif
         endif
     endfunction
 
