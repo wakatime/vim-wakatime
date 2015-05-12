@@ -86,12 +86,14 @@ def number_lines_in_file(file_name):
     return lines
 
 
-def get_file_stats(file_name, notfile=False):
+def get_file_stats(file_name, notfile=False, lineno=None, cursorpos=None):
     if notfile:
         stats = {
             'language': None,
             'dependencies': [],
             'lines': None,
+            'lineno': lineno,
+            'cursorpos': cursorpos,
         }
     else:
         language, lexer = guess_language(file_name)
@@ -101,5 +103,7 @@ def get_file_stats(file_name, notfile=False):
             'language': language,
             'dependencies': dependencies,
             'lines': number_lines_in_file(file_name),
+            'lineno': lineno,
+            'cursorpos': cursorpos,
         }
     return stats

@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
+import inspect
 import logging
 import os
 import sys
@@ -47,14 +48,19 @@ class JsonFormatter(logging.Formatter):
     def format(self, record):
         data = OrderedDict([
             ('now', self.formatTime(record, self.datefmt)),
-            ('version', self.version),
-            ('plugin', self.plugin),
-            ('time', self.timestamp),
-            ('isWrite', self.isWrite),
-            ('file', self.targetFile),
-            ('level', record.levelname),
-            ('message', record.msg),
         ])
+        try:
+            data['package'] = inspect.stack()[9][0].f_globals.get('__package__')
+            data['lineno'] = inspect.stack()[9][2]
+        except:
+            pass
+        data['version'] = self.version
+        data['plugin'] = self.plugin
+        data['time'] = self.timestamp
+        data['isWrite'] = self.isWrite
+        data['file'] = self.targetFile
+        data['level'] = record.levelname
+        data['message'] = record.msg
         if not self.plugin:
             del data['plugin']
         if not self.isWrite:

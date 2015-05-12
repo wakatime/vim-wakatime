@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.queue
-    ~~~~~~~~~~~~~~
+    wakatime.offlinequeue
+    ~~~~~~~~~~~~~~~~~~~~~
 
-    Queue for offline time logging.
-    http://wakatime.com
+    Queue for saving heartbeats while offline.
 
     :copyright: (c) 2014 Alan Hamlett.
     :license: BSD, see LICENSE for more details.
