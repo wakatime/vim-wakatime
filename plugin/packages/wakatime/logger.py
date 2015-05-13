@@ -9,7 +9,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import inspect
 import logging
 import os
 import sys
@@ -38,33 +37,32 @@ class CustomEncoder(json.JSONEncoder):
 
 class JsonFormatter(logging.Formatter):
 
-    def setup(self, timestamp, isWrite, targetFile, version, plugin):
+    def setup(self, timestamp, isWrite, targetFile, version, plugin, verbose):
         self.timestamp = timestamp
         self.isWrite = isWrite
         self.targetFile = targetFile
         self.version = version
         self.plugin = plugin
+        self.verbose = verbose
 
     def format(self, record):
         data = OrderedDict([
             ('now', self.formatTime(record, self.datefmt)),
         ])
-        try:
-            data['package'] = inspect.stack()[9][0].f_globals.get('__package__')
-            data['lineno'] = inspect.stack()[9][2]
-        except:
-            pass
         data['version'] = self.version
         data['plugin'] = self.plugin
         data['time'] = self.timestamp
-        data['isWrite'] = self.isWrite
-        data['file'] = self.targetFile
+        if self.verbose:
+            data['caller'] = record.pathname
+            data['lineno'] = record.lineno
+            data['isWrite'] = self.isWrite
+            data['file'] = self.targetFile
+            if not self.isWrite:
+                del data['isWrite']
         data['level'] = record.levelname
         data['message'] = record.msg
         if not self.plugin:
             del data['plugin']
-        if not self.isWrite:
-            del data['isWrite']
         return CustomEncoder().encode(data)
 
     def formatException(self, exc_info):
@@ -90,6 +88,7 @@ def setup_logging(args, version):
             targetFile=args.targetFile,
             version=version,
             plugin=args.plugin,
+            verbose=args.verbose,
         )
         logger.handlers[0].setFormatter(formatter)
         return logger
@@ -104,6 +103,7 @@ def setup_logging(args, version):
         targetFile=args.targetFile,
         version=version,
         plugin=args.plugin,
+        verbose=args.verbose,
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
