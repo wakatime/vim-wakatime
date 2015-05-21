@@ -28,7 +28,7 @@ let s:VERSION = '4.0.0'
     set cpo&vim
 
     " Globals
-    let s:plugin_directory = expand("<sfile>:p:h") . '/'
+    let s:cli_location = expand("<sfile>:p:h") . '/packages/wakatime/cli.py'
     let s:config_file = expand("$HOME/.wakatime.cfg")
     let s:config_file_already_setup = 0
 
@@ -114,7 +114,7 @@ let s:VERSION = '4.0.0'
                     let python_bin = 'pythonw'
                 endif
             endif
-            let cmd = [python_bin, '-W', 'ignore', '"' . s:plugin_directory . 'packages/wakatime/cli.py"']
+            let cmd = [python_bin, '-W', 'ignore', '"' . s:cli_location . '"']
             let cmd = cmd + ['--file', shellescape(targetFile)]
             let cmd = cmd + ['--plugin', shellescape(printf('vim/%d vim-wakatime/%s', v:version, s:VERSION))]
             if a:is_write
