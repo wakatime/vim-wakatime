@@ -3,6 +3,23 @@ History
 -------
 
 
+4.0.1 (2015-05-31)
+++++++++++++++++++
+
+- upgrade wakatime cli to v4.0.14
+- make sure config file has api_key
+- only display setup complete message first time setting up cfg file
+- don't log time towards git temporary files
+- prevent slowness in quickfix window to fix #24
+- reuse SSL connection across multiple processes for improved performance
+- correctly display caller and lineno in log file when debug is true
+- project passed with --project argument will always be used
+- new --alternate-project argument
+- fix bug with auto detecting project name
+- correctly log message from py.warnings module
+- handle plugin_directory containing spaces
+
+
 4.0.0 (2015-05-01)
 ++++++++++++++++++
 
