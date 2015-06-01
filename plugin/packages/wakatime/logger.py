@@ -37,15 +37,17 @@ class CustomEncoder(json.JSONEncoder):
 
 class JsonFormatter(logging.Formatter):
 
-    def setup(self, timestamp, isWrite, targetFile, version, plugin, verbose):
+    def setup(self, timestamp, isWrite, targetFile, version, plugin, verbose,
+              warnings=False):
         self.timestamp = timestamp
         self.isWrite = isWrite
         self.targetFile = targetFile
         self.version = version
         self.plugin = plugin
         self.verbose = verbose
+        self.warnings = warnings
 
-    def format(self, record):
+    def format(self, record, *args):
         data = OrderedDict([
             ('now', self.formatTime(record, self.datefmt)),
         ])
@@ -60,7 +62,7 @@ class JsonFormatter(logging.Formatter):
             if not self.isWrite:
                 del data['isWrite']
         data['level'] = record.levelname
-        data['message'] = record.msg
+        data['message'] = record.getMessage() if self.warnings else record.msg
         if not self.plugin:
             del data['plugin']
         return CustomEncoder().encode(data)
@@ -77,7 +79,6 @@ def set_log_level(logger, args):
 
 
 def setup_logging(args, version):
-    logging.captureWarnings(True)
     logger = logging.getLogger('WakaTime')
     set_log_level(logger, args)
     if len(logger.handlers) > 0:
@@ -107,5 +108,23 @@ def setup_logging(args, version):
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    logging.getLogger('py.warnings').addHandler(handler)
+
+    warnings_formatter = JsonFormatter(datefmt='%Y/%m/%d %H:%M:%S %z')
+    warnings_formatter.setup(
+        timestamp=args.timestamp,
+        isWrite=args.isWrite,
+        targetFile=args.targetFile,
+        version=version,
+        plugin=args.plugin,
+        verbose=args.verbose,
+        warnings=True,
+    )
+    warnings_handler = logging.FileHandler(os.path.expanduser(logfile))
+    warnings_handler.setFormatter(warnings_formatter)
+    logging.getLogger('py.warnings').addHandler(warnings_handler)
+    try:
+        logging.captureWarnings(True)
+    except AttributeError:
+        pass  # Python >= 2.7 is needed to capture warnings
+
     return logger
