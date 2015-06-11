@@ -314,14 +314,15 @@ def send_heartbeat(project=None, branch=None, stats={}, key=None, targetFile=Non
     log.debug('Sending heartbeat to api at %s' % api_url)
     data = {
         'time': timestamp,
-        'file': targetFile,
+        'entity': targetFile,
+        'type': 'file',
     }
     if hidefilenames and targetFile is not None and not notfile:
-        data['file'] = data['file'].rsplit('/', 1)[-1].rsplit('\\', 1)[-1]
-        if len(data['file'].strip('.').split('.', 1)) > 1:
-            data['file'] = u('HIDDEN.{ext}').format(ext=u(data['file'].strip('.').rsplit('.', 1)[-1]))
+        data['entity'] = data['entity'].rsplit('/', 1)[-1].rsplit('\\', 1)[-1]
+        if len(data['entity'].strip('.').split('.', 1)) > 1:
+            data['entity'] = u('HIDDEN.{ext}').format(ext=u(data['entity'].strip('.').rsplit('.', 1)[-1]))
         else:
-            data['file'] = u('HIDDEN')
+            data['entity'] = u('HIDDEN')
     if stats.get('lines'):
         data['lines'] = stats['lines']
     if stats.get('language'):
