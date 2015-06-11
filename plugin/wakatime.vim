@@ -102,6 +102,18 @@ let s:VERSION = '4.0.1'
         return expand("%:p")
     endfunction
 
+    function! s:EscapeArg(arg)
+        return substitute(shellescape(a:arg), '!', '\\!', '')
+    endfunction
+
+    function! s:JoinArgs(args)
+        let safeArgs = []
+        for arg in a:args
+            let safeArgs = safeArgs + [s:EscapeArg(arg)]
+        endfor
+        return join(safeArgs, ' ')
+    endfunction
+
     function! s:Api(targetFile, time, is_write, last)
         let targetFile = a:targetFile
         if targetFile == ''
@@ -114,17 +126,17 @@ let s:VERSION = '4.0.1'
                     let python_bin = 'pythonw'
                 endif
             endif
-            let cmd = [python_bin, '-W', 'ignore', '"' . s:cli_location . '"']
-            let cmd = cmd + ['--file', shellescape(targetFile)]
-            let cmd = cmd + ['--plugin', shellescape(printf('vim/%d vim-wakatime/%s', v:version, s:VERSION))]
+            let cmd = [python_bin, '-W', 'ignore', s:cli_location]
+            let cmd = cmd + ['--file', targetFile]
+            let cmd = cmd + ['--plugin', printf('vim/%d vim-wakatime/%s', v:version, s:VERSION)]
             if a:is_write
                 let cmd = cmd + ['--write']
             endif
             "let cmd = cmd + ['--verbose']
             if has('win32') || has('win64')
-                exec 'silent !start /min cmd /c "' . join(cmd, ' ') . '"'
+                exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
             else
-                exec 'silent !' . join(cmd, ' ') . ' &'
+                exec 'silent !' . s:JoinArgs(cmd) . ' &'
             endif
             call s:SetLastHeartbeat(a:time, a:time, targetFile)
         endif
