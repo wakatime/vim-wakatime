@@ -22,6 +22,7 @@ else:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'pygments_py3'))
 from pygments.lexers import get_lexer_by_name, guess_lexer_for_filename
 from pygments.modeline import get_filetype_from_buffer
+from pygments.util import ClassNotFound
 
 
 log = logging.getLogger('WakaTime')
@@ -92,30 +93,62 @@ def smart_guess_lexer(file_name):
 
     text = get_file_contents(file_name)
 
-    try:
-        guess_1 = guess_lexer_for_filename(file_name, text)
-    except:
-        guess_1 = None
-    try:
-        guess_2 = guess_lexer_using_modeline(text)
-    except:
-        guess_2 = None
-    try:
-        accuracy_1 = guess_1.analyse_text(text)
-    except:
-        accuracy_1 = None
-    try:
-        accuracy_2 = guess_2.analyse_text(text)
-    except:
-        accuracy_2 = None
+    lexer_1, accuracy_1 = guess_lexer_using_filename(file_name, text)
+    lexer_2, accuracy_2 = guess_lexer_using_modeline(text)
 
-    if accuracy_1:
-        lexer = guess_1
-    if (accuracy_2 and
+    if lexer_1:
+        lexer = lexer_1
+    if (lexer_2 and accuracy_2 and
         (not accuracy_1 or accuracy_2 > accuracy_1)):
-        lexer = guess_2
+        lexer = lexer_2
 
     return lexer
+
+
+def guess_lexer_using_filename(file_name, text):
+    """Guess lexer for given text, limited to lexers for this file's extension.
+
+    Returns a tuple of (lexer, accuracy).
+    """
+
+    lexer, accuracy = None, None
+
+    try:
+        lexer = guess_lexer_for_filename(file_name, text)
+    except:
+        pass
+
+    if lexer is not None:
+        try:
+            accuracy = lexer.analyse_text(text)
+        except:
+            pass
+
+    return lexer, accuracy
+
+
+def guess_lexer_using_modeline(text):
+    """Guess lexer for given text using Vim modeline.
+
+    Returns a tuple of (lexer, accuracy).
+    """
+
+    lexer, accuracy = None, None
+
+    file_type = get_filetype_from_buffer(text)
+    if file_type is not None:
+        try:
+            lexer = get_lexer_by_name(file_type)
+        except ClassNotFound:
+            pass
+
+    if lexer is not None:
+        try:
+            accuracy = lexer.analyse_text(text)
+        except:
+            pass
+
+    return lexer, accuracy
 
 
 def get_language_from_extension(file_name, extension_map):
@@ -129,21 +162,6 @@ def get_language_from_extension(file_name, extension_map):
             return extension_map[extension]
         if extension.lower() in extension_map:
             return extension_map[extension.lower()]
-
-    return None
-
-
-def guess_lexer_using_modeline(text):
-    """Guess lexer for given text using Vim modeline.
-    """
-
-    file_type = get_filetype_from_buffer(text)
-
-    if file_type is not None:
-        try:
-            return get_lexer_by_name(file_type)
-        except:
-            pass
 
     return None
 
