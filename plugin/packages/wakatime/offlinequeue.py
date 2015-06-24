@@ -50,7 +50,7 @@ class Queue(object):
         try:
             conn, c = self.connect()
             heartbeat = {
-                'file': data.get('file'),
+                'file': data.get('entity'),
                 'time': data.get('time'),
                 'project': data.get('project'),
                 'branch': data.get('branch'),
