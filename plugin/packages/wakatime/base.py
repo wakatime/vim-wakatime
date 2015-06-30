@@ -34,7 +34,7 @@ from .offlinequeue import Queue
 from .packages import argparse
 from .packages import simplejson as json
 from .packages.requests.exceptions import RequestException
-from .project import find_project
+from .project import get_project_info
 from .session_cache import SessionCache
 from .stats import get_file_stats
 try:
@@ -443,20 +443,12 @@ def main(argv=None):
         stats = get_file_stats(args.targetFile, notfile=args.notfile,
                                lineno=args.lineno, cursorpos=args.cursorpos)
 
-        project = None
+        project, branch = None, None
         if not args.notfile:
-            project = find_project(args.targetFile, configs=configs)
-        branch = None
-        project_name = args.project
-        if project:
-            branch = project.branch()
-            if not project_name:
-                project_name = project.name()
-        if not project_name:
-            project_name = args.alternate_project
+            project, branch = get_project_info(configs=configs, args=args)
 
         kwargs = vars(args)
-        kwargs['project'] = project_name
+        kwargs['project'] = project
         kwargs['branch'] = branch
         kwargs['stats'] = stats
 

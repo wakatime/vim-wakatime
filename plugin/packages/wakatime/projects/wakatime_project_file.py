@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.projects.wakatime
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    wakatime.projects.wakatime_project_file
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Information from a .wakatime-project file about the project for
     a given file. First line of .wakatime-project sets the project
@@ -21,7 +21,7 @@ from ..compat import u, open
 log = logging.getLogger('WakaTime')
 
 
-class WakaTime(BaseProject):
+class WakaTimeProjectFile(BaseProject):
 
     def process(self):
         self.config = self._find_config(self.path)
