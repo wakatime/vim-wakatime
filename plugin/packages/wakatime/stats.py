@@ -135,7 +135,12 @@ def guess_lexer_using_modeline(text):
 
     lexer, accuracy = None, None
 
-    file_type = get_filetype_from_buffer(text)
+    file_type = None
+    try:
+        file_type = get_filetype_from_buffer(text)
+    except:
+        pass
+
     if file_type is not None:
         try:
             lexer = get_lexer_by_name(file_type)
