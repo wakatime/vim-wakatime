@@ -19,6 +19,7 @@ import re
 import sys
 import time
 import traceback
+import socket
 try:
     import ConfigParser as configparser
 except ImportError:
@@ -161,6 +162,7 @@ def parseArguments(argv):
             help='optional project name')
     parser.add_argument('--alternate-project', dest='alternate_project',
             help='optional alternate project name; auto-discovered project takes priority')
+    parser.add_argument('--hostname', dest='hostname', help='hostname of current machine.')
     parser.add_argument('--disableoffline', dest='offline',
             action='store_false',
             help='disables offline time logging instead of queuing logged time')
@@ -303,7 +305,7 @@ def get_user_agent(plugin):
     return user_agent
 
 
-def send_heartbeat(project=None, branch=None, stats={}, key=None, targetFile=None,
+def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None, targetFile=None,
         timestamp=None, isWrite=None, plugin=None, offline=None, notfile=False,
         hidefilenames=None, proxy=None, api_url=None, **kwargs):
     """Sends heartbeat as POST request to WakaTime api server.
@@ -351,6 +353,8 @@ def send_heartbeat(project=None, branch=None, stats={}, key=None, targetFile=Non
         'Accept': 'application/json',
         'Authorization': auth,
     }
+    if hostname:
+        headers['X-Machine-Name'] = hostname
     proxies = {}
     if proxy:
         proxies['https'] = proxy
@@ -451,6 +455,7 @@ def main(argv=None):
         kwargs['project'] = project
         kwargs['branch'] = branch
         kwargs['stats'] = stats
+        kwargs['hostname'] = args.hostname or socket.gethostname()
 
         if send_heartbeat(**kwargs):
             queue = Queue()
@@ -463,6 +468,7 @@ def main(argv=None):
                     targetFile=heartbeat['file'],
                     timestamp=heartbeat['time'],
                     branch=heartbeat['branch'],
+                    hostname=kwargs['hostname'],
                     stats=json.loads(heartbeat['stats']),
                     key=args.key,
                     isWrite=heartbeat['is_write'],
