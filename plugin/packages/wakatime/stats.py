@@ -39,8 +39,8 @@ def guess_language(file_name):
         return language, None
 
     lexer = smart_guess_lexer(file_name)
-
-    language = u(lexer.name)
+    if lexer:
+        language = u(lexer.name)
 
     return language, lexer
 
