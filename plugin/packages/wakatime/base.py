@@ -320,11 +320,8 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
         'type': 'file',
     }
     if hidefilenames and targetFile is not None and not notfile:
-        data['entity'] = data['entity'].rsplit('/', 1)[-1].rsplit('\\', 1)[-1]
-        if len(data['entity'].strip('.').split('.', 1)) > 1:
-            data['entity'] = u('HIDDEN.{ext}').format(ext=u(data['entity'].strip('.').rsplit('.', 1)[-1]))
-        else:
-            data['entity'] = u('HIDDEN')
+        extension = u(os.path.splitext(data['entity'])[1])
+        data['entity'] = u('HIDDEN{0}').format(extension)
     if stats.get('lines'):
         data['lines'] = stats['lines']
     if stats.get('language'):

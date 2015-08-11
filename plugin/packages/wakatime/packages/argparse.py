@@ -61,7 +61,12 @@ considered public as object names -- the API of the formatter objects is
 still considered an implementation detail.)
 """
 
-__version__ = '1.2.1'
+__version__ = '1.3.0'  # we use our own version number independant of the
+                       # one in stdlib and we release this on pypi.
+
+__external_lib__ = True  # to make sure the tests really test THIS lib,
+                         # not the builtin one in Python stdlib
+
 __all__ = [
     'ArgumentParser',
     'ArgumentError',
@@ -1045,9 +1050,13 @@ class _SubParsersAction(Action):
 
     class _ChoicesPseudoAction(Action):
 
-        def __init__(self, name, help):
+        def __init__(self, name, aliases, help):
+            metavar = dest = name
+            if aliases:
+                metavar += ' (%s)' % ', '.join(aliases)
             sup = super(_SubParsersAction._ChoicesPseudoAction, self)
-            sup.__init__(option_strings=[], dest=name, help=help)
+            sup.__init__(option_strings=[], dest=dest, help=help,
+                        metavar=metavar)
 
     def __init__(self,
                  option_strings,
@@ -1075,15 +1084,22 @@ class _SubParsersAction(Action):
         if kwargs.get('prog') is None:
             kwargs['prog'] = '%s %s' % (self._prog_prefix, name)
 
+        aliases = kwargs.pop('aliases', ())
+
         # create a pseudo-action to hold the choice help
         if 'help' in kwargs:
             help = kwargs.pop('help')
-            choice_action = self._ChoicesPseudoAction(name, help)
+            choice_action = self._ChoicesPseudoAction(name, aliases, help)
             self._choices_actions.append(choice_action)
 
         # create the parser and add it to the map
         parser = self._parser_class(**kwargs)
         self._name_parser_map[name] = parser
+
+        # make parser available under aliases also
+        for alias in aliases:
+            self._name_parser_map[alias] = parser
+
         return parser
 
     def _get_subactions(self):

@@ -28,56 +28,19 @@ from pygments.util import ClassNotFound
 log = logging.getLogger('WakaTime')
 
 
-# extensions taking priority over lexer
-EXTENSIONS = {
-    'j2': 'HTML',
-    'markdown': 'Markdown',
-    'md': 'Markdown',
-    'mdown': 'Markdown',
-    'twig': 'Twig',
-}
-
-# lexers to human readable languages
-TRANSLATIONS = {
-    'CSS+Genshi Text': 'CSS',
-    'CSS+Lasso': 'CSS',
-    'HTML+Django/Jinja': 'HTML',
-    'HTML+Lasso': 'HTML',
-    'JavaScript+Genshi Text': 'JavaScript',
-    'JavaScript+Lasso': 'JavaScript',
-    'Perl6': 'Perl',
-    'RHTML': 'HTML',
-}
-
-# extensions for when no lexer is found
-AUXILIARY_EXTENSIONS = {
-    'vb': 'VB.net',
-}
-
-
 def guess_language(file_name):
     """Guess lexer and language for a file.
 
     Returns (language, lexer) tuple where language is a unicode string.
     """
 
+    language = get_language_from_extension(file_name)
+    if language:
+        return language, None
+
     lexer = smart_guess_lexer(file_name)
 
-    language = None
-
-    # guess language from file extension
-    if file_name:
-        language = get_language_from_extension(file_name, EXTENSIONS)
-
-    # get language from lexer if we didn't have a hard-coded extension rule
-    if language is None and lexer:
-        language = u(lexer.name)
-
-    if language is None:
-        language = get_language_from_extension(file_name, AUXILIARY_EXTENSIONS)
-
-    if language is not None:
-        language = translate_language(language)
+    language = u(lexer.name)
 
     return language, lexer
 
@@ -93,14 +56,14 @@ def smart_guess_lexer(file_name):
 
     text = get_file_contents(file_name)
 
-    lexer_1, accuracy_1 = guess_lexer_using_filename(file_name, text)
-    lexer_2, accuracy_2 = guess_lexer_using_modeline(text)
+    lexer1, accuracy1 = guess_lexer_using_filename(file_name, text)
+    lexer2, accuracy2 = guess_lexer_using_modeline(text)
 
-    if lexer_1:
-        lexer = lexer_1
-    if (lexer_2 and accuracy_2 and
-        (not accuracy_1 or accuracy_2 > accuracy_1)):
-        lexer = lexer_2
+    if lexer1:
+        lexer = lexer1
+    if (lexer2 and accuracy2 and
+        (not accuracy1 or accuracy2 > accuracy1)):
+        lexer = lexer2
 
     return lexer
 
@@ -156,28 +119,22 @@ def guess_lexer_using_modeline(text):
     return lexer, accuracy
 
 
-def get_language_from_extension(file_name, extension_map):
-    """Returns a matching language for the given file_name using extension_map.
+def get_language_from_extension(file_name):
+    """Returns a matching language for the given file extension.
     """
 
-    extension = file_name.rsplit('.', 1)[-1] if len(file_name.rsplit('.', 1)) > 1 else None
-
-    if extension:
-        if extension in extension_map:
-            return extension_map[extension]
-        if extension.lower() in extension_map:
-            return extension_map[extension.lower()]
+    extension = os.path.splitext(file_name)[1].lower()
+    if extension == '.h':
+        directory = os.path.dirname(file_name)
+        available_files = os.listdir(directory)
+        available_extensions = zip(*map(os.path.splitext, available_files))[1]
+        available_extensions = [ext.lower() for ext in available_extensions]
+        if '.cpp' in available_extensions:
+            return 'C++'
+        if '.c' in available_extensions:
+            return 'C'
 
     return None
-
-
-def translate_language(language):
-    """Turns Pygments lexer class name string into human-readable language.
-    """
-
-    if language in TRANSLATIONS:
-        language = TRANSLATIONS[language]
-    return language
 
 
 def number_lines_in_file(file_name):

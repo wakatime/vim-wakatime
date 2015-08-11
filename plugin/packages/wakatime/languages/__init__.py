@@ -83,7 +83,7 @@ class DependencyParser(object):
         self.lexer = lexer
 
         if self.lexer:
-            module_name = self.lexer.__module__.split('.')[-1]
+            module_name = self.lexer.__module__.rsplit('.', 1)[-1]
             class_name = self.lexer.__class__.__name__.replace('Lexer', 'Parser', 1)
         else:
             module_name = 'unknown'
