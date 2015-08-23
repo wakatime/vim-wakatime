@@ -17,7 +17,7 @@ is_py2 = (sys.version_info[0] == 2)
 is_py3 = (sys.version_info[0] == 3)
 
 
-if is_py2:
+if is_py2:  # pragma: nocover
 
     def u(text):
         try:
@@ -31,7 +31,7 @@ if is_py2:
     basestring = basestring
 
 
-elif is_py3:
+elif is_py3:  # pragma: nocover
 
     def u(text):
         if isinstance(text, bytes):
@@ -40,9 +40,10 @@ elif is_py3:
     open = open
     basestring = (str, bytes)
 
+
 try:
     from importlib import import_module
-except ImportError:
+except ImportError:  # pragma: nocover
     def _resolve_name(name, package, level):
         """Return the absolute name of the module to be imported."""
         if not hasattr(package, 'rindex'):

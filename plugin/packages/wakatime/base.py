@@ -22,7 +22,7 @@ import traceback
 import socket
 try:
     import ConfigParser as configparser
-except ImportError:
+except ImportError:  # pragma: nocover
     import configparser
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -33,15 +33,18 @@ from .compat import u, open, is_py3
 from .logger import setup_logging
 from .offlinequeue import Queue
 from .packages import argparse
-from .packages import simplejson as json
 from .packages.requests.exceptions import RequestException
 from .project import get_project_info
 from .session_cache import SessionCache
 from .stats import get_file_stats
 try:
-    from .packages import tzlocal
-except:
-    from .packages import tzlocal3 as tzlocal
+    from .packages import simplejson as json  # pragma: nocover
+except (ImportError, SyntaxError):
+    import json  # pragma: nocover
+try:
+    from .packages import tzlocal  # pragma: nocover
+except:  # pragma: nocover
+    from .packages import tzlocal3 as tzlocal  # pragma: nocover
 
 
 log = logging.getLogger('WakaTime')
@@ -54,45 +57,6 @@ class FileAction(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
-def upgradeConfigFile(configFile):
-    """For backwards-compatibility, upgrade the existing config file
-    to work with configparser and rename from .wakatime.conf to .wakatime.cfg.
-    """
-
-    if os.path.isfile(configFile):
-        # if upgraded cfg file already exists, don't overwrite it
-        return
-
-    oldConfig = os.path.join(os.path.expanduser('~'), '.wakatime.conf')
-    try:
-        configs = {
-            'ignore': [],
-        }
-
-        with open(oldConfig, 'r', encoding='utf-8') as fh:
-            for line in fh.readlines():
-                line = line.split('=', 1)
-                if len(line) == 2 and line[0].strip() and line[1].strip():
-                    if line[0].strip() == 'ignore':
-                        configs['ignore'].append(line[1].strip())
-                    else:
-                        configs[line[0].strip()] = line[1].strip()
-
-        with open(configFile, 'w', encoding='utf-8') as fh:
-            fh.write("[settings]\n")
-            for name, value in configs.items():
-                if isinstance(value, list):
-                    fh.write("%s=\n" % name)
-                    for item in value:
-                        fh.write("    %s\n" % item)
-                else:
-                    fh.write("%s = %s\n" % (name, value))
-
-        os.remove(oldConfig)
-    except IOError:
-        pass
-
-
 def parseConfigFile(configFile=None):
     """Returns a configparser.SafeConfigParser instance with configs
     read from the config file. Default location of the config file is
@@ -101,8 +65,6 @@ def parseConfigFile(configFile=None):
 
     if not configFile:
         configFile = os.path.join(os.path.expanduser('~'), '.wakatime.cfg')
-
-    upgradeConfigFile(configFile)
 
     configs = configparser.SafeConfigParser()
     try:
@@ -117,16 +79,11 @@ def parseConfigFile(configFile=None):
     return configs
 
 
-def parseArguments(argv):
+def parseArguments():
     """Parse command line arguments and configs from ~/.wakatime.cfg.
     Command line arguments take precedence over config file settings.
     Returns instances of ArgumentParser and SafeConfigParser.
     """
-
-    try:
-        sys.argv
-    except AttributeError:
-        sys.argv = argv
 
     # define supported command line arguments
     parser = argparse.ArgumentParser(
@@ -189,7 +146,7 @@ def parseArguments(argv):
     parser.add_argument('--version', action='version', version=__version__)
 
     # parse command line arguments
-    args = parser.parse_args(args=argv[1:])
+    args = parser.parse_args()
 
     # use current unix epoch timestamp by default
     if not args.timestamp:
@@ -267,7 +224,7 @@ def should_exclude(fileName, include, exclude):
                         msg=u(ex),
                         pattern=u(pattern),
                     ))
-        except TypeError:
+        except TypeError:  # pragma: nocover
             pass
         try:
             for pattern in exclude:
@@ -280,7 +237,7 @@ def should_exclude(fileName, include, exclude):
                         msg=u(ex),
                         pattern=u(pattern),
                     ))
-        except TypeError:
+        except TypeError:  # pragma: nocover
             pass
     return False
 
@@ -422,11 +379,10 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
     return False
 
 
-def main(argv=None):
-    if not argv:
-        argv = sys.argv
+def main(argv):
+    sys.argv = ['wakatime'] + argv
 
-    args, configs = parseArguments(argv)
+    args, configs = parseArguments()
     if configs is None:
         return 103 # config file parsing error
 

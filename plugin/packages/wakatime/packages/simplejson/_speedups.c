@@ -10,6 +10,7 @@
 #define PyString_AS_STRING PyBytes_AS_STRING
 #define PyString_FromStringAndSize PyBytes_FromStringAndSize
 #define PyInt_Check(obj) 0
+#define PyInt_CheckExact(obj) 0
 #define JSON_UNICHR Py_UCS4
 #define JSON_InternFromString PyUnicode_InternFromString
 #define JSON_Intern_GET_SIZE PyUnicode_GET_SIZE
@@ -168,6 +169,7 @@ typedef struct _PyEncoderObject {
     int use_decimal;
     int namedtuple_as_object;
     int tuple_as_array;
+    int iterable_as_array;
     PyObject *max_long_size;
     PyObject *min_long_size;
     PyObject *item_sort_key;
@@ -660,7 +662,20 @@ encoder_stringify_key(PyEncoderObject *s, PyObject *key)
         return _encoded_const(key);
     }
     else if (PyInt_Check(key) || PyLong_Check(key)) {
-        return PyObject_Str(key);
+        if (!(PyInt_CheckExact(key) || PyLong_CheckExact(key))) {
+            /* See #118, do not trust custom str/repr */
+            PyObject *res;
+            PyObject *tmp = PyObject_CallFunctionObjArgs((PyObject *)&PyLong_Type, key, NULL);
+            if (tmp == NULL) {
+                return NULL;
+            }
+            res = PyObject_Str(tmp);
+            Py_DECREF(tmp);
+            return res;
+        }
+        else {
+            return PyObject_Str(key);
+        }
     }
     else if (s->use_decimal && PyObject_TypeCheck(key, (PyTypeObject *)s->Decimal)) {
         return PyObject_Str(key);
@@ -2567,7 +2582,6 @@ encoder_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 encoder_init(PyObject *self, PyObject *args, PyObject *kwds)
 {
-    /* initialize Encoder object */
     static char *kwlist[] = {
         "markers",
         "default",
@@ -2582,30 +2596,32 @@ encoder_init(PyObject *self, PyObject *args, PyObject *kwds)
         "use_decimal",
         "namedtuple_as_object",
         "tuple_as_array",
+        "iterable_as_array"
         "int_as_string_bitcount",
         "item_sort_key",
         "encoding",
         "for_json",
         "ignore_nan",
         "Decimal",
+        "iterable_as_array",
         NULL};
 
     PyEncoderObject *s;
     PyObject *markers, *defaultfn, *encoder, *indent, *key_separator;
     PyObject *item_separator, *sort_keys, *skipkeys, *allow_nan, *key_memo;
-    PyObject *use_decimal, *namedtuple_as_object, *tuple_as_array;
+    PyObject *use_decimal, *namedtuple_as_object, *tuple_as_array, *iterable_as_array;
     PyObject *int_as_string_bitcount, *item_sort_key, *encoding, *for_json;
     PyObject *ignore_nan, *Decimal;
 
     assert(PyEncoder_Check(self));
     s = (PyEncoderObject *)self;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "OOOOOOOOOOOOOOOOOOO:make_encoder", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "OOOOOOOOOOOOOOOOOOOO:make_encoder", kwlist,
         &markers, &defaultfn, &encoder, &indent, &key_separator, &item_separator,
         &sort_keys, &skipkeys, &allow_nan, &key_memo, &use_decimal,
         &namedtuple_as_object, &tuple_as_array,
         &int_as_string_bitcount, &item_sort_key, &encoding, &for_json,
-        &ignore_nan, &Decimal))
+        &ignore_nan, &Decimal, &iterable_as_array))
         return -1;
 
     Py_INCREF(markers);
@@ -2635,9 +2651,10 @@ encoder_init(PyObject *self, PyObject *args, PyObject *kwds)
     s->use_decimal = PyObject_IsTrue(use_decimal);
     s->namedtuple_as_object = PyObject_IsTrue(namedtuple_as_object);
     s->tuple_as_array = PyObject_IsTrue(tuple_as_array);
+    s->iterable_as_array = PyObject_IsTrue(iterable_as_array);
     if (PyInt_Check(int_as_string_bitcount) || PyLong_Check(int_as_string_bitcount)) {
         static const unsigned int long_long_bitsize = SIZEOF_LONG_LONG * 8;
-        int int_as_string_bitcount_val = PyLong_AsLong(int_as_string_bitcount);
+        int int_as_string_bitcount_val = (int)PyLong_AsLong(int_as_string_bitcount);
         if (int_as_string_bitcount_val > 0 && int_as_string_bitcount_val < long_long_bitsize) {
             s->max_long_size = PyLong_FromUnsignedLongLong(1ULL << int_as_string_bitcount_val);
             s->min_long_size = PyLong_FromLongLong(-1LL << int_as_string_bitcount_val);
@@ -2800,7 +2817,20 @@ encoder_encode_float(PyEncoderObject *s, PyObject *obj)
         }
     }
     /* Use a better float format here? */
-    return PyObject_Repr(obj);
+    if (PyFloat_CheckExact(obj)) {
+        return PyObject_Repr(obj);
+    }
+    else {
+        /* See #118, do not trust custom str/repr */
+        PyObject *res;
+        PyObject *tmp = PyObject_CallFunctionObjArgs((PyObject *)&PyFloat_Type, obj, NULL);
+        if (tmp == NULL) {
+            return NULL;
+        }
+        res = PyObject_Repr(tmp);
+        Py_DECREF(tmp);
+        return res;
+    }
 }
 
 static PyObject *
@@ -2840,7 +2870,21 @@ encoder_listencode_obj(PyEncoderObject *s, JSON_Accu *rval, PyObject *obj, Py_ss
                 rv = _steal_accumulate(rval, encoded);
         }
         else if (PyInt_Check(obj) || PyLong_Check(obj)) {
-            PyObject *encoded = PyObject_Str(obj);
+            PyObject *encoded;
+            if (PyInt_CheckExact(obj) || PyLong_CheckExact(obj)) {
+                encoded = PyObject_Str(obj);
+            }
+            else {
+                /* See #118, do not trust custom str/repr */
+                PyObject *tmp = PyObject_CallFunctionObjArgs((PyObject *)&PyLong_Type, obj, NULL);
+                if (tmp == NULL) {
+                    encoded = NULL;
+                }
+                else {
+                    encoded = PyObject_Str(tmp);
+                    Py_DECREF(tmp);
+                }
+            }
             if (encoded != NULL) {
                 encoded = maybe_quote_bigint(s, encoded, obj);
                 if (encoded == NULL)
@@ -2895,6 +2939,16 @@ encoder_listencode_obj(PyEncoderObject *s, JSON_Accu *rval, PyObject *obj, Py_ss
         else {
             PyObject *ident = NULL;
             PyObject *newobj;
+            if (s->iterable_as_array) {
+                newobj = PyObject_GetIter(obj);
+                if (newobj == NULL)
+                    PyErr_Clear();
+                else {
+                    rv = encoder_listencode_list(s, rval, newobj, indent_level);
+                    Py_DECREF(newobj);
+                    break;
+                }
+            }
             if (s->markers != Py_None) {
                 int has_key;
                 ident = PyLong_FromVoidPtr(obj);

@@ -13,12 +13,15 @@ import logging
 import os
 import sys
 
-from .packages import simplejson as json
 from .compat import u
 try:
-    from collections import OrderedDict
+    from collections import OrderedDict  # pragma: nocover
 except ImportError:
-    from .packages.ordereddict import OrderedDict
+    from .packages.ordereddict import OrderedDict  # pragma: nocover
+try:
+    from .packages import simplejson as json  # pragma: nocover
+except (ImportError, SyntaxError):
+    import json  # pragma: nocover
 
 
 class CustomEncoder(json.JSONEncoder):

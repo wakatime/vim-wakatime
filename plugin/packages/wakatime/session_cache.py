@@ -52,7 +52,7 @@ class SessionCache(object):
             conn, c = self.connect()
             c.execute('DELETE FROM session')
             values = {
-                'value': pickle.dumps(session),
+                'value': pickle.dumps(session, protocol=2),
             }
             c.execute('INSERT INTO session VALUES (:value)', values)
             conn.commit()
