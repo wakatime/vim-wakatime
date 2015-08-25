@@ -22,7 +22,7 @@ sys.path.insert(0, package_folder)
 # import local wakatime package
 try:
     import wakatime
-except TypeError:
+except (TypeError, ImportError):
     # on Windows, non-ASCII characters in import path can be fixed using
     # the script path from sys.argv[0].
     # More info at https://github.com/wakatime/wakatime/issues/32

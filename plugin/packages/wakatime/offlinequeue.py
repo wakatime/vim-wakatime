@@ -21,6 +21,8 @@ try:
 except ImportError:
     HAS_SQL = False
 
+from .compat import u
+
 
 log = logging.getLogger('WakaTime')
 
@@ -50,16 +52,16 @@ class Queue(object):
         try:
             conn, c = self.connect()
             heartbeat = {
-                'file': data.get('entity'),
+                'file': u(data.get('entity')),
                 'time': data.get('time'),
-                'project': data.get('project'),
-                'branch': data.get('branch'),
+                'project': u(data.get('project')),
+                'branch': u(data.get('branch')),
                 'is_write': 1 if data.get('is_write') else 0,
-                'stats': stats,
-                'misc': misc,
-                'plugin': plugin,
+                'stats': u(stats),
+                'misc': u(misc),
+                'plugin': u(plugin),
             }
-            c.execute('INSERT INTO heartbeat VALUES (:file,:time,:project,:branch,:is_write,:stats,:misc,:plugin)', heartbeat)
+            c.execute(u('INSERT INTO heartbeat VALUES (:file,:time,:project,:branch,:is_write,:stats,:misc,:plugin)'), heartbeat)
             conn.commit()
             conn.close()
         except sqlite3.Error:
@@ -90,14 +92,14 @@ class Queue(object):
                     for row_name in ['file', 'time', 'project', 'branch', 'is_write']:
                         if row[index] is not None:
                             clauses.append('{0}=?'.format(row_name))
-                            values.append(row[index])
+                            values.append(u(row[index]))
                         else:
                             clauses.append('{0} IS NULL'.format(row_name))
                         index += 1
                     if len(values) > 0:
-                        c.execute('DELETE FROM heartbeat WHERE {0}'.format(' AND '.join(clauses)), values)
+                        c.execute(u('DELETE FROM heartbeat WHERE {0}').format(u(' AND ').join(clauses)), values)
                     else:
-                        c.execute('DELETE FROM heartbeat WHERE {0}'.format(' AND '.join(clauses)))
+                        c.execute(u('DELETE FROM heartbeat WHERE {0}').format(u(' AND ').join(clauses)))
                 conn.commit()
                 if row is not None:
                     heartbeat = {

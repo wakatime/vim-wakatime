@@ -21,12 +21,8 @@ except ImportError:
         """Return the preferred certificate bundle."""
         # vendored bundle inside Requests
         is_py3 = (sys.version_info[0] == 3)
-        certdir = os.path.dirname(
-            __file__
-            if is_py3 else
-            __file__.decode(sys.getfilesystemencoding())
-        )
-        return os.path.join(certdir, 'cacert.pem')
+        cacert = os.path.join(os.path.dirname(__file__), 'cacert.pem')
+        return cacert.encode('utf-8') if is_py3 else cacert
 
 if __name__ == '__main__':
     print(where())

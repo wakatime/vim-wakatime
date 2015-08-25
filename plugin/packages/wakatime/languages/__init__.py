@@ -10,6 +10,7 @@
 """
 
 import logging
+import sys
 import traceback
 
 from ..compat import u, open, import_module
@@ -53,8 +54,16 @@ class TokenParser(object):
 
     def _extract_tokens(self):
         if self.lexer:
-            with open(self.source_file, 'r', encoding='utf-8') as fh:
-                return self.lexer.get_tokens_unprocessed(fh.read(512000))
+            try:
+                with open(self.source_file, 'r', encoding='utf-8') as fh:
+                    return self.lexer.get_tokens_unprocessed(fh.read(512000))
+            except:
+                pass
+            try:
+                with open(self.source_file, 'r', encoding=sys.getfilesystemencoding()) as fh:
+                    return self.lexer.get_tokens_unprocessed(fh.read(512000))
+            except:
+                pass
         return []
 
     def _save_dependency(self, dep, truncate=False, separator=None,

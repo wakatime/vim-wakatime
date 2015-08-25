@@ -11,6 +11,7 @@
 
 import logging
 import os
+import sys
 
 from .base import BaseProject
 from ..compat import u, open
@@ -38,8 +39,14 @@ class Git(BaseProject):
             try:
                 with open(head, 'r', encoding='utf-8') as fh:
                     return u(fh.readline().strip().rsplit('/', 1)[-1])
+            except UnicodeDecodeError:
+                try:
+                    with open(head, 'r', encoding=sys.getfilesystemencoding()) as fh:
+                        return u(fh.readline().strip().rsplit('/', 1)[-1])
+                except:
+                    log.exception("Exception:")
             except IOError:
-                pass
+                log.exception("Exception:")
         return None
 
     def _project_base(self):

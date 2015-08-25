@@ -144,7 +144,12 @@ def number_lines_in_file(file_name):
             for line in fh:
                 lines += 1
     except:
-        return None
+        try:
+            with open(file_name, 'r', encoding=sys.getfilesystemencoding()) as fh:
+                for line in fh:
+                    lines += 1
+        except:
+            return None
     return lines
 
 
@@ -180,5 +185,9 @@ def get_file_contents(file_name):
         with open(file_name, 'r', encoding='utf-8') as fh:
             text = fh.read(512000)
     except:
-        pass
+        try:
+            with open(file_name, 'r', encoding=sys.getfilesystemencoding()) as fh:
+                text = fh.read(512000)
+        except:
+            log.exception("Exception:")
     return text
