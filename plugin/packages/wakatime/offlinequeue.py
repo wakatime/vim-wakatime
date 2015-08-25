@@ -61,7 +61,7 @@ class Queue(object):
                 'misc': u(misc),
                 'plugin': u(plugin),
             }
-            c.execute(u('INSERT INTO heartbeat VALUES (:file,:time,:project,:branch,:is_write,:stats,:misc,:plugin)'), heartbeat)
+            c.execute('INSERT INTO heartbeat VALUES (:file,:time,:project,:branch,:is_write,:stats,:misc,:plugin)', heartbeat)
             conn.commit()
             conn.close()
         except sqlite3.Error:
@@ -92,14 +92,14 @@ class Queue(object):
                     for row_name in ['file', 'time', 'project', 'branch', 'is_write']:
                         if row[index] is not None:
                             clauses.append('{0}=?'.format(row_name))
-                            values.append(u(row[index]))
+                            values.append(row[index])
                         else:
                             clauses.append('{0} IS NULL'.format(row_name))
                         index += 1
                     if len(values) > 0:
-                        c.execute(u('DELETE FROM heartbeat WHERE {0}').format(u(' AND ').join(clauses)), values)
+                        c.execute('DELETE FROM heartbeat WHERE {0}'.format(' AND '.join(clauses)), values)
                     else:
-                        c.execute(u('DELETE FROM heartbeat WHERE {0}').format(u(' AND ').join(clauses)))
+                        c.execute('DELETE FROM heartbeat WHERE {0}'.format(' AND '.join(clauses)))
                 conn.commit()
                 if row is not None:
                     heartbeat = {
