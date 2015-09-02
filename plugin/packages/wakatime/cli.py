@@ -32,4 +32,4 @@ except (TypeError, ImportError):
 
 
 if __name__ == '__main__':
-    sys.exit(wakatime.main(sys.argv[1:]))
+    sys.exit(wakatime.execute(sys.argv[1:]))

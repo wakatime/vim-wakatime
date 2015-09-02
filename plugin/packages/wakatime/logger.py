@@ -40,11 +40,11 @@ class CustomEncoder(json.JSONEncoder):
 
 class JsonFormatter(logging.Formatter):
 
-    def setup(self, timestamp, isWrite, targetFile, version, plugin, verbose,
+    def setup(self, timestamp, isWrite, entity, version, plugin, verbose,
               warnings=False):
         self.timestamp = timestamp
         self.isWrite = isWrite
-        self.targetFile = targetFile
+        self.entity = entity
         self.version = version
         self.plugin = plugin
         self.verbose = verbose
@@ -61,7 +61,7 @@ class JsonFormatter(logging.Formatter):
             data['caller'] = record.pathname
             data['lineno'] = record.lineno
             data['isWrite'] = self.isWrite
-            data['file'] = self.targetFile
+            data['file'] = self.entity
             if not self.isWrite:
                 del data['isWrite']
         data['level'] = record.levelname
@@ -89,7 +89,7 @@ def setup_logging(args, version):
         formatter.setup(
             timestamp=args.timestamp,
             isWrite=args.isWrite,
-            targetFile=args.targetFile,
+            entity=args.entity,
             version=version,
             plugin=args.plugin,
             verbose=args.verbose,
@@ -104,7 +104,7 @@ def setup_logging(args, version):
     formatter.setup(
         timestamp=args.timestamp,
         isWrite=args.isWrite,
-        targetFile=args.targetFile,
+        entity=args.entity,
         version=version,
         plugin=args.plugin,
         verbose=args.verbose,
@@ -116,7 +116,7 @@ def setup_logging(args, version):
     warnings_formatter.setup(
         timestamp=args.timestamp,
         isWrite=args.isWrite,
-        targetFile=args.targetFile,
+        entity=args.entity,
         version=version,
         plugin=args.plugin,
         verbose=args.verbose,

@@ -14,4 +14,4 @@
 __all__ = ['main']
 
 
-from .base import main
+from .main import execute

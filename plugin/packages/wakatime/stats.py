@@ -153,8 +153,8 @@ def number_lines_in_file(file_name):
     return lines
 
 
-def get_file_stats(file_name, notfile=False, lineno=None, cursorpos=None):
-    if notfile:
+def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None):
+    if entity_type != 'file':
         stats = {
             'language': None,
             'dependencies': [],

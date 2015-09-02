@@ -33,7 +33,7 @@ REV_CONTROL_PLUGINS = [
 ]
 
 
-def get_project_info(configs=None, args=None):
+def get_project_info(configs, args):
     """Find the current project and branch.
 
     First looks for a .wakatime-project file. Second, uses the --project arg.
@@ -50,9 +50,9 @@ def get_project_info(configs=None, args=None):
         plugin_name = plugin_cls.__name__.lower()
         plugin_configs = get_configs_for_plugin(plugin_name, configs)
 
-        project = plugin_cls(args.targetFile, configs=plugin_configs)
+        project = plugin_cls(args.entity, configs=plugin_configs)
         if project.process():
-            project_name = project.name()
+            project_name = project_name or project.name()
             branch_name = project.branch()
             break
 
@@ -66,7 +66,7 @@ def get_project_info(configs=None, args=None):
             plugin_name = plugin_cls.__name__.lower()
             plugin_configs = get_configs_for_plugin(plugin_name, configs)
 
-            project = plugin_cls(args.targetFile, configs=plugin_configs)
+            project = plugin_cls(args.entity, configs=plugin_configs)
             if project.process():
                 project_name = project_name or project.name()
                 branch_name = branch_name or project.branch()
