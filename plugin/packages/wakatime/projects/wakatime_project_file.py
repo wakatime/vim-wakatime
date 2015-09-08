@@ -35,14 +35,14 @@ class WakaTimeProjectFile(BaseProject):
                 with open(self.config, 'r', encoding='utf-8') as fh:
                     self._project_name = u(fh.readline().strip())
                     self._project_branch = u(fh.readline().strip())
-            except UnicodeDecodeError:
+            except UnicodeDecodeError:  # pragma: nocover
                 try:
                     with open(self.config, 'r', encoding=sys.getfilesystemencoding()) as fh:
                         self._project_name = u(fh.readline().strip())
                         self._project_branch = u(fh.readline().strip())
                 except:
                     log.exception("Exception:")
-            except IOError:
+            except IOError:  # pragma: nocover
                 log.exception("Exception:")
 
             return True

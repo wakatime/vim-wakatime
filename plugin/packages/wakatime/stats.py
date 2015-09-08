@@ -63,7 +63,7 @@ def smart_guess_lexer(file_name):
         lexer = lexer1
     if (lexer2 and accuracy2 and
         (not accuracy1 or accuracy2 > accuracy1)):
-        lexer = lexer2
+        lexer = lexer2  # pragma: nocover
 
     return lexer
 
@@ -84,7 +84,7 @@ def guess_lexer_using_filename(file_name, text):
     if lexer is not None:
         try:
             accuracy = lexer.analyse_text(text)
-        except:
+        except:  # pragma: nocover
             pass
 
     return lexer, accuracy
@@ -101,19 +101,19 @@ def guess_lexer_using_modeline(text):
     file_type = None
     try:
         file_type = get_filetype_from_buffer(text)
-    except:
+    except:  # pragma: nocover
         pass
 
     if file_type is not None:
         try:
             lexer = get_lexer_by_name(file_type)
-        except ClassNotFound:
+        except ClassNotFound:  # pragma: nocover
             pass
 
     if lexer is not None:
         try:
             accuracy = lexer.analyse_text(text)
-        except:
+        except:  # pragma: nocover
             pass
 
     return lexer, accuracy
@@ -123,11 +123,16 @@ def get_language_from_extension(file_name):
     """Returns a matching language for the given file extension.
     """
 
-    extension = os.path.splitext(file_name)[1].lower()
+    filepart, extension = os.path.splitext(file_name)
+
+    if os.path.exists(u('{0}{1}').format(u(filepart), u('.c'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.C'))):
+        return 'C'
+
+    extension = extension.lower()
     if extension == '.h':
         directory = os.path.dirname(file_name)
         available_files = os.listdir(directory)
-        available_extensions = zip(*map(os.path.splitext, available_files))[1]
+        available_extensions = list(zip(*map(os.path.splitext, available_files)))[1]
         available_extensions = [ext.lower() for ext in available_extensions]
         if '.cpp' in available_extensions:
             return 'C++'

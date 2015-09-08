@@ -19,7 +19,7 @@ import traceback
 try:
     import sqlite3
     HAS_SQL = True
-except ImportError:
+except ImportError:  # pragma: nocover
     HAS_SQL = False
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages'))
@@ -47,7 +47,7 @@ class SessionCache(object):
         """
 
         if not HAS_SQL:
-            return
+            return  # pragma: nocover
         try:
             conn, c = self.connect()
             c.execute('DELETE FROM session')
@@ -57,7 +57,7 @@ class SessionCache(object):
             c.execute('INSERT INTO session VALUES (:value)', values)
             conn.commit()
             conn.close()
-        except:
+        except:  # pragma: nocover
             log.error(traceback.format_exc())
 
 
@@ -74,7 +74,7 @@ class SessionCache(object):
             conn, c = self.connect()
         except:
             log.error(traceback.format_exc())
-            return requests.session()
+            return requests.session()  # pragma: nocover
 
         session = None
         try:

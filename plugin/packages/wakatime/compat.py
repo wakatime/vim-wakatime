@@ -26,9 +26,12 @@ if is_py2:  # pragma: nocover
             return text.decode('utf-8')
         except:
             try:
-                return unicode(text)
+                return text.decode(sys.getdefaultencoding())
             except:
-                return text
+                try:
+                    return unicode(text)
+                except:
+                    return text
     open = codecs.open
     basestring = basestring
 
@@ -39,8 +42,17 @@ elif is_py3:  # pragma: nocover
         if text is None:
             return None
         if isinstance(text, bytes):
-            return text.decode('utf-8')
-        return str(text)
+            try:
+                return text.decode('utf-8')
+            except:
+                try:
+                    return text.decode(sys.getdefaultencoding())
+                except:
+                    pass
+        try:
+            return str(text)
+        except:
+            return text
     open = open
     basestring = (str, bytes)
 

@@ -20,8 +20,8 @@ except ImportError:
     from .packages.ordereddict import OrderedDict  # pragma: nocover
 try:
     from .packages import simplejson as json  # pragma: nocover
-except (ImportError, SyntaxError):
-    import json  # pragma: nocover
+except (ImportError, SyntaxError):  # pragma: nocover
+    import json
 
 
 class CustomEncoder(json.JSONEncoder):

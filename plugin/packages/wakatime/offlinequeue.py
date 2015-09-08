@@ -18,7 +18,7 @@ from time import sleep
 try:
     import sqlite3
     HAS_SQL = True
-except ImportError:
+except ImportError:  # pragma: nocover
     HAS_SQL = False
 
 from .compat import u
@@ -117,12 +117,12 @@ class Queue(object):
                         'plugin': row[8],
                     }
                 loop = False
-            except sqlite3.Error:
+            except sqlite3.Error:  # pragma: nocover
                 log.debug(traceback.format_exc())
                 sleep(wait)
                 tries -= 1
         try:
             conn.close()
-        except sqlite3.Error:
+        except sqlite3.Error:  # pragma: nocover
             log.debug(traceback.format_exc())
         return heartbeat

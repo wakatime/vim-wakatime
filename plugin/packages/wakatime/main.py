@@ -393,8 +393,9 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
     return False
 
 
-def execute(argv):
-    sys.argv = ['wakatime'] + argv
+def execute(argv=None):
+    if argv:
+        sys.argv = ['wakatime'] + argv
 
     args, configs = parseArguments()
     if configs is None:

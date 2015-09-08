@@ -47,14 +47,14 @@ class ProjectMap(BaseProject):
 
         if self._configs.get(path.lower()):
             return self._configs.get(path.lower())
-        if self._configs.get('%s/' % path.lower()):
+        if self._configs.get('%s/' % path.lower()):  # pragma: nocover
             return self._configs.get('%s/' % path.lower())
-        if self._configs.get('%s\\' % path.lower()):
+        if self._configs.get('%s\\' % path.lower()):  # pragma: nocover
             return self._configs.get('%s\\' % path.lower())
 
         split_path = os.path.split(path)
         if split_path[1] == '':
-            return None
+            return None  # pragma: nocover
         return self._find_project(split_path[0])
 
     def branch(self):
@@ -63,4 +63,4 @@ class ProjectMap(BaseProject):
     def name(self):
         if self.project:
             return u(self.project)
-        return None
+        return None  # pragma: nocover

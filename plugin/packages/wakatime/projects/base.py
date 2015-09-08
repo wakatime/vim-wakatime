@@ -25,22 +25,12 @@ class BaseProject(object):
         self.path = path
         self._configs = configs
 
-    def project_type(self):
-        """ Returns None if this is the base class.
-        Returns the type of project if this is a
-        valid project.
-        """
-        project_type = self.__class__.__name__.lower()
-        if project_type == 'baseproject':
-            project_type = None
-        return project_type
-
     def process(self):
         """ Processes self.path into a project and
         returns True if project is valid, otherwise
         returns False.
         """
-        return False
+        return False  # pragma: nocover
 
     def name(self):
         """ Returns the project's name.
@@ -50,4 +40,4 @@ class BaseProject(object):
     def branch(self):
         """ Returns the current branch.
         """
-        return None
+        return None  # pragma: nocover
