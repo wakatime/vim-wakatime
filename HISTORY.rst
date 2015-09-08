@@ -3,6 +3,17 @@ History
 -------
 
 
+4.0.5 (2015-09-07)
+++++++++++++++++++
+
+- upgrade wakatime cli to v4.1.6
+- fix bug in offline caching which prevented heartbeats from being cleaned up
+- fix local session caching
+- new --entity and --entitytype command line arguments
+- fix entry point for pypi distribution
+- allow passing command line arguments using sys.argv
+
+
 4.0.4 (2015-08-25)
 ++++++++++++++++++
 
