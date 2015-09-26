@@ -1,13 +1,11 @@
 vim-wakatime
 ============
 
-Fully automatic time tracking for Vim.
+Quantify your coding inside Vim.
 
 
 Installation
 ------------
-
-Heads Up! WakaTime depends on [Python](http://www.python.org/getit/) being installed to work correctly.
 
 1. Install [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager.
 
@@ -22,6 +20,8 @@ Heads Up! WakaTime depends on [Python](http://www.python.org/getit/) being insta
 4. Use Vim like you normally do and your time will be tracked for you automatically.
 
 5. Visit https://wakatime.com to see your logged time.
+
+Note: WakaTime depends on [Python](http://www.python.org/getit/) being installed to work correctly.
 
 
 Screen Shots
