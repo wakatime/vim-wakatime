@@ -11,6 +11,8 @@
 
 import logging
 
+from ..exceptions import NotYetImplemented
+
 
 log = logging.getLogger('WakaTime')
 
@@ -30,14 +32,14 @@ class BaseProject(object):
         returns True if project is valid, otherwise
         returns False.
         """
-        return False  # pragma: nocover
+        raise NotYetImplemented()
 
     def name(self):
         """ Returns the project's name.
         """
-        return None
+        raise NotYetImplemented()
 
     def branch(self):
         """ Returns the current branch.
         """
-        return None  # pragma: nocover
+        raise NotYetImplemented()

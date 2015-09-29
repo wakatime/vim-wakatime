@@ -29,7 +29,7 @@ class Mercurial(BaseProject):
     def name(self):
         if self.configDir:
             return u(os.path.basename(os.path.dirname(self.configDir)))
-        return None
+        return None  # pragma: nocover
 
     def branch(self):
         if self.configDir:
@@ -37,13 +37,13 @@ class Mercurial(BaseProject):
             try:
                 with open(branch_file, 'r', encoding='utf-8') as fh:
                     return u(fh.readline().strip().rsplit('/', 1)[-1])
-            except UnicodeDecodeError:
+            except UnicodeDecodeError:  # pragma: nocover
                 try:
                     with open(branch_file, 'r', encoding=sys.getfilesystemencoding()) as fh:
                         return u(fh.readline().strip().rsplit('/', 1)[-1])
                 except:
                     log.exception("Exception:")
-            except IOError:
+            except IOError:  # pragma: nocover
                 log.exception("Exception:")
         return u('default')
 

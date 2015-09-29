@@ -46,8 +46,8 @@ class SessionCache(object):
         """Saves a requests.Session object for the next heartbeat process.
         """
 
-        if not HAS_SQL:
-            return  # pragma: nocover
+        if not HAS_SQL:  # pragma: nocover
+            return
         try:
             conn, c = self.connect()
             c.execute('DELETE FROM session')
@@ -67,14 +67,14 @@ class SessionCache(object):
         Gets Session from sqlite3 cache or creates a new Session.
         """
 
-        if not HAS_SQL:
+        if not HAS_SQL:  # pragma: nocover
             return requests.session()
 
         try:
             conn, c = self.connect()
         except:
             log.error(traceback.format_exc())
-            return requests.session()  # pragma: nocover
+            return requests.session()
 
         session = None
         try:
@@ -83,12 +83,12 @@ class SessionCache(object):
             row = c.fetchone()
             if row is not None:
                 session = pickle.loads(row[0])
-        except:
+        except:  # pragma: nocover
             log.error(traceback.format_exc())
 
         try:
             conn.close()
-        except:
+        except:  # pragma: nocover
             log.error(traceback.format_exc())
 
         return session if session is not None else requests.session()
@@ -98,7 +98,7 @@ class SessionCache(object):
         """Clears all cached Session objects.
         """
 
-        if not HAS_SQL:
+        if not HAS_SQL:  # pragma: nocover
             return
         try:
             conn, c = self.connect()

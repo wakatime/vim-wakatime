@@ -17,15 +17,13 @@ class PhpParser(TokenParser):
     state = None
     parens = 0
 
-    def parse(self, tokens=[]):
-        if not tokens and not self.tokens:
-            self.tokens = self._extract_tokens()
+    def parse(self):
         for index, token, content in self.tokens:
             self._process_token(token, content)
         return self.dependencies
 
     def _process_token(self, token, content):
-        if u(token).split('.')[-1] == 'Keyword':
+        if self.partial(token) == 'Keyword':
             self._process_keyword(token, content)
         elif u(token) == 'Token.Literal.String.Single' or u(token) == 'Token.Literal.String.Double':
             self._process_literal_string(token, content)
@@ -33,9 +31,9 @@ class PhpParser(TokenParser):
             self._process_name(token, content)
         elif u(token) == 'Token.Name.Function':
             self._process_function(token, content)
-        elif u(token).split('.')[-1] == 'Punctuation':
+        elif self.partial(token) == 'Punctuation':
             self._process_punctuation(token, content)
-        elif u(token).split('.')[-1] == 'Text':
+        elif self.partial(token) == 'Text':
             self._process_text(token, content)
         else:
             self._process_other(token, content)

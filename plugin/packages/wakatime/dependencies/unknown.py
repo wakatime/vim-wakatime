@@ -22,7 +22,7 @@ FILES = {
 
 class UnknownParser(TokenParser):
 
-    def parse(self, tokens=[]):
+    def parse(self):
         self._process_file_name(os.path.basename(self.source_file))
         return self.dependencies
 

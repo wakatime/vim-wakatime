@@ -39,12 +39,12 @@ from .session_cache import SessionCache
 from .stats import get_file_stats
 try:
     from .packages import simplejson as json  # pragma: nocover
-except (ImportError, SyntaxError):
-    import json  # pragma: nocover
+except (ImportError, SyntaxError):  # pragma: nocover
+    import json
 try:
-    from .packages import tzlocal  # pragma: nocover
+    from .packages import tzlocal
 except:  # pragma: nocover
-    from .packages import tzlocal3 as tzlocal  # pragma: nocover
+    from .packages import tzlocal3 as tzlocal
 
 
 log = logging.getLogger('WakaTime')
@@ -56,7 +56,7 @@ class FileAction(argparse.Action):
         try:
             if os.path.isfile(values):
                 values = os.path.realpath(values)
-        except:
+        except:  # pragma: nocover
             pass
         setattr(namespace, self.dest, values)
 
@@ -146,6 +146,8 @@ def parseArguments():
             help='defaults to ~/.wakatime.log')
     parser.add_argument('--apiurl', dest='api_url',
             help='heartbeats api url; for debugging with a local server')
+    parser.add_argument('--timeout', dest='timeout', type=int,
+            help='number of seconds to wait when sending heartbeats to api')
     parser.add_argument('--config', dest='config',
             help='defaults to ~/.wakatime.conf')
     parser.add_argument('--verbose', dest='verbose', action='store_true',
@@ -189,14 +191,14 @@ def parseArguments():
             for pattern in configs.get('settings', 'ignore').split("\n"):
                 if pattern.strip() != '':
                     args.exclude.append(pattern)
-        except TypeError:
+        except TypeError:  # pragma: nocover
             pass
     if configs.has_option('settings', 'exclude'):
         try:
             for pattern in configs.get('settings', 'exclude').split("\n"):
                 if pattern.strip() != '':
                     args.exclude.append(pattern)
-        except TypeError:
+        except TypeError:  # pragma: nocover
             pass
     if not args.include:
         args.include = []
@@ -205,7 +207,7 @@ def parseArguments():
             for pattern in configs.get('settings', 'include').split("\n"):
                 if pattern.strip() != '':
                     args.include.append(pattern)
-        except TypeError:
+        except TypeError:  # pragma: nocover
             pass
     if args.offline and configs.has_option('settings', 'offline'):
         args.offline = configs.getboolean('settings', 'offline')
@@ -221,6 +223,11 @@ def parseArguments():
         args.logfile = configs.get('settings', 'logfile')
     if not args.api_url and configs.has_option('settings', 'api_url'):
         args.api_url = configs.get('settings', 'api_url')
+    if not args.timeout and configs.has_option('settings', 'timeout'):
+        try:
+            args.timeout = int(configs.get('settings', 'timeout'))
+        except ValueError:
+            print(traceback.format_exc())
 
     return args, configs
 
@@ -278,12 +285,14 @@ def get_user_agent(plugin):
 
 def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None, entity=None,
         timestamp=None, isWrite=None, plugin=None, offline=None, entity_type='file',
-        hidefilenames=None, proxy=None, api_url=None, **kwargs):
+        hidefilenames=None, proxy=None, api_url=None, timeout=None, **kwargs):
     """Sends heartbeat as POST request to WakaTime api server.
     """
 
     if not api_url:
         api_url = 'https://wakatime.com/api/v1/heartbeats'
+    if not timeout:
+        timeout = 30
     log.debug('Sending heartbeat to api at %s' % api_url)
     data = {
         'time': timestamp,
@@ -342,7 +351,7 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
     response = None
     try:
         response = session.post(api_url, data=request_body, headers=headers,
-                                 proxies=proxies)
+                                 proxies=proxies, timeout=timeout)
     except RequestException:
         exception_data = {
             sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
@@ -425,6 +434,7 @@ def execute(argv=None):
         kwargs['branch'] = branch
         kwargs['stats'] = stats
         kwargs['hostname'] = args.hostname or socket.gethostname()
+        kwargs['timeout'] = args.timeout
 
         if send_heartbeat(**kwargs):
             queue = Queue()
@@ -447,6 +457,7 @@ def execute(argv=None):
                     entity_type=heartbeat['type'],
                     proxy=args.proxy,
                     api_url=args.api_url,
+                    timeout=args.timeout,
                 )
                 if not sent:
                     break

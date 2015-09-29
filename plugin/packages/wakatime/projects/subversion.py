@@ -18,7 +18,7 @@ from .base import BaseProject
 from ..compat import u, open
 try:
     from collections import OrderedDict
-except ImportError:
+except ImportError:  # pragma: nocover
     from ..packages.ordereddict import OrderedDict  # pragma: nocover
 
 
@@ -33,12 +33,12 @@ class Subversion(BaseProject):
 
     def name(self):
         if 'Repository Root' not in self.info:
-            return None
+            return None  # pragma: nocover
         return u(self.info['Repository Root'].split('/')[-1].split('\\')[-1])
 
     def branch(self):
         if 'URL' not in self.info:
-            return None
+            return None  # pragma: nocover
         return u(self.info['URL'].split('/')[-1].split('\\')[-1])
 
     def _find_binary(self):

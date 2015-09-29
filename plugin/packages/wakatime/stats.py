@@ -14,11 +14,11 @@ import os
 import sys
 
 from .compat import u, open
-from .languages import DependencyParser
+from .dependencies import DependencyParser
 
-if sys.version_info[0] == 2:
+if sys.version_info[0] == 2:  # pragma: nocover
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'pygments_py2'))
-else:
+else:  # pragma: nocover
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'pygments_py3'))
 from pygments.lexers import get_lexer_by_name, guess_lexer_for_filename
 from pygments.modeline import get_filetype_from_buffer
@@ -35,11 +35,8 @@ def guess_language(file_name):
     """
 
     language = get_language_from_extension(file_name)
-    if language:
-        return language, None
-
     lexer = smart_guess_lexer(file_name)
-    if lexer:
+    if language is None and lexer is not None:
         language = u(lexer.name)
 
     return language, lexer
@@ -78,7 +75,7 @@ def guess_lexer_using_filename(file_name, text):
 
     try:
         lexer = guess_lexer_for_filename(file_name, text)
-    except:
+    except:  # pragma: nocover
         pass
 
     if lexer is not None:
@@ -148,7 +145,7 @@ def number_lines_in_file(file_name):
         with open(file_name, 'r', encoding='utf-8') as fh:
             for line in fh:
                 lines += 1
-    except:
+    except:  # pragma: nocover
         try:
             with open(file_name, 'r', encoding=sys.getfilesystemencoding()) as fh:
                 for line in fh:
@@ -189,7 +186,7 @@ def get_file_contents(file_name):
     try:
         with open(file_name, 'r', encoding='utf-8') as fh:
             text = fh.read(512000)
-    except:
+    except:  # pragma: nocover
         try:
             with open(file_name, 'r', encoding=sys.getfilesystemencoding()) as fh:
                 text = fh.read(512000)

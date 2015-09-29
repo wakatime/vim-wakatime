@@ -16,8 +16,8 @@ import sys
 from .compat import u
 try:
     from collections import OrderedDict  # pragma: nocover
-except ImportError:
-    from .packages.ordereddict import OrderedDict  # pragma: nocover
+except ImportError:  # pragma: nocover
+    from .packages.ordereddict import OrderedDict
 try:
     from .packages import simplejson as json  # pragma: nocover
 except (ImportError, SyntaxError):  # pragma: nocover
@@ -27,12 +27,12 @@ except (ImportError, SyntaxError):  # pragma: nocover
 class CustomEncoder(json.JSONEncoder):
 
     def default(self, obj):
-        if isinstance(obj, bytes):
-            obj = bytes.decode(obj)
+        if isinstance(obj, bytes):  # pragma: nocover
+            obj = u(obj)
             return json.dumps(obj)
-        try:
+        try:  # pragma: nocover
             encoded = super(CustomEncoder, self).default(obj)
-        except UnicodeDecodeError:
+        except UnicodeDecodeError:  # pragma: nocover
             obj = u(obj)
             encoded = super(CustomEncoder, self).default(obj)
         return encoded
@@ -83,19 +83,9 @@ def set_log_level(logger, args):
 
 def setup_logging(args, version):
     logger = logging.getLogger('WakaTime')
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
     set_log_level(logger, args)
-    if len(logger.handlers) > 0:
-        formatter = JsonFormatter(datefmt='%Y/%m/%d %H:%M:%S %z')
-        formatter.setup(
-            timestamp=args.timestamp,
-            isWrite=args.isWrite,
-            entity=args.entity,
-            version=version,
-            plugin=args.plugin,
-            verbose=args.verbose,
-        )
-        logger.handlers[0].setFormatter(formatter)
-        return logger
     logfile = args.logfile
     if not logfile:
         logfile = '~/.wakatime.log'
@@ -127,7 +117,7 @@ def setup_logging(args, version):
     logging.getLogger('py.warnings').addHandler(warnings_handler)
     try:
         logging.captureWarnings(True)
-    except AttributeError:
+    except AttributeError:  # pragma: nocover
         pass  # Python >= 2.7 is needed to capture warnings
 
     return logger

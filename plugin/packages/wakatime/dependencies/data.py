@@ -26,10 +26,8 @@ class JsonParser(TokenParser):
     state = None
     level = 0
 
-    def parse(self, tokens=[]):
+    def parse(self):
         self._process_file_name(os.path.basename(self.source_file))
-        if not tokens and not self.tokens:
-            self.tokens = self._extract_tokens()
         for index, token, content in self.tokens:
             self._process_token(token, content)
         return self.dependencies
