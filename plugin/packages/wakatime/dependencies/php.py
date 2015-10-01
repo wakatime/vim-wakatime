@@ -61,10 +61,10 @@ class PhpParser(TokenParser):
 
     def _process_literal_string(self, token, content):
         if self.state == 'include':
-            if content != '"':
+            if content != '"' and content != "'":
                 content = content.strip()
                 if u(token) == 'Token.Literal.String.Double':
-                    content = u('"{0}"').format(content)
+                    content = u("'{0}'").format(content)
                 self.append(content)
                 self.state = None
 
