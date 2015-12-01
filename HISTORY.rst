@@ -3,6 +3,16 @@ History
 -------
 
 
+4.0.6 (2015-11-01)
+++++++++++++++++++
+
+- upgrade wakatime cli to v4.1.8
+- default request timeout of 30 seconds
+- new --timeout command line argument to change request timeout in seconds
+- fix bug in guess_language function
+- improve dependency detection
+
+
 4.0.5 (2015-09-07)
 ++++++++++++++++++
 
