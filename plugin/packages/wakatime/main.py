@@ -412,59 +412,64 @@ def execute(argv=None):
 
     setup_logging(args, __version__)
 
-    exclude = should_exclude(args.entity, args.include, args.exclude)
-    if exclude is not False:
-        log.debug(u('Skipping because matches exclude pattern: {pattern}').format(
-            pattern=u(exclude),
-        ))
-        return 0
+    try:
+        exclude = should_exclude(args.entity, args.include, args.exclude)
+        if exclude is not False:
+            log.debug(u('Skipping because matches exclude pattern: {pattern}').format(
+                pattern=u(exclude),
+            ))
+            return 0
 
-    if args.entity_type != 'file' or os.path.isfile(args.entity):
+        if args.entity_type != 'file' or os.path.isfile(args.entity):
 
-        stats = get_file_stats(args.entity, entity_type=args.entity_type,
-                               lineno=args.lineno, cursorpos=args.cursorpos)
+            stats = get_file_stats(args.entity,
+                                   entity_type=args.entity_type,
+                                   lineno=args.lineno,
+                                   cursorpos=args.cursorpos)
 
-        project = args.project or args.alternate_project
-        branch = None
-        if args.entity_type == 'file':
-            project, branch = get_project_info(configs, args)
+            project = args.project or args.alternate_project
+            branch = None
+            if args.entity_type == 'file':
+                project, branch = get_project_info(configs, args)
 
-        kwargs = vars(args)
-        kwargs['project'] = project
-        kwargs['branch'] = branch
-        kwargs['stats'] = stats
-        kwargs['hostname'] = args.hostname or socket.gethostname()
-        kwargs['timeout'] = args.timeout
+            kwargs = vars(args)
+            kwargs['project'] = project
+            kwargs['branch'] = branch
+            kwargs['stats'] = stats
+            kwargs['hostname'] = args.hostname or socket.gethostname()
+            kwargs['timeout'] = args.timeout
 
-        if send_heartbeat(**kwargs):
-            queue = Queue()
-            while True:
-                heartbeat = queue.pop()
-                if heartbeat is None:
-                    break
-                sent = send_heartbeat(
-                    project=heartbeat['project'],
-                    entity=heartbeat['entity'],
-                    timestamp=heartbeat['time'],
-                    branch=heartbeat['branch'],
-                    hostname=kwargs['hostname'],
-                    stats=json.loads(heartbeat['stats']),
-                    key=args.key,
-                    isWrite=heartbeat['is_write'],
-                    plugin=heartbeat['plugin'],
-                    offline=args.offline,
-                    hidefilenames=args.hidefilenames,
-                    entity_type=heartbeat['type'],
-                    proxy=args.proxy,
-                    api_url=args.api_url,
-                    timeout=args.timeout,
-                )
-                if not sent:
-                    break
-            return 0 # success
+            if send_heartbeat(**kwargs):
+                queue = Queue()
+                while True:
+                    heartbeat = queue.pop()
+                    if heartbeat is None:
+                        break
+                    sent = send_heartbeat(
+                        project=heartbeat['project'],
+                        entity=heartbeat['entity'],
+                        timestamp=heartbeat['time'],
+                        branch=heartbeat['branch'],
+                        hostname=kwargs['hostname'],
+                        stats=json.loads(heartbeat['stats']),
+                        key=args.key,
+                        isWrite=heartbeat['is_write'],
+                        plugin=heartbeat['plugin'],
+                        offline=args.offline,
+                        hidefilenames=args.hidefilenames,
+                        entity_type=heartbeat['type'],
+                        proxy=args.proxy,
+                        api_url=args.api_url,
+                        timeout=args.timeout,
+                    )
+                    if not sent:
+                        break
+                return 0 # success
 
-        return 102 # api error
+            return 102 # api error
 
-    else:
-        log.debug('File does not exist; ignoring this heartbeat.')
-        return 0
+        else:
+            log.debug('File does not exist; ignoring this heartbeat.')
+            return 0
+    except:
+        log.traceback()

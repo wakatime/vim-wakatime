@@ -41,9 +41,9 @@ class WakaTimeProjectFile(BaseProject):
                         self._project_name = u(fh.readline().strip())
                         self._project_branch = u(fh.readline().strip())
                 except:
-                    log.exception("Exception:")
+                    log.traceback()
             except IOError:  # pragma: nocover
-                log.exception("Exception:")
+                log.traceback()
 
             return True
         return False
