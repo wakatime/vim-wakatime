@@ -27,10 +27,13 @@ let s:VERSION = '4.0.6'
     let s:old_cpo = &cpo
     set cpo&vim
 
-    " Globals
+    " Script Globals
     let s:cli_location = expand("<sfile>:p:h") . '/packages/wakatime/cli.py'
     let s:config_file = expand("$HOME/.wakatime.cfg")
+    let s:data_file = expand("$HOME/.wakatime.data")
     let s:config_file_already_setup = 0
+    let s:local_cache_expire = 10
+    let s:last_heartbeat = [0, 0, '']
 
     " For backwards compatibility, rename wakatime.conf to wakatime.cfg
     if !filereadable(s:config_file)
@@ -143,22 +146,29 @@ let s:VERSION = '4.0.6'
     endfunction
     
     function! s:GetLastHeartbeat()
-        if !filereadable(expand("$HOME/.wakatime.data"))
-            return [0, 0, '']
+        if !s:last_heartbeat[0] || localtime() - s:last_heartbeat[0] > s:local_cache_expire
+            if !filereadable(s:data_file)
+                return [0, 0, '']
+            endif
+            let last = readfile(s:data_file, '', 3)
+            if len(last) == 3
+                let s:last_heartbeat = [s:last_heartbeat[0], last[1], last[2]]
+            endif
         endif
-        let last = readfile(expand("$HOME/.wakatime.data"), '', 3)
-        if len(last) != 3
-            return [0, 0, '']
-        endif
-        return last
+        return s:last_heartbeat
+    endfunction
+    
+    function! s:SetLastHeartbeatLocally(time, last_update, targetFile)
+        let s:last_heartbeat = [a:time, a:last_update, a:targetFile]
     endfunction
     
     function! s:SetLastHeartbeat(time, last_update, targetFile)
-        call writefile([substitute(printf('%d', a:time), ',', '.', ''), substitute(printf('%d', a:last_update), ',', '.', ''), a:targetFile], expand("$HOME/.wakatime.data"))
+        call s:SetLastHeartbeatLocally(a:time, a:last_update, a:targetFile)
+        call writefile([substitute(printf('%d', a:time), ',', '.', ''), substitute(printf('%d', a:last_update), ',', '.', ''), a:targetFile], s:data_file)
     endfunction
 
     function! s:EnoughTimePassed(now, last)
-        let prev = a:last[0]
+        let prev = a:last[1]
         if a:now - prev > g:wakatime_HeartbeatFrequency * 60
             return 1
         endif
@@ -178,6 +188,10 @@ let s:VERSION = '4.0.6'
         if targetFile !~ "-MiniBufExplorer-" && targetFile !~ "--NO NAME--" && targetFile != ""
             if a:is_write || s:EnoughTimePassed(now, last) || targetFile != last[2]
                 call s:Api(targetFile, now, a:is_write, last)
+            else
+                if now - s:last_heartbeat[0] > s:local_cache_expire
+                    call s:SetLastHeartbeatLocally(now, last[1], last[2])
+                endif
             endif
         endif
     endfunction
