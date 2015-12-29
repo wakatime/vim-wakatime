@@ -32,6 +32,7 @@ let s:VERSION = '4.0.6'
     let s:config_file = expand("$HOME/.wakatime.cfg")
     let s:data_file = expand("$HOME/.wakatime.data")
     let s:config_file_already_setup = 0
+    let s:ignoredFiles = ["", "-MiniBufExplorer-", "--NO NAME--"]
     let s:local_cache_expire = 10
     let s:last_heartbeat = [0, 0, '']
 
@@ -109,6 +110,13 @@ let s:VERSION = '4.0.6'
         return substitute(shellescape(a:arg), '!', '\\!', '')
     endfunction
 
+    function! s:ListContains(list, el)
+        if index(a:list, a:el) >= 0
+            return 1
+        endif
+        return 0
+    endfunction
+
     function! s:JoinArgs(args)
         let safeArgs = []
         for arg in a:args
@@ -117,12 +125,12 @@ let s:VERSION = '4.0.6'
         return join(safeArgs, ' ')
     endfunction
 
-    function! s:Api(targetFile, time, is_write, last)
-        let targetFile = a:targetFile
-        if targetFile == ''
-            let targetFile = a:last[2]
+    function! s:SendHeartbeat(file, time, is_write, last)
+        let file = a:file
+        if file == ''
+            let file = a:last[2]
         endif
-        if targetFile != ''
+        if file != ''
             let python_bin = g:wakatime_PythonBinary
             if has('win32') || has('win64')
                 if python_bin == 'python'
@@ -130,7 +138,7 @@ let s:VERSION = '4.0.6'
                 endif
             endif
             let cmd = [python_bin, '-W', 'ignore', s:cli_location]
-            let cmd = cmd + ['--file', targetFile]
+            let cmd = cmd + ['--file', file]
             let cmd = cmd + ['--plugin', printf('vim/%d vim-wakatime/%s', v:version, s:VERSION)]
             if a:is_write
                 let cmd = cmd + ['--write']
@@ -141,7 +149,7 @@ let s:VERSION = '4.0.6'
             else
                 exec 'silent !' . s:JoinArgs(cmd) . ' &'
             endif
-            call s:SetLastHeartbeat(a:time, a:time, targetFile)
+            call s:SetLastHeartbeat(a:time, a:time, file)
         endif
     endfunction
     
@@ -158,13 +166,13 @@ let s:VERSION = '4.0.6'
         return s:last_heartbeat
     endfunction
     
-    function! s:SetLastHeartbeatLocally(time, last_update, targetFile)
-        let s:last_heartbeat = [a:time, a:last_update, a:targetFile]
+    function! s:SetLastHeartbeatLocally(time, last_update, file)
+        let s:last_heartbeat = [a:time, a:last_update, a:file]
     endfunction
     
-    function! s:SetLastHeartbeat(time, last_update, targetFile)
-        call s:SetLastHeartbeatLocally(a:time, a:last_update, a:targetFile)
-        call writefile([substitute(printf('%d', a:time), ',', '.', ''), substitute(printf('%d', a:last_update), ',', '.', ''), a:targetFile], s:data_file)
+    function! s:SetLastHeartbeat(time, last_update, file)
+        call s:SetLastHeartbeatLocally(a:time, a:last_update, a:file)
+        call writefile([substitute(printf('%d', a:time), ',', '.', ''), substitute(printf('%d', a:last_update), ',', '.', ''), a:file], s:data_file)
     endfunction
 
     function! s:EnoughTimePassed(now, last)
@@ -182,12 +190,12 @@ let s:VERSION = '4.0.6'
 
     function! s:handleActivity(is_write)
         call s:SetupConfigFile()
-        let targetFile = s:GetCurrentFile()
+        let file = s:GetCurrentFile()
         let now = localtime()
         let last = s:GetLastHeartbeat()
-        if targetFile !~ "-MiniBufExplorer-" && targetFile !~ "--NO NAME--" && targetFile != ""
-            if a:is_write || s:EnoughTimePassed(now, last) || targetFile != last[2]
-                call s:Api(targetFile, now, a:is_write, last)
+        if !empty(file) && !s:ListContains(s:ignoredFiles, file)
+            if a:is_write || s:EnoughTimePassed(now, last) || file != last[2]
+                call s:SendHeartbeat(file, now, a:is_write, last)
             else
                 if now - s:last_heartbeat[0] > s:local_cache_expire
                     call s:SetLastHeartbeatLocally(now, last[1], last[2])
