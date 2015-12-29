@@ -32,7 +32,6 @@ let s:VERSION = '4.0.6'
     let s:config_file = expand("$HOME/.wakatime.cfg")
     let s:data_file = expand("$HOME/.wakatime.data")
     let s:config_file_already_setup = 0
-    let s:ignoredFiles = ["", "-MiniBufExplorer-", "--NO NAME--"]
     let s:local_cache_expire = 10
     let s:last_heartbeat = [0, 0, '']
 
@@ -108,13 +107,6 @@ let s:VERSION = '4.0.6'
 
     function! s:EscapeArg(arg)
         return substitute(shellescape(a:arg), '!', '\\!', '')
-    endfunction
-
-    function! s:ListContains(list, el)
-        if index(a:list, a:el) >= 0
-            return 1
-        endif
-        return 0
     endfunction
 
     function! s:JoinArgs(args)
@@ -193,7 +185,7 @@ let s:VERSION = '4.0.6'
         let file = s:GetCurrentFile()
         let now = localtime()
         let last = s:GetLastHeartbeat()
-        if !empty(file) && !s:ListContains(s:ignoredFiles, file)
+        if !empty(file) && file !~ "-MiniBufExplorer-" && file !~ "--NO NAME--" && file !~ "^term:"
             if a:is_write || s:EnoughTimePassed(now, last) || file != last[2]
                 call s:SendHeartbeat(file, now, a:is_write, last)
             else
