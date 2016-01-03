@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pac
 
 from .__about__ import __version__
 from .compat import u, open, is_py3
+from .constants import SUCCESS, API_ERROR, CONFIG_FILE_PARSE_ERROR
 from .logger import setup_logging
 from .offlinequeue import Queue
 from .packages import argparse
@@ -408,7 +409,7 @@ def execute(argv=None):
 
     args, configs = parseArguments()
     if configs is None:
-        return 103 # config file parsing error
+        return CONFIG_FILE_PARSE_ERROR
 
     setup_logging(args, __version__)
 
@@ -418,7 +419,7 @@ def execute(argv=None):
             log.debug(u('Skipping because matches exclude pattern: {pattern}').format(
                 pattern=u(exclude),
             ))
-            return 0
+            return SUCCESS
 
         if args.entity_type != 'file' or os.path.isfile(args.entity):
 
@@ -464,12 +465,12 @@ def execute(argv=None):
                     )
                     if not sent:
                         break
-                return 0 # success
+                return SUCCESS
 
-            return 102 # api error
+            return API_ERROR
 
         else:
             log.debug('File does not exist; ignoring this heartbeat.')
-            return 0
+            return SUCCESS
     except:
         log.traceback()

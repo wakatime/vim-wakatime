@@ -14,7 +14,6 @@ import logging
 import os
 import pickle
 import sys
-import traceback
 
 try:
     import sqlite3
@@ -58,7 +57,7 @@ class SessionCache(object):
             conn.commit()
             conn.close()
         except:  # pragma: nocover
-            log.error(traceback.format_exc())
+            log.traceback()
 
 
     def get(self):
@@ -73,7 +72,7 @@ class SessionCache(object):
         try:
             conn, c = self.connect()
         except:
-            log.error(traceback.format_exc())
+            log.traceback()
             return requests.session()
 
         session = None
@@ -84,12 +83,12 @@ class SessionCache(object):
             if row is not None:
                 session = pickle.loads(row[0])
         except:  # pragma: nocover
-            log.error(traceback.format_exc())
+            log.traceback()
 
         try:
             conn.close()
         except:  # pragma: nocover
-            log.error(traceback.format_exc())
+            log.traceback()
 
         return session if session is not None else requests.session()
 
@@ -106,4 +105,4 @@ class SessionCache(object):
             conn.commit()
             conn.close()
         except:
-            log.error(traceback.format_exc())
+            log.traceback()
