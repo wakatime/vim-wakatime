@@ -291,7 +291,7 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
     """
 
     if not api_url:
-        api_url = 'https://wakatime.com/api/v1/heartbeats'
+        api_url = 'https://api.wakatime.com/api/v1/heartbeats'
     if not timeout:
         timeout = 30
     log.debug('Sending heartbeat to api at %s' % api_url)
