@@ -34,6 +34,7 @@ from .constants import SUCCESS, API_ERROR, CONFIG_FILE_PARSE_ERROR
 from .logger import setup_logging
 from .offlinequeue import Queue
 from .packages import argparse
+from .packages import requests
 from .packages.requests.exceptions import RequestException
 from .project import get_project_info
 from .session_cache import SessionCache
@@ -369,7 +370,7 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
     else:
         response_code = response.status_code if response is not None else None
         response_content = response.text if response is not None else None
-        if response_code == 201:
+        if response_code == requests.codes.created or response_code == requests.codes.accepted:
             log.debug({
                 'response_code': response_code,
             })
