@@ -44,9 +44,9 @@ class Git(BaseProject):
                     with open(head, 'r', encoding=sys.getfilesystemencoding()) as fh:
                         return u(fh.readline().strip().rsplit('/', 1)[-1])
                 except:
-                    log.traceback()
+                    log.traceback('warn')
             except IOError:  # pragma: nocover
-                log.traceback()
+                log.traceback('warn')
         return None
 
     def _project_base(self):

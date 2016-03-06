@@ -73,7 +73,14 @@ class JsonFormatter(logging.Formatter):
 
 
 def traceback_formatter(*args, **kwargs):
-    logging.getLogger('WakaTime').error(traceback.format_exc())
+    if 'level' in kwargs and (kwargs['level'].lower() == 'warn' or kwargs['level'].lower() == 'warning'):
+        logging.getLogger('WakaTime').warning(traceback.format_exc())
+    elif 'level' in kwargs and kwargs['level'].lower() == 'info':
+        logging.getLogger('WakaTime').info(traceback.format_exc())
+    elif 'level' in kwargs and kwargs['level'].lower() == 'debug':
+        logging.getLogger('WakaTime').debug(traceback.format_exc())
+    else:
+        logging.getLogger('WakaTime').error(traceback.format_exc())
 
 
 def set_log_level(logger, args):

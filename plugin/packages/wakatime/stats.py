@@ -191,5 +191,5 @@ def get_file_contents(file_name):
             with open(file_name, 'r', encoding=sys.getfilesystemencoding()) as fh:
                 text = fh.read(512000)
         except:
-            log.traceback()
+            log.traceback('debug')
     return text

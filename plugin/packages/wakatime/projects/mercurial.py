@@ -42,9 +42,9 @@ class Mercurial(BaseProject):
                     with open(branch_file, 'r', encoding=sys.getfilesystemencoding()) as fh:
                         return u(fh.readline().strip().rsplit('/', 1)[-1])
                 except:
-                    log.traceback()
+                    log.traceback('warn')
             except IOError:  # pragma: nocover
-                log.traceback()
+                log.traceback('warn')
         return u('default')
 
     def _find_hg_config_dir(self, path):
