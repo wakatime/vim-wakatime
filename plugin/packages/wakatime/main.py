@@ -36,6 +36,7 @@ from .constants import (
     AUTH_ERROR,
     CONFIG_FILE_PARSE_ERROR,
     SUCCESS,
+    UNKNOWN_ERROR,
 )
 from .logger import setup_logging
 from .offlinequeue import Queue
@@ -345,7 +346,7 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
         'Authorization': auth,
     }
     if hostname:
-        headers['X-Machine-Name'] = u(hostname)
+        headers['X-Machine-Name'] = u(hostname).encode('utf-8')
     proxies = {}
     if proxy:
         proxies['https'] = proxy
@@ -356,7 +357,7 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
     except:
         tz = None
     if tz:
-        headers['TimeZone'] = u(tz.zone)
+        headers['TimeZone'] = u(tz.zone).encode('utf-8')
 
     session_cache = SessionCache()
     session = session_cache.get()
@@ -499,3 +500,4 @@ def execute(argv=None):
             return SUCCESS
     except:
         log.traceback()
+        return UNKNOWN_ERROR
