@@ -16,13 +16,12 @@ import sys
 from .compat import u, open
 from .dependencies import DependencyParser
 
-if sys.version_info[0] == 2:  # pragma: nocover
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'pygments_py2'))
-else:  # pragma: nocover
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'packages', 'pygments_py3'))
-from pygments.lexers import get_lexer_by_name, guess_lexer_for_filename
-from pygments.modeline import get_filetype_from_buffer
-from pygments.util import ClassNotFound
+from .packages import (
+    get_lexer_by_name,
+    guess_lexer_for_filename,
+    get_filetype_from_buffer,
+    ClassNotFound,
+)
 
 
 log = logging.getLogger('WakaTime')

@@ -50,10 +50,7 @@ try:
     from .packages import simplejson as json  # pragma: nocover
 except (ImportError, SyntaxError):  # pragma: nocover
     import json
-try:
-    from .packages import tzlocal
-except:  # pragma: nocover
-    from .packages import tzlocal3 as tzlocal
+from .packages import tzlocal
 
 
 log = logging.getLogger('WakaTime')

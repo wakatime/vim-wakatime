@@ -3,18 +3,18 @@
     wakatime.projects.projectmap
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Use the ~/.wakatime.cfg file to set custom project names by
-    recursively matching folder paths.
-    Project maps go under the [projectmap] config section.
+    Use the ~/.wakatime.cfg file to set custom project names by matching files
+    with regex patterns. Project maps go under the [projectmap] config section.
 
     For example:
 
         [projectmap]
         /home/user/projects/foo = new project name
-        /home/user/projects/bar = project2
+        /home/user/projects/bar(\d+)/ = project{0}
 
     Will result in file `/home/user/projects/foo/src/main.c` to have
-    project name `new project name`.
+    project name `new project name` and file `/home/user/projects/bar42/main.c`
+    to have project name `project42`.
 
     :copyright: (c) 2013 Alan Hamlett.
     :license: BSD, see LICENSE for more details.
@@ -22,6 +22,7 @@
 
 import logging
 import os
+import re
 
 from .base import BaseProject
 from ..compat import u
@@ -42,20 +43,23 @@ class ProjectMap(BaseProject):
 
     def _find_project(self, path):
         path = os.path.realpath(path)
-        if os.path.isfile(path):
-            path = os.path.split(path)[0]
 
-        if self._configs.get(path.lower()):
-            return self._configs.get(path.lower())
-        if self._configs.get('%s/' % path.lower()):  # pragma: nocover
-            return self._configs.get('%s/' % path.lower())
-        if self._configs.get('%s\\' % path.lower()):  # pragma: nocover
-            return self._configs.get('%s\\' % path.lower())
+        try:
+            for pattern, new_proj_name in self._configs.items():
+                try:
+                    compiled = re.compile(pattern, re.IGNORECASE)
+                    match = compiled.search(path)
+                    if match:
+                        return new_proj_name.format(*match.groups())
+                except re.error as ex:
+                    log.warning(u('Regex error ({msg}) for projectmap pattern: {pattern}').format(
+                        msg=u(ex),
+                        pattern=u(pattern),
+                    ))
+        except TypeError:  # pragma: nocover
+            pass
 
-        split_path = os.path.split(path)
-        if split_path[1] == '':
-            return None  # pragma: nocover
-        return self._find_project(split_path[0])
+        return None
 
     def branch(self):
         return None
@@ -63,4 +67,4 @@ class ProjectMap(BaseProject):
     def name(self):
         if self.project:
             return u(self.project)
-        return None  # pragma: nocover
+        return None
