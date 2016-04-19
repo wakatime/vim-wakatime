@@ -135,6 +135,13 @@ let s:VERSION = '4.0.9'
             if a:is_write
                 let cmd = cmd + ['--write']
             endif
+            if &syntax != ''
+                let cmd = cmd + ['--alternate-language', &syntax]
+            else
+                if &filetype != ''
+                    let cmd = cmd + ['--alternate-language', &filetype]
+                endif
+            endif
             "let cmd = cmd + ['--verbose']
             if has('win32') || has('win64')
                 exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
