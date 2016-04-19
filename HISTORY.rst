@@ -3,6 +3,15 @@ History
 -------
 
 
+4.0.10 (2016-04-19)
+++++++++++++++++++
+
+- Pass syntax of current file to wakatime-cli.
+- Upgrade wakatime-cli to v5.0.1.
+- Support passing an alternate language to cli to be used when a language can
+  not be guessed from the code file.
+
+
 4.0.9 (2016-04-18)
 ++++++++++++++++++
 
