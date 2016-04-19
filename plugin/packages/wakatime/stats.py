@@ -23,6 +23,11 @@ from .packages import (
     ClassNotFound,
 )
 
+try:
+    from .packages import simplejson as json  # pragma: nocover
+except (ImportError, SyntaxError):  # pragma: nocover
+    import json
+
 
 log = logging.getLogger('WakaTime')
 
@@ -50,7 +55,7 @@ def smart_guess_lexer(file_name):
     """
     lexer = None
 
-    text = get_file_contents(file_name)
+    text = get_file_head(file_name)
 
     lexer1, accuracy1 = guess_lexer_using_filename(file_name, text)
     lexer2, accuracy2 = guess_lexer_using_modeline(text)
@@ -154,7 +159,8 @@ def number_lines_in_file(file_name):
     return lines
 
 
-def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None):
+def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None,
+                   plugin=None, alternate_language=None):
     if entity_type != 'file':
         stats = {
             'language': None,
@@ -167,6 +173,8 @@ def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None):
         language, lexer = guess_language(file_name)
         parser = DependencyParser(file_name, lexer)
         dependencies = parser.parse()
+        if language is None and alternate_language:
+            language = standardize_language(alternate_language, plugin)
         stats = {
             'language': language,
             'dependencies': dependencies,
@@ -177,9 +185,47 @@ def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None):
     return stats
 
 
-def get_file_contents(file_name):
-    """Returns the first 512000 bytes of the file's contents.
-    """
+def standardize_language(language, plugin):
+    """Maps a string to the equivalent Pygments language."""
+
+    # standardize language for this plugin
+    if plugin:
+        plugin = plugin.split(' ')[-1].split('/')[0].split('-')[0]
+        standardized = get_language_from_json(language, plugin)
+        if standardized is not None:
+            return standardized
+
+    # standardize language against default languages
+    standardized = get_language_from_json(language, 'default')
+    if standardized is not None:
+        return standardized
+
+    return None
+
+
+def get_language_from_json(language, key):
+    """Finds the given language in a json file."""
+
+    file_name = os.path.join(
+        os.path.dirname(__file__),
+        'languages',
+        '{0}.json').format(key.lower())
+
+    try:
+        with open(file_name, 'r', encoding='utf-8') as fh:
+            languages = json.loads(fh.read())
+            if language in languages.values():
+                return language
+            if languages.get(language):
+                return languages[language]
+    except:
+        pass
+
+    return None
+
+
+def get_file_head(file_name):
+    """Returns the first 512000 bytes of the file's contents."""
 
     text = None
     try:

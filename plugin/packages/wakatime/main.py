@@ -133,6 +133,9 @@ def parseArguments():
     parser.add_argument('--alternate-project', dest='alternate_project',
             help='optional alternate project name; auto-discovered project '+
                  'takes priority')
+    parser.add_argument('--alternate-language', dest='alternate_language',
+            help='optional alternate language name; auto-detected language'+
+                 'takes priority')
     parser.add_argument('--hostname', dest='hostname', help='hostname of '+
                         'current machine.')
     parser.add_argument('--disableoffline', dest='offline',
@@ -471,7 +474,9 @@ def execute(argv=None):
             stats = get_file_stats(args.entity,
                                    entity_type=args.entity_type,
                                    lineno=args.lineno,
-                                   cursorpos=args.cursorpos)
+                                   cursorpos=args.cursorpos,
+                                   plugin=args.plugin,
+                                   alternate_language=args.alternate_language)
 
             project = args.project or args.alternate_project
             branch = None
