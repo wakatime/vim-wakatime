@@ -135,10 +135,10 @@ let s:VERSION = '4.0.10'
             if a:is_write
                 let cmd = cmd + ['--write']
             endif
-            if &syntax != ''
+            if !empty(&syntax)
                 let cmd = cmd + ['--alternate-language', &syntax]
             else
-                if &filetype != ''
+                if !empty(&filetype)
                     let cmd = cmd + ['--alternate-language', &filetype]
                 endif
             endif
