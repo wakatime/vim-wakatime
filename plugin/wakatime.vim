@@ -130,7 +130,7 @@ let s:VERSION = '4.0.10'
                 endif
             endif
             let cmd = [python_bin, '-W', 'ignore', s:cli_location]
-            let cmd = cmd + ['--file', file]
+            let cmd = cmd + ['--entity', file]
             let cmd = cmd + ['--plugin', printf('vim/%d vim-wakatime/%s', v:version, s:VERSION)]
             if a:is_write
                 let cmd = cmd + ['--write']
