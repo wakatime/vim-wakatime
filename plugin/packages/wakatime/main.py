@@ -485,6 +485,11 @@ def process_heartbeat(args, configs, hostname, heartbeat):
         heartbeat['hostname'] = hostname
         heartbeat['timeout'] = args.timeout
         heartbeat['key'] = args.key
+        heartbeat['plugin'] = args.plugin
+        heartbeat['offline'] = args.offline
+        heartbeat['hidefilenames'] = args.hidefilenames
+        heartbeat['proxy'] = args.proxy
+        heartbeat['api_url'] = args.api_url
 
         return send_heartbeat(**heartbeat)
 
