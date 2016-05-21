@@ -47,12 +47,12 @@ class Git(BaseProject):
                     log.traceback('warn')
             except IOError:  # pragma: nocover
                 log.traceback('warn')
-        return None
+        return u('master')
 
     def _project_base(self):
         if self.configFile:
             return os.path.dirname(os.path.dirname(self.configFile))
-        return None
+        return None  # pragma: nocover
 
     def _find_git_config_file(self, path):
         path = os.path.realpath(path)

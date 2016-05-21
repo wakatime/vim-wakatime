@@ -127,8 +127,10 @@ def parseArguments():
             help='entity type for this heartbeat. can be one of "file", '+
                  '"domain", or "app"; defaults to file.')
     parser.add_argument('--proxy', dest='proxy',
-                        help='optional https proxy url; for example: '+
-                             'https://user:pass@localhost:8080')
+                        help='optional proxy configuration. Supports HTTPS '+
+                        'and SOCKS proxies. For example: '+
+                        'https://user:pass@host:port or '+
+                        'socks5://user:pass@host:port')
     parser.add_argument('--project', dest='project',
             help='optional project name')
     parser.add_argument('--alternate-project', dest='alternate_project',

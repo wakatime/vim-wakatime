@@ -69,28 +69,6 @@ KEYWORDS = [
 ]
 
 
-class LassoJavascriptParser(TokenParser):
-
-    def parse(self):
-        for index, token, content in self.tokens:
-            self._process_token(token, content)
-        return self.dependencies
-
-    def _process_token(self, token, content):
-        if u(token) == 'Token.Name.Other':
-            self._process_name(token, content)
-        elif u(token) == 'Token.Literal.String.Single' or u(token) == 'Token.Literal.String.Double':
-            self._process_literal_string(token, content)
-
-    def _process_name(self, token, content):
-        if content.lower() in KEYWORDS:
-            self.append(content.lower())
-
-    def _process_literal_string(self, token, content):
-        if 'famous/core/' in content.strip('"').strip("'"):
-            self.append('famous')
-
-
 class HtmlDjangoParser(TokenParser):
     tags = []
     getting_attrs = False
