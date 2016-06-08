@@ -3,6 +3,15 @@ History
 -------
 
 
+4.0.12 (2016-06-08)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to master version to fix bug in urllib3 package causing
+  unhandled retry exceptions.
+- Prevent tracking git branch with detached head.
+- Support for SOCKS proxies.
+
+
 4.0.11 (2016-05-16)
 ++++++++++++++++++
 
