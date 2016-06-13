@@ -18,6 +18,7 @@ class PythonParser(TokenParser):
     nonpackage = False
     exclude = [
         r'^os$',
+        r'^sys$',
         r'^sys\.',
     ]
 
