@@ -108,7 +108,7 @@ def guess_lexer_using_modeline(text):
     if file_type is not None:
         try:
             lexer = get_lexer_by_name(file_type)
-        except ClassNotFound:  # pragma: nocover
+        except:  # pragma: nocover
             pass
 
     if lexer is not None:
