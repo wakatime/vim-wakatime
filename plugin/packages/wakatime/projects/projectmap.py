@@ -56,7 +56,7 @@ class ProjectMap(BaseProject):
                         msg=u(ex),
                         pattern=u(pattern),
                     ))
-        except TypeError:  # pragma: nocover
+        except TypeError:
             pass
 
         return None

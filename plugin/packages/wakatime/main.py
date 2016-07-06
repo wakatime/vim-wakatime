@@ -187,7 +187,7 @@ def parseArguments():
     # update args from configs
     if not args.hostname:
         if configs.has_option('settings', 'hostname'):
-            args.hostname = configs.get('settings', 'hostname')    
+            args.hostname = configs.get('settings', 'hostname')
     if not args.key:
         default_key = None
         if configs.has_option('settings', 'api_key'):
@@ -388,6 +388,18 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
                 log.warn(exception_data)
         else:
             log.error(exception_data)
+
+    except:  # delete cached session when requests raises unknown exception
+        exception_data = {
+            sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
+            'traceback': traceback.format_exc(),
+        }
+        if offline:
+            queue = Queue()
+            queue.push(data, json.dumps(stats), plugin)
+            log.warn(exception_data)
+        session_cache.delete()
+
     else:
         code = response.status_code if response is not None else None
         content = response.text if response is not None else None
