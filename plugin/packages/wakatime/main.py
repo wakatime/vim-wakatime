@@ -185,6 +185,9 @@ def parseArguments():
         return args, configs
 
     # update args from configs
+    if not args.hostname:
+        if configs.has_option('settings', 'hostname'):
+            args.hostname = configs.get('settings', 'hostname')    
     if not args.key:
         default_key = None
         if configs.has_option('settings', 'api_key'):

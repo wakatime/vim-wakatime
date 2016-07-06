@@ -73,10 +73,9 @@ class JsonFormatter(logging.Formatter):
 
 
 def traceback_formatter(*args, **kwargs):
-    try:
-        level = kwargs.get('level', args[0]).lower()
-    except:
-        level = None
+    level = kwargs.get('level', args[0] if len(args) else None)
+    if level:
+        level = level.lower()
     if level == 'warn' or level == 'warning':
         logging.getLogger('WakaTime').warning(traceback.format_exc())
     elif level == 'info':
