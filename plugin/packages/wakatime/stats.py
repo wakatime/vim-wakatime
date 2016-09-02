@@ -234,7 +234,7 @@ def get_file_head(file_name):
     except:
         try:
             with open(file_name, 'r', encoding=sys.getfilesystemencoding()) as fh:
-                text = fh.read(512000)
+                text = fh.read(512000)  # pragma: nocover
         except:
-            log.traceback('debug')
+            log.traceback(logging.DEBUG)
     return text

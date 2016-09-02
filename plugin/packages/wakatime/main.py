@@ -545,6 +545,6 @@ def execute(argv=None):
         return retval
 
     except:
-        log.traceback()
+        log.traceback(logging.ERROR)
         print(traceback.format_exc())
         return UNKNOWN_ERROR

@@ -12,7 +12,7 @@ except ImportError:
 from logging import getLogger
 from ntlm import ntlm
 
-from .. import HTTPSConnectionPool
+from urllib3 import HTTPSConnectionPool
 
 
 log = getLogger(__name__)

@@ -31,7 +31,7 @@ if is_py2:  # pragma: nocover
                 try:
                     return unicode(text)
                 except:
-                    return text
+                    return text.decode('utf-8', 'replace')
     open = codecs.open
     basestring = basestring
 
@@ -52,7 +52,7 @@ elif is_py3:  # pragma: nocover
         try:
             return str(text)
         except:
-            return text
+            return text.decode('utf-8', 'replace')
     open = open
     basestring = (str, bytes)
 

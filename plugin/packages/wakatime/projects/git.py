@@ -44,9 +44,9 @@ class Git(BaseProject):
                     with open(head, 'r', encoding=sys.getfilesystemencoding()) as fh:
                         return self._get_branch_from_head_file(fh.readline())
                 except:
-                    log.traceback('warn')
+                    log.traceback(logging.WARNING)
             except IOError:  # pragma: nocover
-                log.traceback('warn')
+                log.traceback(logging.WARNING)
         return u('master')
 
     def _project_base(self):

@@ -44,9 +44,8 @@ from .packages.ssl_match_hostname import match_hostname, CertificateError
 from .util.ssl_ import (
     resolve_cert_reqs,
     resolve_ssl_version,
+    ssl_wrap_socket,
     assert_fingerprint,
-    create_urllib3_context,
-    ssl_wrap_socket
 )
 
 
@@ -204,18 +203,14 @@ class HTTPConnection(_HTTPConnection, object):
 class HTTPSConnection(HTTPConnection):
     default_port = port_by_scheme['https']
 
-    ssl_version = None
-
     def __init__(self, host, port=None, key_file=None, cert_file=None,
-                 strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-                 ssl_context=None, **kw):
+                 strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, **kw):
 
         HTTPConnection.__init__(self, host, port, strict=strict,
                                 timeout=timeout, **kw)
 
         self.key_file = key_file
         self.cert_file = cert_file
-        self.ssl_context = ssl_context
 
         # Required property for Google AppEngine 1.9.0 which otherwise causes
         # HTTPS requests to go out as HTTP. (See Issue #356)
@@ -224,19 +219,7 @@ class HTTPSConnection(HTTPConnection):
     def connect(self):
         conn = self._new_conn()
         self._prepare_conn(conn)
-
-        if self.ssl_context is None:
-            self.ssl_context = create_urllib3_context(
-                ssl_version=resolve_ssl_version(None),
-                cert_reqs=resolve_cert_reqs(None),
-            )
-
-        self.sock = ssl_wrap_socket(
-            sock=conn,
-            keyfile=self.key_file,
-            certfile=self.cert_file,
-            ssl_context=self.ssl_context,
-        )
+        self.sock = ssl.wrap_socket(conn, self.key_file, self.cert_file)
 
 
 class VerifiedHTTPSConnection(HTTPSConnection):
@@ -254,18 +237,9 @@ class VerifiedHTTPSConnection(HTTPSConnection):
                  cert_reqs=None, ca_certs=None,
                  assert_hostname=None, assert_fingerprint=None,
                  ca_cert_dir=None):
-        """
-        This method should only be called once, before the connection is used.
-        """
-        # If cert_reqs is not provided, we can try to guess. If the user gave
-        # us a cert database, we assume they want to use it: otherwise, if
-        # they gave us an SSL Context object we should use whatever is set for
-        # it.
-        if cert_reqs is None:
-            if ca_certs or ca_cert_dir:
-                cert_reqs = 'CERT_REQUIRED'
-            elif self.ssl_context is not None:
-                cert_reqs = self.ssl_context.verify_mode
+
+        if (ca_certs or ca_cert_dir) and cert_reqs is None:
+            cert_reqs = 'CERT_REQUIRED'
 
         self.key_file = key_file
         self.cert_file = cert_file
@@ -278,6 +252,9 @@ class VerifiedHTTPSConnection(HTTPSConnection):
     def connect(self):
         # Add certificate verification
         conn = self._new_conn()
+
+        resolved_cert_reqs = resolve_cert_reqs(self.cert_reqs)
+        resolved_ssl_version = resolve_ssl_version(self.ssl_version)
 
         hostname = self.host
         if getattr(self, '_tunnel_host', None):
@@ -304,27 +281,17 @@ class VerifiedHTTPSConnection(HTTPSConnection):
 
         # Wrap socket using verification with the root certs in
         # trusted_root_certs
-        if self.ssl_context is None:
-            self.ssl_context = create_urllib3_context(
-                ssl_version=resolve_ssl_version(self.ssl_version),
-                cert_reqs=resolve_cert_reqs(self.cert_reqs),
-            )
-
-        context = self.ssl_context
-        context.verify_mode = resolve_cert_reqs(self.cert_reqs)
-        self.sock = ssl_wrap_socket(
-            sock=conn,
-            keyfile=self.key_file,
-            certfile=self.cert_file,
-            ca_certs=self.ca_certs,
-            ca_cert_dir=self.ca_cert_dir,
-            server_hostname=hostname,
-            ssl_context=context)
+        self.sock = ssl_wrap_socket(conn, self.key_file, self.cert_file,
+                                    cert_reqs=resolved_cert_reqs,
+                                    ca_certs=self.ca_certs,
+                                    ca_cert_dir=self.ca_cert_dir,
+                                    server_hostname=hostname,
+                                    ssl_version=resolved_ssl_version)
 
         if self.assert_fingerprint:
             assert_fingerprint(self.sock.getpeercert(binary_form=True),
                                self.assert_fingerprint)
-        elif context.verify_mode != ssl.CERT_NONE \
+        elif resolved_cert_reqs != ssl.CERT_NONE \
                 and self.assert_hostname is not False:
             cert = self.sock.getpeercert()
             if not cert.get('subjectAltName', ()):
@@ -337,10 +304,8 @@ class VerifiedHTTPSConnection(HTTPSConnection):
                 )
             _match_hostname(cert, self.assert_hostname or hostname)
 
-        self.is_verified = (
-            context.verify_mode == ssl.CERT_REQUIRED or
-            self.assert_fingerprint is not None
-        )
+        self.is_verified = (resolved_cert_reqs == ssl.CERT_REQUIRED or
+                            self.assert_fingerprint is not None)
 
 
 def _match_hostname(cert, asserted_hostname):

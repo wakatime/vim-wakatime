@@ -25,20 +25,6 @@ except (ImportError, SyntaxError):  # pragma: nocover
     import json
 
 
-class CustomEncoder(json.JSONEncoder):
-
-    def default(self, obj):
-        if isinstance(obj, bytes):  # pragma: nocover
-            obj = u(obj)
-            return json.dumps(obj)
-        try:  # pragma: nocover
-            encoded = super(CustomEncoder, self).default(obj)
-        except UnicodeDecodeError:  # pragma: nocover
-            obj = u(obj)
-            encoded = super(CustomEncoder, self).default(obj)
-        return encoded
-
-
 class JsonFormatter(logging.Formatter):
 
     def setup(self, timestamp, is_write, entity, version, plugin, verbose,
@@ -55,35 +41,25 @@ class JsonFormatter(logging.Formatter):
         data = OrderedDict([
             ('now', self.formatTime(record, self.datefmt)),
         ])
-        data['version'] = self.version
-        data['plugin'] = self.plugin
+        data['version'] = u(self.version)
+        if self.plugin:
+            data['plugin'] = u(self.plugin)
         data['time'] = self.timestamp
         if self.verbose:
-            data['caller'] = record.pathname
+            data['caller'] = u(record.pathname)
             data['lineno'] = record.lineno
-            data['is_write'] = self.is_write
-            data['file'] = self.entity
-            if not self.is_write:
-                del data['is_write']
+            if self.is_write:
+                data['is_write'] = self.is_write
+            data['file'] = u(self.entity)
         data['level'] = record.levelname
-        data['message'] = record.getMessage() if self.warnings else record.msg
-        if not self.plugin:
-            del data['plugin']
-        return CustomEncoder().encode(data)
+        data['message'] = u(record.getMessage() if self.warnings else record.msg)
+        return json.dumps(data)
 
-
-def traceback_formatter(*args, **kwargs):
-    level = kwargs.get('level', args[0] if len(args) else None)
-    if level:
-        level = level.lower()
-    if level == 'warn' or level == 'warning':
-        logging.getLogger('WakaTime').warning(traceback.format_exc())
-    elif level == 'info':
-        logging.getLogger('WakaTime').info(traceback.format_exc())
-    elif level == 'debug':
-        logging.getLogger('WakaTime').debug(traceback.format_exc())
-    else:
-        logging.getLogger('WakaTime').error(traceback.format_exc())
+    def traceback(self, lvl=None):
+        logger = logging.getLogger('WakaTime')
+        if not lvl:
+            lvl = logger.getEffectiveLevel()
+        logger.log(lvl, traceback.format_exc())
 
 
 def set_log_level(logger, args):
@@ -116,7 +92,7 @@ def setup_logging(args, version):
     logger.addHandler(handler)
 
     # add custom traceback logging method
-    logger.traceback = traceback_formatter
+    logger.traceback = formatter.traceback
 
     warnings_formatter = JsonFormatter(datefmt='%Y/%m/%d %H:%M:%S %z')
     warnings_formatter.setup(

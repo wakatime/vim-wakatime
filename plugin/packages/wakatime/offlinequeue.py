@@ -80,7 +80,7 @@ class Queue(object):
         try:
             conn, c = self.connect()
         except sqlite3.Error:
-            log.traceback('debug')
+            log.traceback(logging.DEBUG)
             return None
         loop = True
         while loop and tries > -1:
@@ -118,11 +118,11 @@ class Queue(object):
                     }
                 loop = False
             except sqlite3.Error:  # pragma: nocover
-                log.traceback('debug')
+                log.traceback(logging.DEBUG)
                 sleep(wait)
                 tries -= 1
         try:
             conn.close()
         except sqlite3.Error:  # pragma: nocover
-            log.traceback('debug')
+            log.traceback(logging.DEBUG)
         return heartbeat

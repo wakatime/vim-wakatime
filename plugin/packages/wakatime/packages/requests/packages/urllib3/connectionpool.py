@@ -397,9 +397,8 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
 
         # AppEngine doesn't have a version attr.
         http_version = getattr(conn, '_http_vsn_str', 'HTTP/?')
-        log.debug("%s://%s:%s \"%s %s %s\" %s %s", self.scheme, self.host, self.port,
-                  method, url, http_version, httplib_response.status,
-                  httplib_response.length)
+        log.debug("\"%s %s %s\" %s %s", method, url, http_version,
+                  httplib_response.status, httplib_response.length)
 
         try:
             assert_header_parsing(httplib_response.msg)
@@ -605,7 +604,6 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
             response = self.ResponseCls.from_httplib(httplib_response,
                                                      pool=self,
                                                      connection=response_conn,
-                                                     retries=retries,
                                                      **response_kw)
 
             # Everything went great!
@@ -777,6 +775,7 @@ class HTTPSConnectionPool(HTTPConnectionPool):
                           assert_hostname=self.assert_hostname,
                           assert_fingerprint=self.assert_fingerprint)
             conn.ssl_version = self.ssl_version
+
         return conn
 
     def _prepare_proxy(self, conn):

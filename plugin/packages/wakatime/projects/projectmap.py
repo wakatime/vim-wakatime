@@ -44,20 +44,23 @@ class ProjectMap(BaseProject):
     def _find_project(self, path):
         path = os.path.realpath(path)
 
-        try:
-            for pattern, new_proj_name in self._configs.items():
-                try:
-                    compiled = re.compile(pattern, re.IGNORECASE)
-                    match = compiled.search(path)
-                    if match:
+        for pattern, new_proj_name in self._configs.items():
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE)
+                match = compiled.search(path)
+                if match:
+                    try:
                         return new_proj_name.format(*match.groups())
-                except re.error as ex:
-                    log.warning(u('Regex error ({msg}) for projectmap pattern: {pattern}').format(
-                        msg=u(ex),
-                        pattern=u(pattern),
-                    ))
-        except TypeError:
-            pass
+                    except IndexError as ex:
+                        log.warning(u('Regex error ({msg}) for projectmap pattern: {pattern}').format(
+                            msg=u(ex),
+                            pattern=u(new_proj_name),
+                        ))
+            except re.error as ex:
+                log.warning(u('Regex error ({msg}) for projectmap pattern: {pattern}').format(
+                    msg=u(ex),
+                    pattern=u(pattern),
+                ))
 
         return None
 
@@ -65,6 +68,4 @@ class ProjectMap(BaseProject):
         return None
 
     def name(self):
-        if self.project:
-            return u(self.project)
-        return None
+        return u(self.project) if self.project else None
