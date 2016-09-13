@@ -37,7 +37,7 @@
 """
 try:
     import pkg_resources
-except ImportError:
+except (ImportError, IOError):
     pkg_resources = None
 
 LEXER_ENTRY_POINT = 'pygments.lexers'

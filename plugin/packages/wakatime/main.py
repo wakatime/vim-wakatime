@@ -471,6 +471,17 @@ def sync_offline_heartbeats(args, hostname):
     return SUCCESS
 
 
+def format_file_path(filepath):
+    """Formats a path as absolute and with the correct platform separator."""
+
+    try:
+        filepath = os.path.realpath(os.path.abspath(filepath))
+        filepath = re.sub(r'[/\\]', os.path.sep, filepath)
+    except:
+        pass  # pragma: nocover
+    return filepath
+
+
 def process_heartbeat(args, configs, hostname, heartbeat):
     exclude = should_exclude(heartbeat['entity'], args.include, args.exclude)
     if exclude is not False:
@@ -481,6 +492,9 @@ def process_heartbeat(args, configs, hostname, heartbeat):
 
     if heartbeat.get('entity_type') not in ['file', 'domain', 'app']:
         heartbeat['entity_type'] = 'file'
+
+    if heartbeat['entity_type'] == 'file':
+        heartbeat['entity'] = format_file_path(heartbeat['entity'])
 
     if heartbeat['entity_type'] != 'file' or os.path.isfile(heartbeat['entity']):
 
