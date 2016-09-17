@@ -146,7 +146,7 @@ let s:VERSION = '4.0.12'
             if has('win32') || has('win64')
                 exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
             else
-                exec 'silent !' . s:JoinArgs(cmd) . ' &'
+                let stdout = system(s:JoinArgs(cmd) . ' &')
             endif
             call s:SetLastHeartbeat(a:time, a:time, file)
         endif
