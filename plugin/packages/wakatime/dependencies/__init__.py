@@ -117,9 +117,9 @@ class DependencyParser(object):
             try:
                 self.parser = getattr(module, class_name)
             except AttributeError:
-                log.debug('Module {0} is missing class {1}'.format(module.__name__, class_name))
+                log.debug('Parsing dependencies not supported for {0}.{1}'.format(module_name, class_name))
         except ImportError:
-            log.traceback(logging.DEBUG)
+            log.debug('Parsing dependencies not supported for {0}.{1}'.format(module_name, class_name))
 
     def parse(self):
         if self.parser:
