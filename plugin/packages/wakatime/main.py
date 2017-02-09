@@ -238,10 +238,23 @@ def parseArguments():
                     args.include.append(pattern)
         except TypeError:  # pragma: nocover
             pass
+    if args.hidefilenames:
+        args.hidefilenames = ['.*']
+    else:
+        args.hidefilenames = []
+        if configs.has_option('settings', 'hidefilenames'):
+            option = configs.get('settings', 'hidefilenames')
+            if option.strip().lower() == 'true':
+                args.hidefilenames = ['.*']
+            elif option.strip().lower() != 'false':
+                try:
+                    for pattern in option.split("\n"):
+                        if pattern.strip() != '':
+                            args.hidefilenames.append(pattern)
+                except TypeError:
+                    pass
     if args.offline and configs.has_option('settings', 'offline'):
         args.offline = configs.getboolean('settings', 'offline')
-    if not args.hidefilenames and configs.has_option('settings', 'hidefilenames'):
-        args.hidefilenames = configs.getboolean('settings', 'hidefilenames')
     if not args.proxy and configs.has_option('settings', 'proxy'):
         args.proxy = configs.get('settings', 'proxy')
     if not args.verbose and configs.has_option('settings', 'verbose'):
@@ -266,32 +279,26 @@ def parseArguments():
 
 def should_exclude(entity, include, exclude):
     if entity is not None and entity.strip() != '':
-        try:
-            for pattern in include:
-                try:
-                    compiled = re.compile(pattern, re.IGNORECASE)
-                    if compiled.search(entity):
-                        return False
-                except re.error as ex:
-                    log.warning(u('Regex error ({msg}) for include pattern: {pattern}').format(
-                        msg=u(ex),
-                        pattern=u(pattern),
-                    ))
-        except TypeError:  # pragma: nocover
-            pass
-        try:
-            for pattern in exclude:
-                try:
-                    compiled = re.compile(pattern, re.IGNORECASE)
-                    if compiled.search(entity):
-                        return pattern
-                except re.error as ex:
-                    log.warning(u('Regex error ({msg}) for exclude pattern: {pattern}').format(
-                        msg=u(ex),
-                        pattern=u(pattern),
-                    ))
-        except TypeError:  # pragma: nocover
-            pass
+        for pattern in include:
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE)
+                if compiled.search(entity):
+                    return False
+            except re.error as ex:
+                log.warning(u('Regex error ({msg}) for include pattern: {pattern}').format(
+                    msg=u(ex),
+                    pattern=u(pattern),
+                ))
+        for pattern in exclude:
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE)
+                if compiled.search(entity):
+                    return pattern
+            except re.error as ex:
+                log.warning(u('Regex error ({msg}) for exclude pattern: {pattern}').format(
+                    msg=u(ex),
+                    pattern=u(pattern),
+                ))
     return False
 
 
@@ -336,8 +343,18 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
         'type': entity_type,
     }
     if hidefilenames and entity is not None and entity_type == 'file':
-        extension = u(os.path.splitext(data['entity'])[1])
-        data['entity'] = u('HIDDEN{0}').format(extension)
+        for pattern in hidefilenames:
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE)
+                if compiled.search(entity):
+                    extension = u(os.path.splitext(data['entity'])[1])
+                    data['entity'] = u('HIDDEN{0}').format(extension)
+                    break
+            except re.error as ex:
+                log.warning(u('Regex error ({msg}) for include pattern: {pattern}').format(
+                    msg=u(ex),
+                    pattern=u(pattern),
+                ))
     if stats.get('lines'):
         data['lines'] = stats['lines']
     if stats.get('language'):
