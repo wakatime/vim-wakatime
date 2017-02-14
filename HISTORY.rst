@@ -3,6 +3,22 @@ History
 -------
 
 
+4.0.13 (2017-02-13)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v6.2.2.
+- Allow boolean or list of regex patterns for hidefilenames config setting.
+- New WAKATIME_HOME env variable for setting path to config and log files.
+- New hostname setting in config file to set machine hostname. Hostname
+  argument takes priority over hostname from config file.
+- Improve debug warning message from unsupported dependency parsers.
+- Handle exception from Python system library read permission problem.
+- Prevent encoding errors when logging files with special characters.
+- Handle unknown exceptions from requests library by deleting cached session
+  object because it could be from a previous conflicting version.
+- Prevent logging unrelated exception when logging tracebacks.
+
+
 4.0.12 (2016-06-08)
 ++++++++++++++++++
 
