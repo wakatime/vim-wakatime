@@ -6,7 +6,7 @@
 " Website:     https://wakatime.com/
 " ============================================================================
 
-let s:VERSION = '4.0.12'
+let s:VERSION = '4.0.13'
 
 
 " Init {{{
@@ -67,7 +67,7 @@ let s:VERSION = '4.0.12'
     function! s:StripWhitespace(str)
         return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
     endfunction
-    
+
     function! s:SetupConfigFile()
         if !s:config_file_already_setup
 
@@ -151,7 +151,7 @@ let s:VERSION = '4.0.12'
             call s:SetLastHeartbeat(a:time, a:time, file)
         endif
     endfunction
-    
+
     function! s:GetLastHeartbeat()
         if !s:last_heartbeat[0] || localtime() - s:last_heartbeat[0] > s:local_cache_expire
             if !filereadable(s:data_file)
@@ -164,11 +164,11 @@ let s:VERSION = '4.0.12'
         endif
         return s:last_heartbeat
     endfunction
-    
+
     function! s:SetLastHeartbeatLocally(time, last_update, file)
         let s:last_heartbeat = [a:time, a:last_update, a:file]
     endfunction
-    
+
     function! s:SetLastHeartbeat(time, last_update, file)
         call s:SetLastHeartbeatLocally(a:time, a:last_update, a:file)
         call writefile([substitute(printf('%d', a:time), ',', '.', ''), substitute(printf('%d', a:last_update), ',', '.', ''), a:file], s:data_file)
@@ -181,7 +181,7 @@ let s:VERSION = '4.0.12'
         endif
         return 0
     endfunction
-    
+
 " }}}
 
 
