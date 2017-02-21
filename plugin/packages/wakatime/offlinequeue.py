@@ -34,7 +34,7 @@ class Queue(object):
         return self.db_file
 
     def connect(self):
-        conn = sqlite3.connect(self.get_db_file())
+        conn = sqlite3.connect(self.get_db_file(), isolation_level=None)
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS {0} (
             entity text,

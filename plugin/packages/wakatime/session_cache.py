@@ -33,7 +33,7 @@ class SessionCache(object):
     DB_FILE = os.path.join(os.path.expanduser('~'), '.wakatime.db')
 
     def connect(self):
-        conn = sqlite3.connect(self.DB_FILE)
+        conn = sqlite3.connect(self.DB_FILE, isolation_level=None)
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS session (
             value BLOB)

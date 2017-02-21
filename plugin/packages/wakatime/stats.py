@@ -16,12 +16,13 @@ import sys
 from .compat import u, open
 from .dependencies import DependencyParser
 
-from .packages import (
+from .packages.pygments.lexers import (
+    ClassNotFound,
+    find_lexer_class,
     get_lexer_by_name,
     guess_lexer_for_filename,
-    get_filetype_from_buffer,
 )
-from .packages.pygments.lexers import ClassNotFound
+from .packages.pygments.modeline import get_filetype_from_buffer
 
 try:
     from .packages import simplejson as json  # pragma: nocover
@@ -30,6 +31,49 @@ except (ImportError, SyntaxError):  # pragma: nocover
 
 
 log = logging.getLogger('WakaTime')
+
+
+def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None,
+                   plugin=None, language=None):
+    if entity_type != 'file':
+        stats = {
+            'language': None,
+            'dependencies': [],
+            'lines': None,
+            'lineno': lineno,
+            'cursorpos': cursorpos,
+        }
+    else:
+        language = standardize_language(language, plugin)
+        lexer = get_lexer(language)
+
+        if not language:
+            language, lexer = guess_language(file_name)
+
+        parser = DependencyParser(file_name, lexer)
+        dependencies = parser.parse()
+
+        stats = {
+            'language': language,
+            'dependencies': dependencies,
+            'lines': number_lines_in_file(file_name),
+            'lineno': lineno,
+            'cursorpos': cursorpos,
+        }
+    return stats
+
+
+def get_lexer(language):
+    """Return a Pygments Lexer object for the given language string."""
+
+    if not language:
+        return None
+
+    lexer_cls = find_lexer_class(language)
+    if lexer_cls:
+        return lexer_cls()
+
+    return None
 
 
 def guess_language(file_name):
@@ -79,13 +123,13 @@ def guess_lexer_using_filename(file_name, text):
 
     try:
         lexer = guess_lexer_for_filename(file_name, text)
-    except:  # pragma: nocover
+    except:
         pass
 
     if lexer is not None:
         try:
             accuracy = lexer.analyse_text(text)
-        except:  # pragma: nocover
+        except:
             pass
 
     return lexer, accuracy
@@ -159,34 +203,11 @@ def number_lines_in_file(file_name):
     return lines
 
 
-def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None,
-                   plugin=None, alternate_language=None):
-    if entity_type != 'file':
-        stats = {
-            'language': None,
-            'dependencies': [],
-            'lines': None,
-            'lineno': lineno,
-            'cursorpos': cursorpos,
-        }
-    else:
-        language, lexer = guess_language(file_name)
-        parser = DependencyParser(file_name, lexer)
-        dependencies = parser.parse()
-        if language is None and alternate_language:
-            language = standardize_language(alternate_language, plugin)
-        stats = {
-            'language': language,
-            'dependencies': dependencies,
-            'lines': number_lines_in_file(file_name),
-            'lineno': lineno,
-            'cursorpos': cursorpos,
-        }
-    return stats
-
-
 def standardize_language(language, plugin):
     """Maps a string to the equivalent Pygments language."""
+
+    if not language:
+        return None
 
     # standardize language for this plugin
     if plugin:
@@ -197,10 +218,7 @@ def standardize_language(language, plugin):
 
     # standardize language against default languages
     standardized = get_language_from_json(language, 'default')
-    if standardized is not None:
-        return standardized
-
-    return None
+    return standardized
 
 
 def get_language_from_json(language, key):
@@ -214,10 +232,8 @@ def get_language_from_json(language, key):
     try:
         with open(file_name, 'r', encoding='utf-8') as fh:
             languages = json.loads(fh.read())
-            if language in languages.values():
-                return language
-            if languages.get(language):
-                return languages[language]
+            if languages.get(language.lower()):
+                return languages[language.lower()]
     except:
         pass
 
