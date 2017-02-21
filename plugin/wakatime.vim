@@ -136,10 +136,10 @@ let s:VERSION = '4.0.13'
                 let cmd = cmd + ['--write']
             endif
             if !empty(&syntax)
-                let cmd = cmd + ['--alternate-language', &syntax]
+                let cmd = cmd + ['--language', &syntax]
             else
                 if !empty(&filetype)
-                    let cmd = cmd + ['--alternate-language', &filetype]
+                    let cmd = cmd + ['--language', &filetype]
                 endif
             endif
             "let cmd = cmd + ['--verbose']
