@@ -39,7 +39,7 @@ To use a custom python binary:
 
 The default is to use `python` from your system PATH.
 
-WakaTime plugins share a common config file `.wakatime.cfg` located in your user home directory with [these options](https://github.com/wakatime/wakatime#configuring) available.
+WakaTime plugins share a common config file `~/.wakatime.cfg` located in your user home directory with [these options](https://github.com/wakatime/wakatime#configuring) available.
 
 Uninstalling
 ------------
