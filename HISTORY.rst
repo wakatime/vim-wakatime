@@ -3,6 +3,16 @@ History
 -------
 
 
+4.0.14 (2017-02-20)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v7.0.2.
+- Language detected by Vim now overwrites auto-detected language, if the Vim
+  language is supported in default.json or vim.json.
+- Support NTLM proxy format like domain\\user:pass.
+- Support for Python 3.6.
+
+
 4.0.13 (2017-02-13)
 ++++++++++++++++++
 
