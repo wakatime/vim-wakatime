@@ -11,16 +11,19 @@
 
 import logging
 import os
+import re
 import sys
 
 from .compat import u, open
 from .dependencies import DependencyParser
 
 from .packages.pygments.lexers import (
+    _iter_lexerclasses,
+    _fn_matches,
+    basename,
     ClassNotFound,
     find_lexer_class,
     get_lexer_by_name,
-    guess_lexer_for_filename,
 )
 from .packages.pygments.modeline import get_filetype_from_buffer
 
@@ -44,9 +47,7 @@ def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None,
             'cursorpos': cursorpos,
         }
     else:
-        language = standardize_language(language, plugin)
-        lexer = get_lexer(language)
-
+        language, lexer = standardize_language(language, plugin)
         if not language:
             language, lexer = guess_language(file_name)
 
@@ -63,29 +64,21 @@ def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None,
     return stats
 
 
-def get_lexer(language):
-    """Return a Pygments Lexer object for the given language string."""
-
-    if not language:
-        return None
-
-    lexer_cls = find_lexer_class(language)
-    if lexer_cls:
-        return lexer_cls()
-
-    return None
-
-
 def guess_language(file_name):
     """Guess lexer and language for a file.
 
-    Returns (language, lexer) tuple where language is a unicode string.
+    Returns a tuple of (language_str, lexer_obj).
     """
 
+    lexer = None
+
     language = get_language_from_extension(file_name)
-    lexer = smart_guess_lexer(file_name)
-    if language is None and lexer is not None:
-        language = u(lexer.name)
+    if language:
+        lexer = get_lexer(language)
+    else:
+        lexer = smart_guess_lexer(file_name)
+        if lexer:
+            language = u(lexer.name)
 
     return language, lexer
 
@@ -108,7 +101,7 @@ def smart_guess_lexer(file_name):
         lexer = lexer1
     if (lexer2 and accuracy2 and
         (not accuracy1 or accuracy2 > accuracy1)):
-        lexer = lexer2  # pragma: nocover
+        lexer = lexer2
 
     return lexer
 
@@ -122,7 +115,7 @@ def guess_lexer_using_filename(file_name, text):
     lexer, accuracy = None, None
 
     try:
-        lexer = guess_lexer_for_filename(file_name, text)
+        lexer = custom_pygments_guess_lexer_for_filename(file_name, text)
     except:
         pass
 
@@ -166,15 +159,17 @@ def guess_lexer_using_modeline(text):
 
 def get_language_from_extension(file_name):
     """Returns a matching language for the given file extension.
+
+    When guessed_language is 'C', does not restrict to known file extensions.
     """
 
     filepart, extension = os.path.splitext(file_name)
 
-    if os.path.exists(u('{0}{1}').format(u(filepart), u('.c'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.C'))):
-        return 'C'
+    if re.match(r'\.h.*', extension, re.IGNORECASE) or re.match(r'\.c.*', extension, re.IGNORECASE):
 
-    extension = extension.lower()
-    if extension == '.h':
+        if os.path.exists(u('{0}{1}').format(u(filepart), u('.c'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.C'))):
+            return 'C'
+
         directory = os.path.dirname(file_name)
         available_files = os.listdir(directory)
         available_extensions = list(zip(*map(os.path.splitext, available_files)))[1]
@@ -204,21 +199,37 @@ def number_lines_in_file(file_name):
 
 
 def standardize_language(language, plugin):
-    """Maps a string to the equivalent Pygments language."""
+    """Maps a string to the equivalent Pygments language.
+
+    Returns a tuple of (language_str, lexer_obj).
+    """
 
     if not language:
-        return None
+        return None, None
 
     # standardize language for this plugin
     if plugin:
         plugin = plugin.split(' ')[-1].split('/')[0].split('-')[0]
         standardized = get_language_from_json(language, plugin)
         if standardized is not None:
-            return standardized
+            return standardized, get_lexer(standardized)
 
     # standardize language against default languages
     standardized = get_language_from_json(language, 'default')
-    return standardized
+    return standardized, get_lexer(standardized)
+
+
+def get_lexer(language):
+    """Return a Pygments Lexer object for the given language string."""
+
+    if not language:
+        return None
+
+    lexer_cls = find_lexer_class(language)
+    if lexer_cls:
+        return lexer_cls()
+
+    return None
 
 
 def get_language_from_json(language, key):
@@ -254,3 +265,56 @@ def get_file_head(file_name):
         except:
             log.traceback(logging.DEBUG)
     return text
+
+
+def custom_pygments_guess_lexer_for_filename(_fn, _text, **options):
+    """Overwrite pygments.lexers.guess_lexer_for_filename to customize the
+    priority of different lexers based on popularity of languages."""
+
+    fn = basename(_fn)
+    primary = {}
+    matching_lexers = set()
+    for lexer in _iter_lexerclasses():
+        for filename in lexer.filenames:
+            if _fn_matches(fn, filename):
+                matching_lexers.add(lexer)
+                primary[lexer] = True
+        for filename in lexer.alias_filenames:
+            if _fn_matches(fn, filename):
+                matching_lexers.add(lexer)
+                primary[lexer] = False
+    if not matching_lexers:
+        raise ClassNotFound('no lexer for filename %r found' % fn)
+    if len(matching_lexers) == 1:
+        return matching_lexers.pop()(**options)
+    result = []
+    for lexer in matching_lexers:
+        rv = lexer.analyse_text(_text)
+        if rv == 1.0:
+            return lexer(**options)
+        result.append((rv, customize_priority(lexer)))
+
+    def type_sort(t):
+        # sort by:
+        # - analyse score
+        # - is primary filename pattern?
+        # - priority
+        # - last resort: class name
+        return (t[0], primary[t[1]], t[1].priority, t[1].__name__)
+    result.sort(key=type_sort)
+
+    return result[-1][1](**options)
+
+
+CUSTOM_PRIORITIES = {
+    'typescript': 0.11,
+    'perl': 0.1,
+    'perl6': 0.1,
+    'f#': 0.1,
+}
+def customize_priority(lexer):
+    """Return an integer priority for the given lexer object."""
+
+    if lexer.name.lower() in CUSTOM_PRIORITIES:
+        lexer.priority = CUSTOM_PRIORITIES[lexer.name.lower()]
+    return lexer

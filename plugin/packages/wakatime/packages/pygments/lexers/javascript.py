@@ -450,7 +450,6 @@ class TypeScriptLexer(RegexLexer):
     aliases = ['ts', 'typescript']
     filenames = ['*.ts', '*.tsx']
     mimetypes = ['text/x-typescript']
-    priority = 0.11
 
     flags = re.DOTALL | re.MULTILINE
 
