@@ -13,17 +13,16 @@
 from __future__ import print_function
 
 import os
-import sys
 import traceback
 
-from .compat import u, open
+from .compat import open
 from .constants import CONFIG_FILE_PARSE_ERROR
 
 
 try:
-    import ConfigParser as configparser
-except ImportError:  # pragma: nocover
     import configparser
+except ImportError:
+    from .packages import configparser
 
 
 def parseConfigFile(configFile=None):
@@ -41,15 +40,14 @@ def parseConfigFile(configFile=None):
     if not configFile:
         configFile = os.path.join(os.path.expanduser('~'), '.wakatime.cfg')
 
-    configs = configparser.SafeConfigParser()
+    configs = configparser.ConfigParser(delimiters=('='), strict=False)
     try:
         with open(configFile, 'r', encoding='utf-8') as fh:
             try:
-                configs.readfp(fh)
+                configs.read_file(fh)
             except configparser.Error:
                 print(traceback.format_exc())
-                return None
+                raise SystemExit(CONFIG_FILE_PARSE_ERROR)
     except IOError:
-        sys.stderr.write(u("Error: Could not read from config file {0}\n").format(u(configFile)))
-        raise SystemExit(CONFIG_FILE_PARSE_ERROR)
+        pass
     return configs

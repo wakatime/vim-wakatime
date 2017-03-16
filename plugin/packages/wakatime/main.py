@@ -29,7 +29,6 @@ from .compat import u, is_py3
 from .constants import (
     API_ERROR,
     AUTH_ERROR,
-    CONFIG_FILE_PARSE_ERROR,
     SUCCESS,
     UNKNOWN_ERROR,
     MALFORMED_HEARTBEAT_ERROR,
@@ -293,8 +292,6 @@ def execute(argv=None):
         sys.argv = ['wakatime'] + argv
 
     args, configs = parseArguments()
-    if configs is None:
-        return CONFIG_FILE_PARSE_ERROR
 
     setup_logging(args, __version__)
 

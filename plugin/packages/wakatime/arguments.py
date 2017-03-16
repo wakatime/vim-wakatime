@@ -128,8 +128,6 @@ def parseArguments():
 
     # parse ~/.wakatime.cfg file
     configs = parseConfigFile(args.config)
-    if configs is None:
-        return args, configs
 
     # update args from configs
     if not args.hostname:

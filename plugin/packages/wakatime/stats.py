@@ -16,6 +16,7 @@ import sys
 
 from .compat import u, open
 from .dependencies import DependencyParser
+from .language_priorities import LANGUAGES
 
 from .packages.pygments.lexers import (
     _iter_lexerclasses,
@@ -117,13 +118,13 @@ def guess_lexer_using_filename(file_name, text):
     try:
         lexer = custom_pygments_guess_lexer_for_filename(file_name, text)
     except:
-        pass
+        log.traceback(logging.DEBUG)
 
     if lexer is not None:
         try:
             accuracy = lexer.analyse_text(text)
         except:
-            pass
+            log.traceback(logging.DEBUG)
 
     return lexer, accuracy
 
@@ -140,19 +141,19 @@ def guess_lexer_using_modeline(text):
     try:
         file_type = get_filetype_from_buffer(text)
     except:  # pragma: nocover
-        pass
+        log.traceback(logging.DEBUG)
 
     if file_type is not None:
         try:
             lexer = get_lexer_by_name(file_type)
         except ClassNotFound:
-            pass
+            log.traceback(logging.DEBUG)
 
     if lexer is not None:
         try:
             accuracy = lexer.analyse_text(text)
         except:  # pragma: nocover
-            pass
+            log.traceback(logging.DEBUG)
 
     return lexer, accuracy
 
@@ -240,13 +241,14 @@ def get_language_from_json(language, key):
         'languages',
         '{0}.json').format(key.lower())
 
-    try:
-        with open(file_name, 'r', encoding='utf-8') as fh:
-            languages = json.loads(fh.read())
-            if languages.get(language.lower()):
-                return languages[language.lower()]
-    except:
-        pass
+    if os.path.exists(file_name):
+        try:
+            with open(file_name, 'r', encoding='utf-8') as fh:
+                languages = json.loads(fh.read())
+                if languages.get(language.lower()):
+                    return languages[language.lower()]
+        except:
+            log.traceback(logging.DEBUG)
 
     return None
 
@@ -306,15 +308,10 @@ def custom_pygments_guess_lexer_for_filename(_fn, _text, **options):
     return result[-1][1](**options)
 
 
-CUSTOM_PRIORITIES = {
-    'typescript': 0.11,
-    'perl': 0.1,
-    'perl6': 0.1,
-    'f#': 0.1,
-}
 def customize_priority(lexer):
     """Return an integer priority for the given lexer object."""
 
-    if lexer.name.lower() in CUSTOM_PRIORITIES:
-        lexer.priority = CUSTOM_PRIORITIES[lexer.name.lower()]
+    lexer_name = lexer.name.lower().replace('sharp', '#')
+    if lexer_name in LANGUAGES:
+        lexer.priority = LANGUAGES[lexer_name]
     return lexer

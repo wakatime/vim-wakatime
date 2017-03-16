@@ -549,7 +549,7 @@ class FSharpLexer(RegexLexer):
     .. versionadded:: 1.5
     """
 
-    name = 'FSharp'
+    name = 'F#'
     aliases = ['fsharp']
     filenames = ['*.fs', '*.fsi']
     mimetypes = ['text/x-fsharp']
