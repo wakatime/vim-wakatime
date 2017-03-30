@@ -17,9 +17,7 @@ Installation
 
 3. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`.
 
-4. Use Vim like you normally do and your time will be tracked for you automatically.
-
-5. Visit https://wakatime.com to see your logged time.
+4. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
 
 Note: WakaTime depends on [Python](http://www.python.org/getit/) being installed to work correctly.
 
