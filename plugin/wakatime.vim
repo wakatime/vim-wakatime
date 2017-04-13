@@ -152,6 +152,13 @@ let s:VERSION = '4.0.14'
         return join(safeArgs, ' ')
     endfunction
 
+    function! s:IsWindows()
+        if has('win32') || has('win64')
+            return s:true
+        endif
+        return s:false
+    endfunction
+
     function! s:SendHeartbeat(file, time, is_write, last)
         let file = a:file
         if file == ''
@@ -159,7 +166,7 @@ let s:VERSION = '4.0.14'
         endif
         if file != ''
             let python_bin = g:wakatime_PythonBinary
-            if has('win32') || has('win64')
+            if s:IsWindows()
                 if python_bin == 'python'
                     let python_bin = 'pythonw'
                 endif
@@ -180,7 +187,7 @@ let s:VERSION = '4.0.14'
             if s:is_debug_mode_on
                 echo 'Sending Heartbeat with Command: ' . s:JoinArgs(cmd)
             endif
-            if has('win32') || has('win64')
+            if s:IsWindows()
                 exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
             else
                 let stdout = system(s:JoinArgs(cmd) . ' &')
