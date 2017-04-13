@@ -17,11 +17,15 @@ let s:VERSION = '4.0.14'
         finish
     endif
 
+    " Use constants for truthy check to improve readability
+    let s:true = 1
+    let s:false = 0
+
     " Only load plugin once
     if exists("g:loaded_wakatime")
         finish
     endif
-    let g:loaded_wakatime = 1
+    let g:loaded_wakatime = s:true
 
     " Backup & Override cpoptions
     let s:old_cpo = &cpo
@@ -31,8 +35,8 @@ let s:VERSION = '4.0.14'
     let s:cli_location = expand("<sfile>:p:h") . '/packages/wakatime/cli.py'
     let s:config_file = expand("$HOME/.wakatime.cfg")
     let s:data_file = expand("$HOME/.wakatime.data")
-    let s:config_file_already_setup = 0
-    let s:local_cache_expire = 10
+    let s:config_file_already_setup = s:false
+    let s:local_cache_expire = 10  " seconds between reading s:data_file
     let s:last_heartbeat = [0, 0, '']
 
     " For backwards compatibility, rename wakatime.conf to wakatime.cfg
@@ -81,12 +85,12 @@ let s:VERSION = '4.0.14'
 
             " Make sure config file has api_key
             else
-                let found_api_key = 0
+                let found_api_key = s:false
                 let lines = readfile(s:config_file)
                 for line in lines
                     let group = split(line, '=')
                     if len(group) == 2 && s:StripWhitespace(group[0]) == 'api_key' && s:StripWhitespace(group[1]) != ''
-                        let found_api_key = 1
+                        let found_api_key = s:true
                     endif
                 endfor
                 if !found_api_key
@@ -97,7 +101,7 @@ let s:VERSION = '4.0.14'
                 endif
             endif
 
-            let s:config_file_already_setup = 1
+            let s:config_file_already_setup = s:true
         endif
     endfunction
 
@@ -177,9 +181,9 @@ let s:VERSION = '4.0.14'
     function! s:EnoughTimePassed(now, last)
         let prev = a:last[1]
         if a:now - prev > g:wakatime_HeartbeatFrequency * 60
-            return 1
+            return s:true
         endif
-        return 0
+        return s:false
     endfunction
 
 " }}}
@@ -210,10 +214,10 @@ let s:VERSION = '4.0.14'
 
     augroup Wakatime
         autocmd!
-        autocmd BufEnter * call s:handleActivity(0)
-        autocmd VimEnter * call s:handleActivity(0)
-        autocmd BufWritePost * call s:handleActivity(1)
-        autocmd CursorMoved,CursorMovedI * call s:handleActivity(0)
+        autocmd BufEnter * call s:handleActivity(s:false)
+        autocmd VimEnter * call s:handleActivity(s:false)
+        autocmd BufWritePost * call s:handleActivity(s:true)
+        autocmd CursorMoved,CursorMovedI * call s:handleActivity(s:false)
     augroup END
 
 " }}}
