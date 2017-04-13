@@ -36,6 +36,8 @@ let s:VERSION = '4.0.14'
     let s:config_file = expand("$HOME/.wakatime.cfg")
     let s:data_file = expand("$HOME/.wakatime.data")
     let s:config_file_already_setup = s:false
+    let s:debug_mode_already_setup = s:false
+    let s:is_debug_mode_on = s:false
     let s:local_cache_expire = 10  " seconds between reading s:data_file
     let s:last_heartbeat = [0, 0, '']
 
@@ -86,13 +88,9 @@ let s:VERSION = '4.0.14'
             " Make sure config file has api_key
             else
                 let found_api_key = s:false
-                let lines = readfile(s:config_file)
-                for line in lines
-                    let group = split(line, '=')
-                    if len(group) == 2 && s:StripWhitespace(group[0]) == 'api_key' && s:StripWhitespace(group[1]) != ''
-                        let found_api_key = s:true
-                    endif
-                endfor
+                if s:GetIniSetting('settings', 'api_key') != '' || s:GetIniSetting('settings', 'apikey') != ''
+                    let found_api_key = s:true
+                endif
                 if !found_api_key
                     let key = input("[WakaTime] Enter your wakatime.com api key: ")
                     let lines = lines + [join(['api_key', key], '=')]
@@ -103,6 +101,39 @@ let s:VERSION = '4.0.14'
 
             let s:config_file_already_setup = s:true
         endif
+    endfunction
+
+    function! s:SetupDebugMode()
+        if !s:debug_mode_already_setup
+            if s:GetIniSetting('settings', 'debug') == 'true'
+                let s:is_debug_mode_on = s:true
+            else
+                let s:is_debug_mode_on = s:false
+            endif
+            let s:debug_mode_already_setup = s:true
+        endif
+    endfunction
+
+    function! s:GetIniSetting(section, key)
+        if !filereadable(s:config_file)
+            return ''
+        endif
+        let lines = readfile(s:config_file)
+        let currentSection = ''
+        for line in lines
+            let line = s:StripWhitespace(line)
+            if matchstr(line, '^\[') != '' && matchstr(line, '\]$') != ''
+                let currentSection = substitute(line, '^\[\(.\{-}\)\]$', '\1', '')
+            else
+                if currentSection == a:section
+                    let group = split(line, '=')
+                    if len(group) == 2 && s:StripWhitespace(group[0]) == a:key
+                        return s:StripWhitespace(group[1])
+                    endif
+                endif
+            endif
+        endfor
+        return ''
     endfunction
 
     function! s:GetCurrentFile()
@@ -146,7 +177,9 @@ let s:VERSION = '4.0.14'
                     let cmd = cmd + ['--language', &filetype]
                 endif
             endif
-            "let cmd = cmd + ['--verbose']
+            if s:is_debug_mode_on
+                echo 'Sending Heartbeat with Command: ' . s:JoinArgs(cmd)
+            endif
             if has('win32') || has('win64')
                 exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
             else
@@ -192,6 +225,7 @@ let s:VERSION = '4.0.14'
 " Event Handlers {{{
 
     function! s:handleActivity(is_write)
+        call s:SetupDebugMode()
         call s:SetupConfigFile()
         let file = s:GetCurrentFile()
         let now = localtime()
