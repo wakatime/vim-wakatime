@@ -184,25 +184,21 @@ let s:VERSION = '4.0.14'
                     let cmd = cmd + ['--language', &filetype]
                 endif
             endif
-            if s:is_debug_mode_on
-                echo 'Sending Heartbeat with Command: ' . s:JoinArgs(cmd)
-            endif
+            let stdout = ''
             if s:IsWindows()
                 if s:is_debug_mode_on
                     let stdout = system('(' . s:JoinArgs(cmd) . ')')
-                    if stdout != ''
-                        echo stdout
-                    endif
                 else
                     exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
                 endif
             else
                 let stdout = system(s:JoinArgs(cmd) . ' &')
-                if s:is_debug_mode_on && stdout != ''
-                    echo stdout
-                endif
             endif
             call s:SetLastHeartbeat(a:time, a:time, file)
+            if s:is_debug_mode_on && stdout != ''
+                echo '[WakaTime] Heartbeat Command: ' . s:JoinArgs(cmd)
+                echo '[WakaTime] Error: ' . stdout
+            endif
         endif
     endfunction
 
