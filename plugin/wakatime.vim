@@ -32,9 +32,13 @@ let s:VERSION = '4.0.14'
     set cpo&vim
 
     " Script Globals
+    let s:home = expand("$WAKATIME_HOME")
+    if s:home == '$WAKATIME_HOME'
+        let s:home = expand("$HOME")
+    endif
     let s:cli_location = expand("<sfile>:p:h") . '/packages/wakatime/cli.py'
-    let s:config_file = expand("$HOME/.wakatime.cfg")
-    let s:data_file = expand("$HOME/.wakatime.data")
+    let s:config_file = s:home . '/.wakatime.cfg'
+    let s:data_file = s:home . '/.wakatime.data'
     let s:config_file_already_setup = s:false
     let s:debug_mode_already_setup = s:false
     let s:is_debug_mode_on = s:false
