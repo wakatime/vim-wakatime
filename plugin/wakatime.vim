@@ -82,7 +82,7 @@ let s:VERSION = '4.0.14'
                 let key = input("[WakaTime] Enter your wakatime.com api key: ")
                 if key != ''
                     call writefile(['[settings]', 'debug = false', printf("api_key = %s", key), 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$'], s:config_file)
-                    echo "[WakaTime] Setup complete! Visit http://wakatime.com to view your logged time."
+                    echo "[WakaTime] Setup complete! Visit https://wakatime.com to view your coding activity."
                 endif
 
             " Make sure config file has api_key
@@ -95,7 +95,7 @@ let s:VERSION = '4.0.14'
                     let key = input("[WakaTime] Enter your wakatime.com api key: ")
                     let lines = lines + [join(['api_key', key], '=')]
                     call writefile(lines, s:config_file)
-                    echo "[WakaTime] Setup complete! Visit http://wakatime.com to view your logged time."
+                    echo "[WakaTime] Setup complete! Visit https://wakatime.com to view your coding activity."
                 endif
             endif
 
