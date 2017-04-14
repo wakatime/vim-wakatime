@@ -3,6 +3,16 @@ History
 -------
 
 
+4.0.15 (2017-04-13)
+++++++++++++++++++
+
+- Detect debug setting from ~/.wakatime.cfg file
+- Support $WAKATIME_HOME env variable for setting path to config and log files.
+- Upgrade wakatime-cli to v8.0.0.
+- Allow colons in [projectmap] config section.
+- Increase priority of F# and TypeScript languages.
+
+
 4.0.14 (2017-02-20)
 ++++++++++++++++++
 
