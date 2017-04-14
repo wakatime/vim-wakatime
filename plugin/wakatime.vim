@@ -188,9 +188,19 @@ let s:VERSION = '4.0.14'
                 echo 'Sending Heartbeat with Command: ' . s:JoinArgs(cmd)
             endif
             if s:IsWindows()
-                exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
+                if s:is_debug_mode_on
+                    let stdout = system('(' . s:JoinArgs(cmd) . ')')
+                    if stdout != ''
+                        echo stdout
+                    endif
+                else
+                    exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
+                endif
             else
                 let stdout = system(s:JoinArgs(cmd) . ' &')
+                if s:is_debug_mode_on && stdout != ''
+                    echo stdout
+                endif
             endif
             call s:SetLastHeartbeat(a:time, a:time, file)
         endif
