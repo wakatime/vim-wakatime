@@ -38,6 +38,7 @@ let s:VERSION = '4.0.15'
     endif
     let s:cli_location = expand("<sfile>:p:h") . '/packages/wakatime/cli.py'
     let s:config_file = s:home . '/.wakatime.cfg'
+    let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
     let s:data_file = s:home . '/.wakatime.data'
     let s:config_file_already_setup = s:false
     let s:debug_mode_already_setup = s:false
@@ -83,24 +84,18 @@ let s:VERSION = '4.0.15'
 
             " Create config file if does not exist
             if !filereadable(s:config_file)
-                let key = input("[WakaTime] Enter your wakatime.com api key: ")
-                if key != ''
-                    call writefile(['[settings]', 'debug = false', printf("api_key = %s", key), 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$'], s:config_file)
-                    echo "[WakaTime] Setup complete! Visit https://wakatime.com to view your coding activity."
-                endif
+                call writefile(s:default_configs, s:config_file)
+            endif
 
             " Make sure config file has api_key
-            else
-                let found_api_key = s:false
-                if s:GetIniSetting('settings', 'api_key') != '' || s:GetIniSetting('settings', 'apikey') != ''
-                    let found_api_key = s:true
-                endif
-                if !found_api_key
-                    let key = input("[WakaTime] Enter your wakatime.com api key: ")
-                    let lines = lines + [join(['api_key', key], '=')]
-                    call writefile(lines, s:config_file)
-                    echo "[WakaTime] Setup complete! Visit https://wakatime.com to view your coding activity."
-                endif
+            let found_api_key = s:false
+            if s:GetIniSetting('settings', 'api_key') != '' || s:GetIniSetting('settings', 'apikey') != ''
+                let found_api_key = s:true
+            endif
+            if !found_api_key
+                let key = input("[WakaTime] Enter your wakatime.com api key: ")
+                call s:SetIniSetting('settings', 'api_key', key)
+                echo "[WakaTime] Setup complete! Visit https://wakatime.com to view your coding activity."
             endif
 
             let s:config_file_already_setup = s:true
@@ -138,6 +133,51 @@ let s:VERSION = '4.0.15'
             endif
         endfor
         return ''
+    endfunction
+
+    function! s:SetIniSetting(section, key, val)
+        let output = []
+        let sectionFound = s:false
+        let keyFound = s:false
+        if filereadable(s:config_file)
+            let lines = readfile(s:config_file)
+            let currentSection = ''
+            for line in lines
+                let line = s:StripWhitespace(line)
+                if matchstr(line, '^\[') != '' && matchstr(line, '\]$') != ''
+                    if currentSection == a:section && !keyFound
+                        let output = output + [join([a:key, a:val], '=')]
+                        let keyFound = s:true
+                    endif
+                    let currentSection = substitute(line, '^\[\(.\{-}\)\]$', '\1', '')
+                    let output = output + [line]
+                    if currentSection == a:section
+                        let sectionFound = s:true
+                    endif
+                else
+                    if currentSection == a:section
+                        let group = split(line, '=')
+                        if len(group) == 2 && s:StripWhitespace(group[0]) == a:key
+                            let output = output + [join([a:key, a:val], '=')]
+                            let keyFound = s:true
+                        else
+                            let output = output + [line]
+                        endif
+                    else
+                        let output = output + [line]
+                    endif
+                endif
+            endfor
+        endif
+        if !sectionFound
+            let output = output + [printf('[%s]', a:section), join([a:key, a:val], '=')]
+        else
+            if !keyFound
+                let output = output + [join([a:key, a:val], '=')]
+            endif
+        endif
+        call writefile(output, s:config_file)
+        return
     endfunction
 
     function! s:GetCurrentFile()
