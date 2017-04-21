@@ -93,8 +93,7 @@ let s:VERSION = '4.0.15'
                 let found_api_key = s:true
             endif
             if !found_api_key
-                let key = input("[WakaTime] Enter your wakatime.com api key: ")
-                call s:SetIniSetting('settings', 'api_key', key)
+                call s:PromptForApiKey()
                 echo "[WakaTime] Setup complete! Visit https://wakatime.com to view your coding activity."
             endif
 
@@ -143,20 +142,20 @@ let s:VERSION = '4.0.15'
             let lines = readfile(s:config_file)
             let currentSection = ''
             for line in lines
-                let line = s:StripWhitespace(line)
-                if matchstr(line, '^\[') != '' && matchstr(line, '\]$') != ''
+                let entry = s:StripWhitespace(line)
+                if matchstr(entry, '^\[') != '' && matchstr(entry, '\]$') != ''
                     if currentSection == a:section && !keyFound
                         let output = output + [join([a:key, a:val], '=')]
                         let keyFound = s:true
                     endif
-                    let currentSection = substitute(line, '^\[\(.\{-}\)\]$', '\1', '')
+                    let currentSection = substitute(entry, '^\[\(.\{-}\)\]$', '\1', '')
                     let output = output + [line]
                     if currentSection == a:section
                         let sectionFound = s:true
                     endif
                 else
                     if currentSection == a:section
-                        let group = split(line, '=')
+                        let group = split(entry, '=')
                         if len(group) == 2 && s:StripWhitespace(group[0]) == a:key
                             let output = output + [join([a:key, a:val], '=')]
                             let keyFound = s:true
@@ -280,6 +279,17 @@ let s:VERSION = '4.0.15'
         return s:false
     endfunction
 
+    function! s:PromptForApiKey()
+        let api_key = s:false
+        let api_key = s:GetIniSetting('settings', 'api_key')
+        if api_key == ''
+            let api_key = s:GetIniSetting('settings', 'apikey')
+        endif
+
+        let api_key = input("[WakaTime] Enter your wakatime.com api key: ", api_key)
+        call s:SetIniSetting('settings', 'api_key', api_key)
+    endfunction
+
     function! s:EnableDebugMode()
         call s:SetIniSetting('settings', 'debug', 'true')
         let s:is_debug_mode_on = s:true
@@ -330,6 +340,7 @@ let s:VERSION = '4.0.15'
 
 " Plugin Commands {{{
 
+    :command -nargs=0 WakaTimeApiKey call s:PromptForApiKey()
     :command -nargs=0 WakaTimeDebugEnable call s:EnableDebugMode()
     :command -nargs=0 WakaTimeDebugDisable call s:DisableDebugMode()
 
