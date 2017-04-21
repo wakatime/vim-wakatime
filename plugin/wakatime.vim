@@ -280,6 +280,16 @@ let s:VERSION = '4.0.15'
         return s:false
     endfunction
 
+    function! s:EnableDebugMode()
+        call s:SetIniSetting('settings', 'debug', 'true')
+        let s:is_debug_mode_on = s:true
+    endfunction
+
+    function! s:DisableDebugMode()
+        call s:SetIniSetting('settings', 'debug', 'false')
+        let s:is_debug_mode_on = s:false
+    endfunction
+
 " }}}
 
 
@@ -314,6 +324,14 @@ let s:VERSION = '4.0.15'
         autocmd BufWritePost * call s:handleActivity(s:true)
         autocmd CursorMoved,CursorMovedI * call s:handleActivity(s:false)
     augroup END
+
+" }}}
+
+
+" Plugin Commands {{{
+
+    :command -nargs=0 WakaTimeDebugEnable call s:EnableDebugMode()
+    :command -nargs=0 WakaTimeDebugDisable call s:DisableDebugMode()
 
 " }}}
 
