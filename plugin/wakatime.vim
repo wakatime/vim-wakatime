@@ -44,7 +44,7 @@ let s:VERSION = '4.0.15'
     let s:debug_mode_already_setup = s:false
     let s:is_debug_mode_on = s:false
     let s:local_cache_expire = 10  " seconds between reading s:data_file
-    let s:last_heartbeat = [0, 0, '']
+    let s:last_heartbeat = {'last_seen_at': 0, 'last_heartbeat_at': 0, 'file': ''}
     let s:heartbeats_buffer = []
     let s:last_sent = 0
 
@@ -210,7 +210,7 @@ let s:VERSION = '4.0.15'
     function! s:AppendHeartbeat(file, now, is_write, last)
         let file = a:file
         if file == ''
-            let file = a:last[2]
+            let file = a:last.file
         endif
         if file != ''
             let heartbeat = {}
@@ -322,29 +322,30 @@ let s:VERSION = '4.0.15'
     endfunction
 
     function! s:GetLastHeartbeat()
-        if !s:last_heartbeat[0] || localtime() - s:last_heartbeat[0] > s:local_cache_expire
+        if !s:last_heartbeat.last_seen_at || localtime() - s:last_heartbeat.last_seen_at > s:local_cache_expire
             if !filereadable(s:data_file)
-                return [0, 0, '']
+                return {'last_seen_at': 0, 'last_heartbeat_at': 0, 'file': ''}
             endif
             let last = readfile(s:data_file, '', 3)
             if len(last) == 3
-                let s:last_heartbeat = [s:last_heartbeat[0], last[1], last[2]]
+                let s:last_heartbeat.last_heartbeat_at = last[1]
+                let s:last_heartbeat.file = last[2]
             endif
         endif
         return s:last_heartbeat
     endfunction
 
-    function! s:SetLastHeartbeatInMemory(time, last_update, file)
-        let s:last_heartbeat = [a:time, a:last_update, a:file]
+    function! s:SetLastHeartbeatInMemory(last_seen_at, last_heartbeat_at, file)
+        let s:last_heartbeat = {'last_seen_at': a:last_seen_at, 'last_heartbeat_at': a:last_heartbeat_at, 'file': a:file}
     endfunction
 
-    function! s:SetLastHeartbeat(time, last_update, file)
-        call s:SetLastHeartbeatInMemory(a:time, a:last_update, a:file)
-        call writefile([substitute(printf('%d', a:time), ',', '.', ''), substitute(printf('%d', a:last_update), ',', '.', ''), a:file], s:data_file)
+    function! s:SetLastHeartbeat(last_seen_at, last_heartbeat_at, file)
+        call s:SetLastHeartbeatInMemory(a:last_seen_at, a:last_heartbeat_at, a:file)
+        call writefile([substitute(printf('%d', a:last_seen_at), ',', '.', ''), substitute(printf('%d', a:last_heartbeat_at), ',', '.', ''), a:file], s:data_file)
     endfunction
 
     function! s:EnoughTimePassed(now, last)
-        let prev = a:last[1]
+        let prev = a:last.last_heartbeat_at
         if a:now - prev > g:wakatime_HeartbeatFrequency * 60
             return s:true
         endif
@@ -387,11 +388,11 @@ let s:VERSION = '4.0.15'
             " Create a heartbeat when saving a file, when the current file
             " changes, and when still editing the same file but enough time
             " has passed since the last heartbeat.
-            if a:is_write || s:EnoughTimePassed(now, last) || file != last[2]
+            if a:is_write || s:EnoughTimePassed(now, last) || file != last.file
                 call s:AppendHeartbeat(file, now, a:is_write, last)
             else
-                if now - s:last_heartbeat[0] > s:local_cache_expire
-                    call s:SetLastHeartbeatInMemory(now, last[1], last[2])
+                if now - s:last_heartbeat.last_seen_at > s:local_cache_expire
+                    call s:SetLastHeartbeatInMemory(now, last.last_heartbeat_at, last.file)
                 endif
             endif
 
