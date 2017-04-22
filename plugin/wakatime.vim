@@ -383,6 +383,10 @@ let s:VERSION = '4.0.15'
         if !empty(file) && file !~ "-MiniBufExplorer-" && file !~ "--NO NAME--" && file !~ "^term:"
             let last = s:GetLastHeartbeat()
             let now = localtime()
+
+            " Create a heartbeat when saving a file, when the current file
+            " changes, and when still editing the same file but enough time
+            " has passed since the last heartbeat.
             if a:is_write || s:EnoughTimePassed(now, last) || file != last[2]
                 call s:AppendHeartbeat(file, now, a:is_write, last)
             else
@@ -390,8 +394,15 @@ let s:VERSION = '4.0.15'
                     call s:SetLastHeartbeatInMemory(now, last[1], last[2])
                 endif
             endif
-            if now - s:last_sent > 10
-                call s:SendHeartbeats()
+
+            " Windows non-debug mode disables buffering heartbeats, so
+            " no need to re-send.
+            if !s:IsWindows() || s:is_debug_mode_on
+
+                " Only send buffered heartbeats every 10 seconds
+                if now - s:last_sent > 10
+                    call s:SendHeartbeats()
+                endif
             endif
         endif
     endfunction
