@@ -45,6 +45,8 @@ let s:VERSION = '4.0.15'
     let s:is_debug_mode_on = s:false
     let s:local_cache_expire = 10  " seconds between reading s:data_file
     let s:last_heartbeat = [0, 0, '']
+    let s:heartbeats_buffer = []
+    let s:last_sent = 0
 
     " For backwards compatibility, rename wakatime.conf to wakatime.cfg
     if !filereadable(s:config_file)
@@ -176,7 +178,6 @@ let s:VERSION = '4.0.15'
             endif
         endif
         call writefile(output, s:config_file)
-        return
     endfunction
 
     function! s:GetCurrentFile()
@@ -185,6 +186,10 @@ let s:VERSION = '4.0.15'
 
     function! s:EscapeArg(arg)
         return substitute(shellescape(a:arg), '!', '\\!', '')
+    endfunction
+
+    function! s:JsonEscape(str)
+        return substitute(a:str, '"', '\\"', 'g')
     endfunction
 
     function! s:JoinArgs(args)
@@ -202,51 +207,117 @@ let s:VERSION = '4.0.15'
         return s:false
     endfunction
 
-    function! s:SendHeartbeat(file, time, is_write, last)
+    function! s:AppendHeartbeat(file, now, is_write, last)
         let file = a:file
         if file == ''
             let file = a:last[2]
         endif
         if file != ''
-            let python_bin = g:wakatime_PythonBinary
-            if s:IsWindows()
-                if python_bin == 'python'
-                    let python_bin = 'pythonw'
-                endif
-            endif
-            let cmd = [python_bin, '-W', 'ignore', s:cli_location]
-            let cmd = cmd + ['--entity', file]
-            let cmd = cmd + ['--plugin', printf('vim/%d vim-wakatime/%s', v:version, s:VERSION)]
-            if a:is_write
-                let cmd = cmd + ['--write']
-            endif
+            let heartbeat = {}
+            let heartbeat.entity = file
+            let heartbeat.time = reltimestr(reltime())
+            let heartbeat.is_write = a:is_write
             if !empty(&syntax)
-                let cmd = cmd + ['--language', &syntax]
+                let heartbeat.language = &syntax
             else
                 if !empty(&filetype)
-                    let cmd = cmd + ['--language', &filetype]
+                    let heartbeat.language = &filetype
                 endif
             endif
-            let stdout = ''
-            if s:IsWindows()
-                if s:is_debug_mode_on
-                    let stdout = system('(' . s:JoinArgs(cmd) . ')')
+            let s:heartbeats_buffer = s:heartbeats_buffer + [heartbeat]
+            call s:SetLastHeartbeat(a:now, a:now, file)
+            if s:IsWindows() && !s:is_debug_mode_on
+                " Windows doesn't play nice with system(), so can't pass input
+                " as STDIN and we are forced to send heartbeats individually.
+                call s:SendHeartbeats()
+            endif
+        endif
+    endfunction
+
+    function! s:SendHeartbeats()
+        if len(s:heartbeats_buffer) == 0
+            return
+        endif
+
+        let heartbeat = s:heartbeats_buffer[0]
+        let s:heartbeats_buffer = s:heartbeats_buffer[1:-1]
+        if len(s:heartbeats_buffer) > 0
+            let extra_heartbeats = s:GetHeartbeatsJson()
+        else
+            let extra_heartbeats = ''
+        endif
+
+        let python_bin = g:wakatime_PythonBinary
+        if s:IsWindows()
+            if python_bin == 'python'
+                let python_bin = 'pythonw'
+            endif
+        endif
+        let cmd = [python_bin, '-W', 'ignore', s:cli_location]
+        let cmd = cmd + ['--entity', heartbeat.entity]
+        let cmd = cmd + ['--time', heartbeat.time]
+        let cmd = cmd + ['--plugin', printf('vim/%d vim-wakatime/%s', v:version, s:VERSION)]
+        if heartbeat.is_write
+            let cmd = cmd + ['--write']
+        endif
+        if has_key(heartbeat, 'language')
+            let cmd = cmd + ['--language', heartbeat.language]
+        endif
+        if extra_heartbeats != ''
+            let cmd = cmd + ['--extra-heartbeats']
+        endif
+        let stdout = ''
+        if s:IsWindows()
+            if s:is_debug_mode_on
+                if extra_heartbeats != ''
+                    let stdout = system('(' . s:JoinArgs(cmd) . ')', extra_heartbeats)
                 else
-                    exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
+                    let stdout = system('(' . s:JoinArgs(cmd) . ')')
                 endif
             else
-                if s:is_debug_mode_on
+                exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
+            endif
+        else
+            if s:is_debug_mode_on
+                if extra_heartbeats != ''
+                    let stdout = system(s:JoinArgs(cmd), extra_heartbeats)
+                else
                     let stdout = system(s:JoinArgs(cmd))
+                endif
+            else
+                if extra_heartbeats != ''
+                    let stdout = system(s:JoinArgs(cmd) . ' &', extra_heartbeats)
                 else
                     let stdout = system(s:JoinArgs(cmd) . ' &')
                 endif
             endif
-            call s:SetLastHeartbeat(a:time, a:time, file)
-            if s:is_debug_mode_on && stdout != ''
-                echo '[WakaTime] Heartbeat Command: ' . s:JoinArgs(cmd)
-                echo '[WakaTime] Error: ' . stdout
-            endif
         endif
+        let s:last_sent = localtime()
+        redraw! " need to repaint in case a key was pressed while sending
+        if s:is_debug_mode_on && stdout != ''
+            echo '[WakaTime] Heartbeat Command: ' . s:JoinArgs(cmd) . "\n[WakaTime] Error: " . stdout
+        endif
+    endfunction
+
+    function! s:GetHeartbeatsJson()
+        let arr = []
+        for heartbeat in s:heartbeats_buffer
+            let heartbeat_str = '{"entity": "' . s:JsonEscape(heartbeat.entity) . '", '
+            let heartbeat_str = heartbeat_str . '"timestamp": ' . heartbeat.time . ', '
+            let heartbeat_str = heartbeat_str . '"is_write": '
+            if heartbeat.is_write
+                let heartbeat_str = heartbeat_str . 'true'
+            else
+                let heartbeat_str = heartbeat_str . 'false'
+            endif
+            if has_key(heartbeat, 'language')
+                let heartbeat_str = heartbeat_str . ', "language": "' . s:JsonEscape(heartbeat.language) . '"'
+            endif
+            let heartbeat_str = heartbeat_str . '}'
+            let arr = arr + [heartbeat_str]
+        endfor
+        let s:heartbeats_buffer = []
+        return '[' . join(arr, ',') . ']'
     endfunction
 
     function! s:GetLastHeartbeat()
@@ -262,12 +333,12 @@ let s:VERSION = '4.0.15'
         return s:last_heartbeat
     endfunction
 
-    function! s:SetLastHeartbeatLocally(time, last_update, file)
+    function! s:SetLastHeartbeatInMemory(time, last_update, file)
         let s:last_heartbeat = [a:time, a:last_update, a:file]
     endfunction
 
     function! s:SetLastHeartbeat(time, last_update, file)
-        call s:SetLastHeartbeatLocally(a:time, a:last_update, a:file)
+        call s:SetLastHeartbeatInMemory(a:time, a:last_update, a:file)
         call writefile([substitute(printf('%d', a:time), ',', '.', ''), substitute(printf('%d', a:last_update), ',', '.', ''), a:file], s:data_file)
     endfunction
 
@@ -300,24 +371,26 @@ let s:VERSION = '4.0.15'
         let s:is_debug_mode_on = s:false
     endfunction
 
-" }}}
-
-
-" Event Handlers {{{
-
-    function! s:handleActivity(is_write)
+    function! s:InitAndHandleActivity(is_write)
         call s:SetupDebugMode()
         call s:SetupConfigFile()
+        call s:HandleActivity(a:is_write)
+    endfunction
+
+    function! s:HandleActivity(is_write)
         let file = s:GetCurrentFile()
-        let now = localtime()
-        let last = s:GetLastHeartbeat()
         if !empty(file) && file !~ "-MiniBufExplorer-" && file !~ "--NO NAME--" && file !~ "^term:"
+            let last = s:GetLastHeartbeat()
+            let now = localtime()
             if a:is_write || s:EnoughTimePassed(now, last) || file != last[2]
-                call s:SendHeartbeat(file, now, a:is_write, last)
+                call s:AppendHeartbeat(file, now, a:is_write, last)
             else
                 if now - s:last_heartbeat[0] > s:local_cache_expire
-                    call s:SetLastHeartbeatLocally(now, last[1], last[2])
+                    call s:SetLastHeartbeatInMemory(now, last[1], last[2])
                 endif
+            endif
+            if now - s:last_sent > 10
+                call s:SendHeartbeats()
             endif
         endif
     endfunction
@@ -328,11 +401,10 @@ let s:VERSION = '4.0.15'
 " Autocommand Events {{{
 
     augroup Wakatime
-        autocmd!
-        autocmd BufEnter * call s:handleActivity(s:false)
-        autocmd VimEnter * call s:handleActivity(s:false)
-        autocmd BufWritePost * call s:handleActivity(s:true)
-        autocmd CursorMoved,CursorMovedI * call s:handleActivity(s:false)
+        autocmd BufEnter,VimEnter * call s:InitAndHandleActivity(s:false)
+        autocmd CursorMoved,CursorMovedI * call s:HandleActivity(s:false)
+        autocmd BufWritePost * call s:HandleActivity(s:true)
+        autocmd QuitPre * call s:SendHeartbeats()
     augroup END
 
 " }}}
