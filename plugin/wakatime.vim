@@ -236,6 +236,7 @@ let s:VERSION = '4.0.15'
 
     function! s:SendHeartbeats()
         if len(s:heartbeats_buffer) == 0
+            let s:last_sent = localtime()
             return
         endif
 
