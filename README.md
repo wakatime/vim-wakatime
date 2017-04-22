@@ -37,9 +37,28 @@ To use a custom python binary:
 
 The default is to use `python` from your system PATH.
 
-WakaTime plugins share a common config file `~/.wakatime.cfg` located in your user home directory with [these options](https://github.com/wakatime/wakatime#configuring) available.
+WakaTime plugins share a common config file `~/.wakatime.cfg` located in your user home directory with [these options][wakatime-cli-config] available.
+
+
+Troubleshooting
+---------------
+
+Run `:WakaTimeDebugEnable` in Vim to see errors output in your status bar.
+Enabling Debug Mode also writes verbose logs to `$WAKATIME_HOME/.wakatime.log` from [wakatime-cli][wakatime-cli].
+With Debug Mode enabled, the plugin sends data synchronously so disable it when finished debugging.
+
+The [How to Debug Plugins][how to debug] guide shows how to check when coding activity was last received from Vim use the [User Agents API][user agents api].
+For more general troubleshooting info, see the [wakatime-cli Troubleshooting Section][wakatime-cli-help].
+
 
 Uninstalling
 ------------
 
 Remove `Bundle 'wakatime/vim-wakatime'` from your `.vimrc` file, then delete your `~/.wakatime.cfg` config file.
+
+
+[wakatime-cli]: https://github.com/wakatime/wakatime
+[wakatime-cli-config]: https://github.com/wakatime/wakatime#configuring
+[wakatime-cli-help]: https://github.com/wakatime/wakatime#troubleshooting
+[how to debug]: https://wakatime.com/faq#debug-plugins
+[user agents api]: https://wakatime.com/developers#user_agents
