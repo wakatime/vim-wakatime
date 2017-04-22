@@ -43,8 +43,11 @@ WakaTime plugins share a common config file `~/.wakatime.cfg` located in your us
 Troubleshooting
 ---------------
 
-Run `:WakaTimeDebugEnable` in Vim to see errors output in your status bar.
-Enabling Debug Mode also writes verbose logs to `$WAKATIME_HOME/.wakatime.log` from [wakatime-cli][wakatime-cli].
+Run `:WakaTimeDebugEnable` in Vim then run this Terminal command:
+
+`tail -f ~/.wakatime.log`
+
+Enabling Debug Mode writes Vim Script errors to your Vim Status Bar and tells [wakatime-cli][wakatime-cli] to write verbose logs to `$WAKATIME_HOME/.wakatime.log`.
 With Debug Mode enabled, the plugin sends data synchronously so disable it when finished debugging.
 
 The [How to Debug Plugins][how to debug] guide shows how to check when coding activity was last received from Vim use the [User Agents API][user agents api].
