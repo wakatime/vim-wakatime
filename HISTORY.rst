@@ -3,6 +3,14 @@ History
 -------
 
 
+5.0.0 (2017-04-23)
+++++++++++++++++++
+
+- Buffer heartbeats and send to wakatime-cli only once per 10 seconds. #47 #45
+- New :WakaTimeApiKey, :WakaTimeDebugEnable, :WakaTimeDebugDisable commands.
+- Improve INI config file parsing so api key check is more robust. #46
+
+
 4.0.15 (2017-04-13)
 ++++++++++++++++++
 
