@@ -40,6 +40,7 @@ let s:VERSION = '5.0.0'
     let s:config_file = s:home . '/.wakatime.cfg'
     let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
     let s:data_file = s:home . '/.wakatime.data'
+    let s:has_reltime = has('reltime') && split(reltimestr(reltime()), '\.')[0] + 0 > 1388534400
     let s:config_file_already_setup = s:false
     let s:debug_mode_already_setup = s:false
     let s:is_debug_mode_on = s:false
@@ -207,6 +208,13 @@ let s:VERSION = '5.0.0'
         return s:false
     endfunction
 
+    function! s:CurrentTimeStr()
+        if s:has_reltime
+            return reltimestr(reltime())
+        endif
+        return printf('%d', localtime())
+    endfunction
+
     function! s:AppendHeartbeat(file, now, is_write, last)
         let file = a:file
         if file == ''
@@ -215,7 +223,7 @@ let s:VERSION = '5.0.0'
         if file != ''
             let heartbeat = {}
             let heartbeat.entity = file
-            let heartbeat.time = reltimestr(reltime())
+            let heartbeat.time = call s:CurrentTimeStr()
             let heartbeat.is_write = a:is_write
             if !empty(&syntax)
                 let heartbeat.language = &syntax
