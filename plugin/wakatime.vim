@@ -223,7 +223,7 @@ let s:VERSION = '5.0.0'
         if file != ''
             let heartbeat = {}
             let heartbeat.entity = file
-            let heartbeat.time = call s:CurrentTimeStr()
+            let heartbeat.time = s:CurrentTimeStr()
             let heartbeat.is_write = a:is_write
             if !empty(&syntax)
                 let heartbeat.language = &syntax
