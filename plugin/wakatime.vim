@@ -73,6 +73,11 @@ let s:VERSION = '5.0.1'
         let g:wakatime_HeartbeatFrequency = 2
     endif
 
+    " Set default screen redraw to 1 (s:true)
+    if !exists("g:wakatime_ScreenRedraw")
+        let g:wakatime_ScreenRedraw = s:true
+    endif
+
 " }}}
 
 
@@ -302,7 +307,9 @@ let s:VERSION = '5.0.1'
             endif
         endif
         let s:last_sent = localtime()
-        redraw! " need to repaint in case a key was pressed while sending
+        if g:wakatime_ScreenRedraw
+            redraw! " need to repaint in case a key was pressed while sending
+        endif
         if s:is_debug_mode_on && stdout != ''
             echo '[WakaTime] Heartbeat Command: ' . s:JoinArgs(cmd) . "\n[WakaTime] Error: " . stdout
         endif
@@ -381,6 +388,14 @@ let s:VERSION = '5.0.1'
         let s:is_debug_mode_on = s:false
     endfunction
 
+    function! s:EnableScreenRedraw()
+        let g:wakatime_ScreenRedraw = s:true
+    endfunction
+
+    function! s:DisableScreenRedraw()
+        let g:wakatime_ScreenRedraw = s:false
+    endfunction
+
     function! s:InitAndHandleActivity(is_write)
         call s:SetupDebugMode()
         call s:SetupConfigFile()
@@ -436,6 +451,8 @@ let s:VERSION = '5.0.1'
     :command -nargs=0 WakaTimeApiKey call s:PromptForApiKey()
     :command -nargs=0 WakaTimeDebugEnable call s:EnableDebugMode()
     :command -nargs=0 WakaTimeDebugDisable call s:DisableDebugMode()
+    :command -nargs=0 WakaTimeScreenRedrawDisable call s:DisableScreenRedraw()
+    :command -nargs=0 WakaTimeScreenRedrawEnable call s:EnableScreenRedraw()
 
 " }}}
 
