@@ -73,9 +73,9 @@ let s:VERSION = '5.0.1'
         let g:wakatime_HeartbeatFrequency = 2
     endif
 
-    " Set default screen redraw to 1 (s:true)
+    " Set default screen redraw to 0 (s:false)
     if !exists("g:wakatime_ScreenRedraw")
-        let g:wakatime_ScreenRedraw = s:true
+        let g:wakatime_ScreenRedraw = s:false
     endif
 
 " }}}
