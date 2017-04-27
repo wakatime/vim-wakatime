@@ -317,9 +317,10 @@ let s:VERSION = '5.0.1'
 
     function! s:GetHeartbeatsJson()
         let arr = []
+        let loop_count = 1
         for heartbeat in s:heartbeats_buffer
             let heartbeat_str = '{"entity": "' . s:JsonEscape(heartbeat.entity) . '", '
-            let heartbeat_str = heartbeat_str . '"timestamp": ' . heartbeat.time . ', '
+            let heartbeat_str = heartbeat_str . '"timestamp": ' . s:OrderTime(heartbeat.time, loop_count) . ', '
             let heartbeat_str = heartbeat_str . '"is_write": '
             if heartbeat.is_write
                 let heartbeat_str = heartbeat_str . 'true'
@@ -331,9 +332,23 @@ let s:VERSION = '5.0.1'
             endif
             let heartbeat_str = heartbeat_str . '}'
             let arr = arr + [heartbeat_str]
+            let loop_count = loop_count + 1
         endfor
         let s:heartbeats_buffer = []
         return '[' . join(arr, ',') . ']'
+    endfunction
+
+    function! s:OrderTime(time_str, loop_count)
+        " Add a milisecond to a:time.
+        " Time prevision doesn't matter, but order of heartbeats does.
+        if !a:time_str =~ "\."
+            let millisecond = printf('%d', a:loop_count)
+            while strlen(millisecond) < 6
+                let millisecond = '0' . millisecond
+            endwhile
+            return a:time_str . '.' . millisecond
+        endif
+        return a:time_str
     endfunction
 
     function! s:GetLastHeartbeat()
