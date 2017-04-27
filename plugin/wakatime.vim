@@ -40,7 +40,7 @@ let s:VERSION = '5.0.1'
     let s:config_file = s:home . '/.wakatime.cfg'
     let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
     let s:data_file = s:home . '/.wakatime.data'
-    let s:has_reltime = has('reltime') && split(split(reltimestr(reltime()))[0], '\.')[0] + 0 > 1388534400
+    let s:has_reltime = has('reltime') && localtime() - 1 < split(split(reltimestr(reltime()))[0], '\.')[0]
     let s:config_file_already_setup = s:false
     let s:debug_mode_already_setup = s:false
     let s:is_debug_mode_on = s:false
