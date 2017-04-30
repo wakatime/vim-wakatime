@@ -455,7 +455,9 @@ let s:VERSION = '5.0.1'
         autocmd BufEnter,VimEnter * call s:InitAndHandleActivity(s:false)
         autocmd CursorMoved,CursorMovedI * call s:HandleActivity(s:false)
         autocmd BufWritePost * call s:HandleActivity(s:true)
-        autocmd QuitPre * call s:SendHeartbeats()
+        if exists('##QuitPre')
+          autocmd QuitPre * call s:SendHeartbeats()
+        endif
     augroup END
 
 " }}}
