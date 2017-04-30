@@ -456,7 +456,7 @@ let s:VERSION = '5.0.1'
         autocmd CursorMoved,CursorMovedI * call s:HandleActivity(s:false)
         autocmd BufWritePost * call s:HandleActivity(s:true)
         if exists('##QuitPre')
-          autocmd QuitPre * call s:SendHeartbeats()
+            autocmd QuitPre * call s:SendHeartbeats()
         endif
     augroup END
 
