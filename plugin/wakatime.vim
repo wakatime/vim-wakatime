@@ -47,7 +47,7 @@ let s:VERSION = '5.0.1'
     let s:local_cache_expire = 10  " seconds between reading s:data_file
     let s:last_heartbeat = {'last_activity_at': 0, 'last_heartbeat_at': 0, 'file': ''}
     let s:heartbeats_buffer = []
-    let s:last_sent = 0
+    let s:last_sent = localtime()
 
     " For backwards compatibility, rename wakatime.conf to wakatime.cfg
     if !filereadable(s:config_file)
