@@ -31,6 +31,12 @@ let s:VERSION = '5.0.1'
     let s:old_cpo = &cpo
     set cpo&vim
 
+    " Backup wildignore before clearing it to prevent conflicts with expand()
+    let s:wildignore = &wildignore
+    if s:wildignore != ""
+        set wildignore=""
+    endif
+
     " Script Globals
     let s:home = expand("$WAKATIME_HOME")
     if s:home == '$WAKATIME_HOME'
@@ -473,6 +479,11 @@ let s:VERSION = '5.0.1'
 
 " }}}
 
+
+" Restore wildignore option
+if s:wildignore != ""
+    let &wildignore=s:wildignore
+endif
 
 " Restore cpoptions
 let &cpo = s:old_cpo
