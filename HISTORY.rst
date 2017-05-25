@@ -3,6 +3,24 @@ History
 -------
 
 
+5.0.2 (2017-05-25)
+++++++++++++++++++
+
+- Ability to disable screen redraw for improved performance.
+- Make sure buffered heartbeats keep correct ordering.
+- Compatibility with older Vim versions that do not support quitpre. #49
+- Prevent sending a heartbeat when first opening Vim for imporved startup time.
+- Prevent wildcard option from breaking expand() when Vim is launched from a
+  wildcard folder. #50
+- Upgrade wakatime-cli to v8.0.2.
+- Only treat proxy string as NTLM proxy after unable to connect with HTTPS and
+  SOCKS proxy.
+- Support running automated tests on Linux, OS X, and Windows.
+- Ability to disable SSL cert verification. wakatime/wakatime#90
+- Disable line count stats for files larger than 2MB to improve performance.
+- Print error saying Python needs upgrading when requests can't be imported.
+
+
 5.0.1 (2017-04-24)
 ++++++++++++++++++
 
