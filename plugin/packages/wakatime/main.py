@@ -34,8 +34,19 @@ from .constants import (
     MALFORMED_HEARTBEAT_ERROR,
 )
 from .logger import setup_logging
+
+log = logging.getLogger('WakaTime')
+
+try:
+    from .packages import requests
+except ImportError:
+    log.traceback(logging.ERROR)
+    print(traceback.format_exc())
+    log.error('Please upgrade Python to the latest version.')
+    print('Please upgrade Python to the latest version.')
+    sys.exit(UNKNOWN_ERROR)
+
 from .offlinequeue import Queue
-from .packages import requests
 from .packages.requests.exceptions import RequestException
 from .project import get_project_info
 from .session_cache import SessionCache
@@ -48,13 +59,11 @@ except (ImportError, SyntaxError):  # pragma: nocover
 from .packages import tzlocal
 
 
-log = logging.getLogger('WakaTime')
-
-
 def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
                    entity=None, timestamp=None, is_write=None, plugin=None,
                    offline=None, entity_type='file', hidefilenames=None,
-                   proxy=None, api_url=None, timeout=None, **kwargs):
+                   proxy=None, nosslverify=None, api_url=None, timeout=None,
+                   use_ntlm_proxy=False, **kwargs):
     """Sends heartbeat as POST request to WakaTime api server.
 
     Returns `SUCCESS` when heartbeat was sent, otherwise returns an
@@ -126,9 +135,10 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
     session_cache = SessionCache()
     session = session_cache.get()
 
+    should_try_ntlm = False
     proxies = {}
     if proxy:
-        if '\\' in proxy:
+        if use_ntlm_proxy:
             from .packages.requests_ntlm import HttpNtlmAuth
             username = proxy.rsplit(':', 1)
             password = ''
@@ -137,37 +147,80 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
             username = username[0]
             session.auth = HttpNtlmAuth(username, password, session)
         else:
+            should_try_ntlm = '\\' in proxy
             proxies['https'] = proxy
 
-    # log time to api
+    # send request to api
     response = None
     try:
         response = session.post(api_url, data=request_body, headers=headers,
-                                proxies=proxies, timeout=timeout)
+                                proxies=proxies, timeout=timeout,
+                                verify=not nosslverify)
     except RequestException:
-        exception_data = {
-            sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
-        }
-        if log.isEnabledFor(logging.DEBUG):
-            exception_data['traceback'] = traceback.format_exc()
-        if offline:
-            queue = Queue()
-            queue.push(data, json.dumps(stats), plugin)
-            if log.isEnabledFor(logging.DEBUG):
-                log.warn(exception_data)
+        if should_try_ntlm:
+            return send_heartbeat(
+                project=project,
+                entity=entity,
+                timestamp=timestamp,
+                branch=branch,
+                hostname=hostname,
+                stats=stats,
+                key=key,
+                is_write=is_write,
+                plugin=plugin,
+                offline=offline,
+                hidefilenames=hidefilenames,
+                entity_type=entity_type,
+                proxy=proxy,
+                api_url=api_url,
+                timeout=timeout,
+                use_ntlm_proxy=True,
+            )
         else:
-            log.error(exception_data)
+            exception_data = {
+                sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
+            }
+            if log.isEnabledFor(logging.DEBUG):
+                exception_data['traceback'] = traceback.format_exc()
+            if offline:
+                queue = Queue()
+                queue.push(data, json.dumps(stats), plugin)
+                if log.isEnabledFor(logging.DEBUG):
+                    log.warn(exception_data)
+            else:
+                log.error(exception_data)
 
     except:  # delete cached session when requests raises unknown exception
-        exception_data = {
-            sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
-            'traceback': traceback.format_exc(),
-        }
-        if offline:
-            queue = Queue()
-            queue.push(data, json.dumps(stats), plugin)
-            log.warn(exception_data)
-        session_cache.delete()
+        if should_try_ntlm:
+            return send_heartbeat(
+                project=project,
+                entity=entity,
+                timestamp=timestamp,
+                branch=branch,
+                hostname=hostname,
+                stats=stats,
+                key=key,
+                is_write=is_write,
+                plugin=plugin,
+                offline=offline,
+                hidefilenames=hidefilenames,
+                entity_type=entity_type,
+                proxy=proxy,
+                api_url=api_url,
+                timeout=timeout,
+                use_ntlm_proxy=True,
+            )
+        else:
+            exception_data = {
+                sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
+                'traceback': traceback.format_exc(),
+            }
+            if offline:
+                queue = Queue()
+                queue.push(data, json.dumps(stats), plugin)
+                log.warn(exception_data)
+            session_cache.delete()
+            return API_ERROR
 
     else:
         code = response.status_code if response is not None else None
@@ -178,19 +231,44 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
             })
             session_cache.save(session)
             return SUCCESS
-        if offline:
-            if code != 400:
-                queue = Queue()
-                queue.push(data, json.dumps(stats), plugin)
-                if code == 401:
+        if should_try_ntlm:
+            return send_heartbeat(
+                project=project,
+                entity=entity,
+                timestamp=timestamp,
+                branch=branch,
+                hostname=hostname,
+                stats=stats,
+                key=key,
+                is_write=is_write,
+                plugin=plugin,
+                offline=offline,
+                hidefilenames=hidefilenames,
+                entity_type=entity_type,
+                proxy=proxy,
+                api_url=api_url,
+                timeout=timeout,
+                use_ntlm_proxy=True,
+            )
+        else:
+            if offline:
+                if code != 400:
+                    queue = Queue()
+                    queue.push(data, json.dumps(stats), plugin)
+                    if code == 401:
+                        log.error({
+                            'response_code': code,
+                            'response_content': content,
+                        })
+                        session_cache.delete()
+                        return AUTH_ERROR
+                    elif log.isEnabledFor(logging.DEBUG):
+                        log.warn({
+                            'response_code': code,
+                            'response_content': content,
+                        })
+                else:
                     log.error({
-                        'response_code': code,
-                        'response_content': content,
-                    })
-                    session_cache.delete()
-                    return AUTH_ERROR
-                elif log.isEnabledFor(logging.DEBUG):
-                    log.warn({
                         'response_code': code,
                         'response_content': content,
                     })
@@ -199,11 +277,6 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
                     'response_code': code,
                     'response_content': content,
                 })
-        else:
-            log.error({
-                'response_code': code,
-                'response_content': content,
-            })
     session_cache.delete()
     return API_ERROR
 
@@ -278,6 +351,7 @@ def process_heartbeat(args, configs, hostname, heartbeat):
         heartbeat['offline'] = args.offline
         heartbeat['hidefilenames'] = args.hidefilenames
         heartbeat['proxy'] = args.proxy
+        heartbeat['nosslverify'] = args.nosslverify
         heartbeat['api_url'] = args.api_url
 
         return send_heartbeat(**heartbeat)

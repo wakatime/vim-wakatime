@@ -15,6 +15,7 @@ import re
 import sys
 
 from .compat import u, open
+from .constants import MAX_FILE_SIZE_SUPPORTED
 from .dependencies import DependencyParser
 from .language_priorities import LANGUAGES
 
@@ -184,6 +185,11 @@ def get_language_from_extension(file_name):
 
 
 def number_lines_in_file(file_name):
+    try:
+        if os.path.getsize(file_name) > MAX_FILE_SIZE_SUPPORTED:
+            return None
+    except os.error:
+        pass
     lines = 0
     try:
         with open(file_name, 'r', encoding='utf-8') as fh:

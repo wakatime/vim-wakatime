@@ -25,6 +25,22 @@ except ImportError:
     from .packages import configparser
 
 
+def getConfigFile():
+    """Returns the config file location.
+
+    If $WAKATIME_HOME env varialbe is defined, returns
+    $WAKATIME_HOME/.wakatime.cfg, otherwise ~/.wakatime.cfg.
+    """
+
+    fileName = '.wakatime.cfg'
+
+    home = os.environ.get('WAKATIME_HOME')
+    if home:
+        return os.path.join(os.path.expanduser(home), fileName)
+
+    return os.path.join(os.path.expanduser('~'), fileName)
+
+
 def parseConfigFile(configFile=None):
     """Returns a configparser.SafeConfigParser instance with configs
     read from the config file. Default location of the config file is
@@ -32,13 +48,8 @@ def parseConfigFile(configFile=None):
     """
 
     # get config file location from ENV
-    home = os.environ.get('WAKATIME_HOME')
-    if not configFile and home:
-        configFile = os.path.join(os.path.expanduser(home), '.wakatime.cfg')
-
-    # use default config file location
     if not configFile:
-        configFile = os.path.join(os.path.expanduser('~'), '.wakatime.cfg')
+        configFile = getConfigFile()
 
     configs = configparser.ConfigParser(delimiters=('='), strict=False)
     try:

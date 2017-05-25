@@ -76,6 +76,10 @@ def parseArguments():
                         'https://user:pass@host:port or '+
                         'socks5://user:pass@host:port or ' +
                         'domain\\user:pass')
+    parser.add_argument('--no-ssl-verify', dest='nosslverify',
+                        action='store_true',
+                        help='disables SSL certificate verification for HTTPS '+
+                        'requests. By default, SSL certificates are verified.')
     parser.add_argument('--project', dest='project',
             help='optional project name')
     parser.add_argument('--alternate-project', dest='alternate_project',
@@ -214,6 +218,8 @@ def parseArguments():
                             'https://user:pass@host:port or ' +
                             'socks5://user:pass@host:port or ' +
                             'domain\\user:pass.')
+    if configs.has_option('settings', 'no_ssl_verify'):
+        args.nosslverify = configs.getboolean('settings', 'no_ssl_verify')
     if not args.verbose and configs.has_option('settings', 'verbose'):
         args.verbose = configs.getboolean('settings', 'verbose')
     if not args.verbose and configs.has_option('settings', 'debug'):
