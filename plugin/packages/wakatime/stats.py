@@ -172,10 +172,7 @@ def get_language_from_extension(file_name):
         if os.path.exists(u('{0}{1}').format(u(filepart), u('.c'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.C'))):
             return 'C'
 
-        directory = os.path.dirname(file_name)
-        available_files = os.listdir(directory)
-        available_extensions = list(zip(*map(os.path.splitext, available_files)))[1]
-        available_extensions = [ext.lower() for ext in available_extensions]
+        available_extensions = extensions_in_same_folder(file_name)
         if '.cpp' in available_extensions:
             return 'C++'
         if '.c' in available_extensions:
@@ -300,7 +297,7 @@ def custom_pygments_guess_lexer_for_filename(_fn, _text, **options):
         rv = lexer.analyse_text(_text)
         if rv == 1.0:
             return lexer(**options)
-        result.append((rv, customize_priority(lexer)))
+        result.append(customize_lexer_priority(_fn, rv, lexer))
 
     def type_sort(t):
         # sort by:
@@ -308,16 +305,33 @@ def custom_pygments_guess_lexer_for_filename(_fn, _text, **options):
         # - is primary filename pattern?
         # - priority
         # - last resort: class name
-        return (t[0], primary[t[1]], t[1].priority, t[1].__name__)
+        return (t[0], primary[t[2]], t[1], t[2].__name__)
     result.sort(key=type_sort)
 
-    return result[-1][1](**options)
+    return result[-1][2](**options)
 
 
-def customize_priority(lexer):
-    """Return an integer priority for the given lexer object."""
+def customize_lexer_priority(file_name, accuracy, lexer):
+    """Customize lexer priority"""
+
+    priority = lexer.priority
 
     lexer_name = lexer.name.lower().replace('sharp', '#')
     if lexer_name in LANGUAGES:
-        lexer.priority = LANGUAGES[lexer_name]
-    return lexer
+        priority = LANGUAGES[lexer_name]
+    elif lexer_name == 'matlab':
+        available_extensions = extensions_in_same_folder(file_name)
+        if '.mat' in available_extensions:
+            priority = 0.06
+
+    return (accuracy, priority, lexer)
+
+
+def extensions_in_same_folder(file_name):
+    """Returns a list of file extensions from the same folder as file_name."""
+
+    directory = os.path.dirname(file_name)
+    files = os.listdir(directory)
+    extensions = list(zip(*map(os.path.splitext, files)))[1]
+    extensions = set([ext.lower() for ext in extensions])
+    return extensions
