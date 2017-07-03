@@ -395,7 +395,7 @@ let s:VERSION = '5.0.2'
             let api_key = s:GetIniSetting('settings', 'apikey')
         endif
 
-        let api_key = input("[WakaTime] Enter your wakatime.com api key: ", api_key)
+        let api_key = inputsecret("[WakaTime] Enter your wakatime.com api key: ", api_key)
         call s:SetIniSetting('settings', 'api_key', api_key)
     endfunction
 
