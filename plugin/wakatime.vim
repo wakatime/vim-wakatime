@@ -295,7 +295,7 @@ let s:VERSION = '5.0.2'
                     let stdout = system('(' . s:JoinArgs(cmd) . ')')
                 endif
             else
-                exec 'silent !start /min cmd /c "' . s:JoinArgs(cmd) . '"'
+                exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
             endif
         else
             if s:is_debug_mode_on
