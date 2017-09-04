@@ -55,34 +55,53 @@ let s:VERSION = '5.0.2'
     let s:heartbeats_buffer = []
     let s:last_sent = localtime()
 
-    " For backwards compatibility, rename wakatime.conf to wakatime.cfg
-    if !filereadable(s:config_file)
-        if filereadable(expand("$HOME/.wakatime"))
-            exec "silent !mv" expand("$HOME/.wakatime") expand("$HOME/.wakatime.conf")
-        endif
-        if filereadable(expand("$HOME/.wakatime.conf"))
-            if !filereadable(s:config_file)
-                let contents = ['[settings]'] + readfile(expand("$HOME/.wakatime.conf"), '')
-                call writefile(contents, s:config_file)
-                call delete(expand("$HOME/.wakatime.conf"))
+
+    function! s:Init()
+
+        " For backwards compatibility, rename wakatime.conf to wakatime.cfg
+        if !filereadable(s:config_file)
+            if filereadable(expand("$HOME/.wakatime"))
+                exec "silent !mv" expand("$HOME/.wakatime") expand("$HOME/.wakatime.conf")
+            endif
+            if filereadable(expand("$HOME/.wakatime.conf"))
+                if !filereadable(s:config_file)
+                    let contents = ['[settings]'] + readfile(expand("$HOME/.wakatime.conf"), '')
+                    call writefile(contents, s:config_file)
+                    call delete(expand("$HOME/.wakatime.conf"))
+                endif
             endif
         endif
-    endif
 
-    " Set default python binary location
-    if !exists("g:wakatime_PythonBinary")
-        let g:wakatime_PythonBinary = 'python'
-    endif
+        " Set default python binary location
+        if !exists("g:wakatime_PythonBinary")
+            let g:wakatime_PythonBinary = 'python'
+        endif
 
-    " Set default heartbeat frequency in minutes
-    if !exists("g:wakatime_HeartbeatFrequency")
-        let g:wakatime_HeartbeatFrequency = 2
-    endif
+        " Set default heartbeat frequency in minutes
+        if !exists("g:wakatime_HeartbeatFrequency")
+            let g:wakatime_HeartbeatFrequency = 2
+        endif
 
-    " Set default screen redraw to 0 (s:false)
-    if !exists("g:wakatime_ScreenRedraw")
-        let g:wakatime_ScreenRedraw = s:false
-    endif
+        " Get legacy g:wakatime_ScreenRedraw setting
+        let s:redraw_setting = 'auto'
+        if exists("g:wakatime_ScreenRedraw") && g:wakatime_ScreenRedraw
+            let s:redraw_setting = 'enabled'
+        endif
+
+        " Get redraw setting from wakatime.cfg file
+        if s:GetIniSetting('settings', 'vi_redraw') != ''
+            if s:GetIniSetting('settings', 'vi_redraw') == 'enabled'
+                let s:redraw_setting = 'enabled'
+            endif
+            if s:GetIniSetting('settings', 'vi_redraw') == 'auto'
+                let s:redraw_setting = 'auto'
+            endif
+            if s:GetIniSetting('settings', 'vi_redraw') == 'disabled'
+                let s:redraw_setting = 'disabled'
+            endif
+        endif
+
+    endfunction
 
 " }}}
 
@@ -250,12 +269,15 @@ let s:VERSION = '5.0.2'
                 " as STDIN and we are forced to send heartbeats individually.
                 call s:SendHeartbeats()
             endif
+            call s:SendHeartbeats()
         endif
     endfunction
 
     function! s:SendHeartbeats()
+        let start_time = localtime()
+
         if len(s:heartbeats_buffer) == 0
-            let s:last_sent = localtime()
+            let s:last_sent = start_time
             return
         endif
 
@@ -313,9 +335,18 @@ let s:VERSION = '5.0.2'
             endif
         endif
         let s:last_sent = localtime()
-        if g:wakatime_ScreenRedraw
-            redraw! " need to repaint in case a key was pressed while sending
+
+        " need to repaint in case a key was pressed while sending
+        if s:redraw_setting != 'disabled'
+            if s:redraw_setting == 'auto'
+                if s:last_sent - start_time > 0
+                    redraw!
+                endif
+            else
+                redraw!
+            endif
         endif
+
         if s:is_debug_mode_on && stdout != ''
             echo '[WakaTime] Heartbeat Command: ' . s:JoinArgs(cmd) . "\n[WakaTime] Error: " . stdout
         endif
@@ -410,11 +441,18 @@ let s:VERSION = '5.0.2'
     endfunction
 
     function! s:EnableScreenRedraw()
-        let g:wakatime_ScreenRedraw = s:true
+        call s:SetIniSetting('settings', 'vi_redraw', 'enabled')
+        let s:redraw_setting = 'enabled'
+    endfunction
+
+    function! s:EnableScreenRedrawAuto()
+        call s:SetIniSetting('settings', 'vi_redraw', 'auto')
+        let s:redraw_setting = 'auto'
     endfunction
 
     function! s:DisableScreenRedraw()
-        let g:wakatime_ScreenRedraw = s:false
+        call s:SetIniSetting('settings', 'vi_redraw', 'disabled')
+        let s:redraw_setting = 'disabled'
     endfunction
 
     function! s:InitAndHandleActivity(is_write)
@@ -455,6 +493,9 @@ let s:VERSION = '5.0.2'
 " }}}
 
 
+call s:Init()
+
+
 " Autocommand Events {{{
 
     augroup Wakatime
@@ -476,6 +517,7 @@ let s:VERSION = '5.0.2'
     :command -nargs=0 WakaTimeDebugDisable call s:DisableDebugMode()
     :command -nargs=0 WakaTimeScreenRedrawDisable call s:DisableScreenRedraw()
     :command -nargs=0 WakaTimeScreenRedrawEnable call s:EnableScreenRedraw()
+    :command -nargs=0 WakaTimeScreenRedrawEnableAuto call s:EnableScreenRedrawAuto()
 
 " }}}
 

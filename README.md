@@ -36,7 +36,8 @@ Configuring
 * `:WakaTimeApiKey` - change the api key saved in your `~/.wakatime.cfg`
 * `:WakaTimeDebugEnable` - enable debug mode (may slow down Vim so disable when finished debugging)
 * `:WakaTimeDebugDisable` - disable debug mode
-* `:WakaTimeScreenRedrawEnable` - temporarily enable screen redraw to prevent artifacts
+* `:WakaTimeScreenRedrawEnable` - enable screen redraw to prevent artifacts
+* `:WakaTimeScreenRedrawEnableAuto` - redraw screen when plugin takes too long
 * `:WakaTimeScreenRedrawDisable` - disable screen redraw for performance
 
 #### Vimrc Settings:
@@ -46,12 +47,16 @@ Configuring
 Tells the plugin to use a custom python binary.
 The default is to use `python` from your system PATH.
 
-    let g:wakatime_ScreenRedraw = 1
+#### WakaTime Settings:
+
+Add this line to your `~/.wakatime.cfg` file to modify your screen redraw setting:
+
+    vi_redraw = enabled
 
 Enables redrawing the screen after sending heartbeats, to prevent screen artifacts in case a key was pressed while the plugin executed.
+Valid values for `vi_redraw` are `enabled`, `auto`, and `disabled`.
 
-
-WakaTime plugins share a common config file located in your user home folder at `~/.wakatime.cfg` with [common plugin settings][wakatime-cli-config].
+Other WakaTime plugins also share this `~/.wakatime.cfg` file. [See all configs...][wakatime-cli-config]
 
 
 Troubleshooting
