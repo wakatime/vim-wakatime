@@ -269,7 +269,6 @@ let s:VERSION = '5.0.2'
                 " as STDIN and we are forced to send heartbeats individually.
                 call s:SendHeartbeats()
             endif
-            call s:SendHeartbeats()
         endif
     endfunction
 
