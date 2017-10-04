@@ -3,6 +3,17 @@ History
 -------
 
 
+6.0.0 (2017-10-04)
+++++++++++++++++++
+
+- Bug fix for extra heartbeats time containing multiple decimal point chars
+  which prevented extra heartbeats from being sent.
+- Support running wakatime-cli async in Vim 8.0+. This greatly improves
+  performance and prevents screen artifacts and the need to redraw. #53
+- Upgrade wakatime-cli to v8.0.3.
+- Improve Matlab language detection.
+
+
 5.0.2 (2017-05-25)
 ++++++++++++++++++
 
