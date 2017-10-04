@@ -55,6 +55,7 @@ Add this line to your `~/.wakatime.cfg` file to modify your screen redraw settin
 
 Enables redrawing the screen after sending heartbeats, to prevent screen artifacts in case a key was pressed while the plugin executed.
 Valid values for `vi_redraw` are `enabled`, `auto`, and `disabled`.
+Redraw settings are ignored with Vim 8.0+ with async support.
 
 Other WakaTime plugins also share this `~/.wakatime.cfg` file. [See all configs...][wakatime-cli-config]
 
