@@ -49,11 +49,13 @@ let s:VERSION = '5.0.2'
     let s:has_reltime = has('reltime') && localtime() - 1 < split(split(reltimestr(reltime()))[0], '\.')[0]
     let s:config_file_already_setup = s:false
     let s:debug_mode_already_setup = s:false
-    let s:is_debug_mode_on = s:false
+    let s:is_debug_on = s:false
     let s:local_cache_expire = 10  " seconds between reading s:data_file
     let s:last_heartbeat = {'last_activity_at': 0, 'last_heartbeat_at': 0, 'file': ''}
     let s:heartbeats_buffer = []
+    let s:send_buffer_seconds = 10  " seconds between sending buffered heartbeats
     let s:last_sent = localtime()
+    let s:has_async = v:version >= 800 && exists('*job_start')
 
 
     function! s:Init()
@@ -101,6 +103,9 @@ let s:VERSION = '5.0.2'
             endif
         endif
 
+        " Buffering heartbeats disabled in Windows, unless have async support
+        let s:buffering_heartbeats_enabled = s:has_async || !s:IsWindows()
+
     endfunction
 
 " }}}
@@ -137,9 +142,9 @@ let s:VERSION = '5.0.2'
     function! s:SetupDebugMode()
         if !s:debug_mode_already_setup
             if s:GetIniSetting('settings', 'debug') == 'true'
-                let s:is_debug_mode_on = s:true
+                let s:is_debug_on = s:true
             else
-                let s:is_debug_mode_on = s:false
+                let s:is_debug_on = s:false
             endif
             let s:debug_mode_already_setup = s:true
         endif
@@ -264,9 +269,8 @@ let s:VERSION = '5.0.2'
             endif
             let s:heartbeats_buffer = s:heartbeats_buffer + [heartbeat]
             call s:SetLastHeartbeat(a:now, a:now, file)
-            if s:IsWindows() && !s:is_debug_mode_on
-                " Windows doesn't play nice with system(), so can't pass input
-                " as STDIN and we are forced to send heartbeats individually.
+
+            if !s:buffering_heartbeats_enabled
                 call s:SendHeartbeats()
             endif
         endif
@@ -274,6 +278,7 @@ let s:VERSION = '5.0.2'
 
     function! s:SendHeartbeats()
         let start_time = localtime()
+        let stdout = ''
 
         if len(s:heartbeats_buffer) == 0
             let s:last_sent = start_time
@@ -307,36 +312,51 @@ let s:VERSION = '5.0.2'
         if extra_heartbeats != ''
             let cmd = cmd + ['--extra-heartbeats']
         endif
-        let stdout = ''
-        if s:IsWindows()
-            if s:is_debug_mode_on
-                if extra_heartbeats != ''
-                    let stdout = system('(' . s:JoinArgs(cmd) . ')', extra_heartbeats)
-                else
-                    let stdout = system('(' . s:JoinArgs(cmd) . ')')
-                endif
-            else
-                exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+
+        if s:has_async
+            let async_cmd = s:JoinArgs(cmd)
+            if s:IsWindows()
+                let async_cmd = 'cmd.exe /c ' . async_cmd
+            endif
+            let job = job_start([&shell, &shellcmdflag, async_cmd], {
+                \ 'stoponexit': '',
+                \ 'callback': {channel, output -> s:AsyncHandler(channel, output, cmd)}})
+            if extra_heartbeats != ''
+                let channel = job_getchannel(job)
+                call ch_sendraw(channel, extra_heartbeats . "\n")
             endif
         else
-            if s:is_debug_mode_on
-                if extra_heartbeats != ''
-                    let stdout = system(s:JoinArgs(cmd), extra_heartbeats)
+            if s:IsWindows()
+                if s:is_debug_on
+                    if extra_heartbeats != ''
+                        let stdout = system('(' . s:JoinArgs(cmd) . ')', extra_heartbeats)
+                    else
+                        let stdout = system('(' . s:JoinArgs(cmd) . ')')
+                    endif
                 else
-                    let stdout = system(s:JoinArgs(cmd))
+                    exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
                 endif
             else
-                if extra_heartbeats != ''
-                    let stdout = system(s:JoinArgs(cmd) . ' &', extra_heartbeats)
+                if s:is_debug_on
+                    if extra_heartbeats != ''
+                        let stdout = system(s:JoinArgs(cmd), extra_heartbeats)
+                    else
+                        let stdout = system(s:JoinArgs(cmd))
+                    endif
                 else
-                    let stdout = system(s:JoinArgs(cmd) . ' &')
+                    if extra_heartbeats != ''
+                        let stdout = system(s:JoinArgs(cmd) . ' &', extra_heartbeats)
+                    else
+                        let stdout = system(s:JoinArgs(cmd) . ' &')
+                    endif
                 endif
             endif
         endif
+
         let s:last_sent = localtime()
 
         " need to repaint in case a key was pressed while sending
-        if s:redraw_setting != 'disabled'
+        if !s:has_async && s:redraw_setting != 'disabled'
             if s:redraw_setting == 'auto'
                 if s:last_sent - start_time > 0
                     redraw!
@@ -346,8 +366,8 @@ let s:VERSION = '5.0.2'
             endif
         endif
 
-        if s:is_debug_mode_on && stdout != ''
-            echo '[WakaTime] Heartbeat Command: ' . s:JoinArgs(cmd) . "\n[WakaTime] Error: " . stdout
+        if s:is_debug_on && stdout != ''
+            echoerr '[WakaTime] Heartbeat Command: ' . s:JoinArgs(cmd) . "\n[WakaTime] Error: " . stdout
         endif
     endfunction
 
@@ -372,6 +392,12 @@ let s:VERSION = '5.0.2'
         endfor
         let s:heartbeats_buffer = []
         return '[' . join(arr, ',') . ']'
+    endfunction
+
+    function! s:AsyncHandler(channel, output, cmd)
+        if s:is_debug_on && a:output != ''
+            echoerr '[WakaTime] Heartbeat Command: ' . s:JoinArgs(a:cmd) . "\n[WakaTime] Error: " . a:output
+        endif
     endfunction
 
     function! s:OrderTime(time_str, loop_count)
@@ -431,12 +457,12 @@ let s:VERSION = '5.0.2'
 
     function! s:EnableDebugMode()
         call s:SetIniSetting('settings', 'debug', 'true')
-        let s:is_debug_mode_on = s:true
+        let s:is_debug_on = s:true
     endfunction
 
     function! s:DisableDebugMode()
         call s:SetIniSetting('settings', 'debug', 'false')
-        let s:is_debug_mode_on = s:false
+        let s:is_debug_on = s:false
     endfunction
 
     function! s:EnableScreenRedraw()
@@ -477,12 +503,12 @@ let s:VERSION = '5.0.2'
                 endif
             endif
 
-            " Windows non-debug mode disables buffering heartbeats, so
-            " no need to re-send.
-            if !s:IsWindows() || s:is_debug_mode_on
+            " When buffering heartbeats disabled, no need to re-check the
+            " heartbeats buffer.
+            if s:buffering_heartbeats_enabled
 
-                " Only send buffered heartbeats every 10 seconds
-                if now - s:last_sent > 10
+                " Only send buffered heartbeats every s:send_buffer_seconds
+                if now - s:last_sent > s:send_buffer_seconds
                     call s:SendHeartbeats()
                 endif
             endif
