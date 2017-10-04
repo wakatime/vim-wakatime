@@ -377,7 +377,7 @@ let s:VERSION = '5.0.2'
     function! s:OrderTime(time_str, loop_count)
         " Add a milisecond to a:time.
         " Time prevision doesn't matter, but order of heartbeats does.
-        if !a:time_str =~ "\."
+        if !(a:time_str =~ "\.")
             let millisecond = printf('%d', a:loop_count)
             while strlen(millisecond) < 6
                 let millisecond = '0' . millisecond
