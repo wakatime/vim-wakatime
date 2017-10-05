@@ -55,7 +55,7 @@ let s:VERSION = '6.0.0'
     let s:heartbeats_buffer = []
     let s:send_buffer_seconds = 10  " seconds between sending buffered heartbeats
     let s:last_sent = localtime()
-    let s:has_async = v:version >= 800 && exists('*job_start')
+    let s:has_async = has('patch-7.4-1510') && exists('*job_start')
 
 
     function! s:Init()
