@@ -11,17 +11,13 @@ Quantify your coding inside Vim.
 Installation
 ------------
 
-1. Install [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager.
+1. With [Vundle](https://github.com/gmarik/vundle): `echo "Plugin 'wakatime/vim-wakatime'" >> ~/.vimrc && vim +PluginInstall`
 
-2. Using [Vundle](https://github.com/gmarik/vundle):<br />
-  `echo "Plugin 'wakatime/vim-wakatime'" >> ~/.vimrc && vim +PluginInstall`
+   Or with [Pathogen](https://github.com/tpope/vim-pathogen): `cd ~/.vim/bundle && git clone git://github.com/wakatime/vim-wakatime.git`
 
-  or using [Pathogen](https://github.com/tpope/vim-pathogen):<br />
-  `cd ~/.vim/bundle && git clone git://github.com/wakatime/vim-wakatime.git`
+2. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`.
 
-3. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`.
-
-4. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
+3. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
 
 Note: WakaTime depends on [Python](http://www.python.org/getit/) being installed to work correctly.
 
