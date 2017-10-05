@@ -14,7 +14,7 @@ Installation
 1. Install [Vundle](https://github.com/gmarik/vundle), the Vim plugin manager.
 
 2. Using [Vundle](https://github.com/gmarik/vundle):<br />
-  `echo "Bundle 'wakatime/vim-wakatime'" >> ~/.vimrc && vim +BundleInstall`
+  `echo "Plugin 'wakatime/vim-wakatime'" >> ~/.vimrc && vim +PluginInstall`
 
   or using [Pathogen](https://github.com/tpope/vim-pathogen):<br />
   `cd ~/.vim/bundle && git clone git://github.com/wakatime/vim-wakatime.git`
@@ -83,7 +83,11 @@ For more general troubleshooting info, see the [wakatime-cli Troubleshooting Sec
 Uninstalling
 ------------
 
-Remove `Bundle 'wakatime/vim-wakatime'` from your `.vimrc` file, then delete your `~/.wakatime.cfg` config file.
+1. Remove `Plugin 'wakatime/vim-wakatime'` from your `.vimrc` file.
+
+2. Run in terminal: `rm ~/.wakatime.*`.
+
+3. Run in terminal: `vim +PluginClean`.
 
 
 [wakatime-cli]: https://github.com/wakatime/wakatime
