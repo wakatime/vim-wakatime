@@ -31,7 +31,7 @@ Screen Shots
 Configuring
 -----------
 
-#### Custom Commands:
+#### Commands:
 
 * `:WakaTimeApiKey` - change the api key saved in your `~/.wakatime.cfg`
 * `:WakaTimeDebugEnable` - enable debug mode (may slow down Vim so disable when finished debugging)
@@ -42,7 +42,7 @@ Configuring
 
 #### Vimrc Settings:
 
-    let g:wakatime_PythonBinary = '/usr/bin/python'
+    let g:wakatime_PythonBinary = '/usr/bin/python'  " (Default: 'python')
 
 Tells the plugin to use a custom python binary.
 The default is to use `python` from your system PATH.
