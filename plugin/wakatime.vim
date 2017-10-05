@@ -56,6 +56,7 @@ let s:VERSION = '6.0.0'
     let s:send_buffer_seconds = 10  " seconds between sending buffered heartbeats
     let s:last_sent = localtime()
     let s:has_async = has('patch-7.4-1510') && exists('*job_start')
+    let s:nvim_async = exists('*jobstart')
 
 
     function! s:Init()
@@ -104,7 +105,7 @@ let s:VERSION = '6.0.0'
         endif
 
         " Buffering heartbeats disabled in Windows, unless have async support
-        let s:buffering_heartbeats_enabled = s:has_async || !s:IsWindows()
+        let s:buffering_heartbeats_enabled = s:has_async || s:nvim_async || !s:IsWindows()
 
     endfunction
 
@@ -316,10 +317,19 @@ let s:VERSION = '6.0.0'
         if s:has_async
             let job = job_start([&shell, &shellcmdflag, s:JoinArgs(cmd)], {
                 \ 'stoponexit': '',
-                \ 'callback': {channel, output -> s:AsyncHandler(channel, output, cmd)}})
+                \ 'callback': {channel, output -> s:AsyncHandler(output, cmd)}})
             if extra_heartbeats != ''
                 let channel = job_getchannel(job)
                 call ch_sendraw(channel, extra_heartbeats . "\n")
+            endif
+        elseif s:nvim_async
+            let job = jobstart([&shell, &shellcmdflag, s:JoinArgs(cmd)], {
+                \ 'detach': 1,
+                \ 'on_stdout': function('s:AsyncNeovimHandler'),
+                \ 'on_stderr': function('s:AsyncNeovimHandler'),
+                \ 'on_exit': function('s:AsyncNeovimHandler')})
+            if extra_heartbeats != ''
+                call jobsend(job, extra_heartbeats . "\n")
             endif
         else
             if s:IsWindows()
@@ -352,7 +362,7 @@ let s:VERSION = '6.0.0'
         let s:last_sent = localtime()
 
         " need to repaint in case a key was pressed while sending
-        if !s:has_async && s:redraw_setting != 'disabled'
+        if !s:has_async && !s:nvim_async && s:redraw_setting != 'disabled'
             if s:redraw_setting == 'auto'
                 if s:last_sent - start_time > 0
                     redraw!
@@ -390,9 +400,15 @@ let s:VERSION = '6.0.0'
         return '[' . join(arr, ',') . ']'
     endfunction
 
-    function! s:AsyncHandler(channel, output, cmd)
+    function! s:AsyncHandler(output, cmd)
         if s:is_debug_on && a:output != ''
             echoerr '[WakaTime] Heartbeat Command: ' . s:JoinArgs(a:cmd) . "\n[WakaTime] Error: " . a:output
+        endif
+    endfunction
+
+    function! s:AsyncNeovimHandler(job_id, output, event)
+        if s:is_debug_on && a:output != ''
+            echoerr '[WakaTime] Error: ' . a:output
         endif
     endfunction
 
