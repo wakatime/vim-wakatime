@@ -1,5 +1,7 @@
-vim-wakatime
-============
+# vim-wakatime
+
+![Vim](https://wakatime.com/static/img/Vim-supported-brightgreen.svg)
+![Neovim](https://wakatime.com/static/img/Neovim-supported-brightgreen.svg)
 
 Quantify your coding inside Vim.
 
