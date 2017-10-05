@@ -1,7 +1,7 @@
 # vim-wakatime
 
-![Vim](https://wakatime.com/static/img/Vim-supported-brightgreen.svg)
-![Neovim](https://wakatime.com/static/img/Neovim-supported-brightgreen.svg)
+[![Vim](https://wakatime.com/static/img/Vim-supported-brightgreen.svg)](https://github.com/wakatime/vim-wakatime#installation)
+[![Neovim](https://wakatime.com/static/img/Neovim-supported-brightgreen.svg)](https://github.com/wakatime/vim-wakatime#installation)
 
 Quantify your coding inside Vim.
 
