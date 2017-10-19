@@ -6,8 +6,10 @@ History
 6.0.2 (2017-10-19)
 ++++++++++++++++++
 
-- Only use async when Vim supports options passed to job_start function. #54
-- Support vimrc changing Vim shell by temporarily overwriting &shell. #55
+- Only use async when Vim supports options passed to job_start function.
+  `#54 <https://github.com/wakatime/vim-wakatime/issues/54>`_
+- Support vimrc changing Vim shell by temporarily overwriting &shell.
+  `#55 <https://github.com/wakatime/vim-wakatime/issues/55>`_
 
 
 6.0.1 (2017-10-04)
@@ -23,7 +25,8 @@ History
 - Bug fix for extra heartbeats time containing multiple decimal point chars
   which prevented extra heartbeats from being sent.
 - Support running wakatime-cli async in Vim 8.0+. This greatly improves
-  performance and prevents screen artifacts and the need to redraw. #53
+  performance and prevents screen artifacts and the need to redraw.
+  `#53 <https://github.com/wakatime/vim-wakatime/issues/53>`_
 - Upgrade wakatime-cli to v8.0.3.
 - Improve Matlab language detection.
 
@@ -33,15 +36,17 @@ History
 
 - Ability to disable screen redraw for improved performance.
 - Make sure buffered heartbeats keep correct ordering.
-- Compatibility with older Vim versions that do not support quitpre. #49
+- Compatibility with older Vim versions that do not support quitpre.
+  `#49 <https://github.com/wakatime/vim-wakatime/issues/49>`_
 - Prevent sending a heartbeat when first opening Vim for imporved startup time.
 - Prevent wildcard option from breaking expand() when Vim is launched from a
-  wildcard folder. #50
+  wildcard folder.
+  `#50 <https://github.com/wakatime/vim-wakatime/issues/50>`_
 - Upgrade wakatime-cli to v8.0.2.
 - Only treat proxy string as NTLM proxy after unable to connect with HTTPS and
   SOCKS proxy.
 - Support running automated tests on Linux, OS X, and Windows.
-- Ability to disable SSL cert verification. wakatime/wakatime#90
+- Ability to disable SSL cert verification. wakatime/wakatime
 - Disable line count stats for files larger than 2MB to improve performance.
 - Print error saying Python needs upgrading when requests can't be imported.
 
@@ -49,15 +54,19 @@ History
 5.0.1 (2017-04-24)
 ++++++++++++++++++
 
-- Use localtime() when reltime() not available. #48
+- Use localtime() when reltime() not available.
+  `#48 <https://github.com/wakatime/vim-wakatime/issues/48>`_
 
 
 5.0.0 (2017-04-23)
 ++++++++++++++++++
 
-- Buffer heartbeats and send to wakatime-cli only once per 10 seconds. #47 #45
+- Buffer heartbeats and send to wakatime-cli only once per 10 seconds.
+  `#47 <https://github.com/wakatime/vim-wakatime/issues/47>`_
+  `#45 <https://github.com/wakatime/vim-wakatime/issues/45>`_
 - New :WakaTimeApiKey, :WakaTimeDebugEnable, :WakaTimeDebugDisable commands.
-- Improve INI config file parsing so api key check is more robust. #46
+- Improve INI config file parsing so api key check is more robust.
+  `#46 <https://github.com/wakatime/vim-wakatime/issues/46>`_
 
 
 4.0.15 (2017-04-13)
@@ -212,7 +221,8 @@ History
 - Make sure config file has api_key
 - Only display setup complete message first time setting up cfg file
 - Don't log time towards git temporary files
-- Prevent slowness in quickfix window to fix #24
+- Prevent slowness in quickfix window to fix.
+  `#24 <https://github.com/wakatime/vim-wakatime/issues/24>`_
 - Reuse SSL connection across multiple processes for improved performance
 - Correctly display caller and lineno in log file when debug is true
 - Project passed with --project argument will always be used
