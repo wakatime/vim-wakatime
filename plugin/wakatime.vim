@@ -314,6 +314,12 @@ let s:VERSION = '6.0.1'
             let cmd = cmd + ['--extra-heartbeats']
         endif
 
+        " overwrite shell
+        let [sh, shellcmdflag, shrd] = [&shell, &shellcmdflag, &shellredir]
+        if !s:IsWindows()
+            set shell=sh shellredir=>%s\ 2>&1
+        endif
+
         if s:has_async
             let job = job_start([&shell, &shellcmdflag, s:JoinArgs(cmd)], {
                 \ 'stoponexit': '',
@@ -358,6 +364,9 @@ let s:VERSION = '6.0.1'
                 endif
             endif
         endif
+
+        " restore shell
+        let [&shell, &shellcmdflag, &shellredir] = [sh, shellcmdflag, shrd]
 
         let s:last_sent = localtime()
 
