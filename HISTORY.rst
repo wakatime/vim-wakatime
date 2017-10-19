@@ -3,6 +3,13 @@ History
 -------
 
 
+6.0.2 (2017-10-19)
+++++++++++++++++++
+
+- Only use async when Vim supports options passed to job_start function. #54
+- Support vimrc changing Vim shell by temporarily overwriting &shell. #55
+
+
 6.0.1 (2017-10-04)
 ++++++++++++++++++
 
