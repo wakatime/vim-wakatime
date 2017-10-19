@@ -337,30 +337,28 @@ let s:VERSION = '6.0.1'
             if extra_heartbeats != ''
                 call jobsend(job, extra_heartbeats . "\n")
             endif
-        else
-            if s:IsWindows()
-                if s:is_debug_on
-                    if extra_heartbeats != ''
-                        let stdout = system('(' . s:JoinArgs(cmd) . ')', extra_heartbeats)
-                    else
-                        let stdout = system('(' . s:JoinArgs(cmd) . ')')
-                    endif
+        elseif s:IsWindows()
+            if s:is_debug_on
+                if extra_heartbeats != ''
+                    let stdout = system('(' . s:JoinArgs(cmd) . ')', extra_heartbeats)
                 else
-                    exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+                    let stdout = system('(' . s:JoinArgs(cmd) . ')')
                 endif
             else
-                if s:is_debug_on
-                    if extra_heartbeats != ''
-                        let stdout = system(s:JoinArgs(cmd), extra_heartbeats)
-                    else
-                        let stdout = system(s:JoinArgs(cmd))
-                    endif
+                exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+            endif
+        else
+            if s:is_debug_on
+                if extra_heartbeats != ''
+                    let stdout = system(s:JoinArgs(cmd), extra_heartbeats)
                 else
-                    if extra_heartbeats != ''
-                        let stdout = system(s:JoinArgs(cmd) . ' &', extra_heartbeats)
-                    else
-                        let stdout = system(s:JoinArgs(cmd) . ' &')
-                    endif
+                    let stdout = system(s:JoinArgs(cmd))
+                endif
+            else
+                if extra_heartbeats != ''
+                    let stdout = system(s:JoinArgs(cmd) . ' &', extra_heartbeats)
+                else
+                    let stdout = system(s:JoinArgs(cmd) . ' &')
                 endif
             endif
         endif
