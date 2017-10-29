@@ -3,6 +3,19 @@ History
 -------
 
 
+6.0.3 (2017-10-29)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v8.0.5.
+- Allow passing string arguments wrapped in extra quotes for plugins which
+  cannot properly escape spaces in arguments.
+- Upgrade pytz to v2017.2.
+- Upgrade requests to v2.18.4.
+- Upgrade tzlocal to v1.4.
+- Use WAKATIME_HOME env variable for offline and session caching.
+  `wakatime#102 <https://github.com/wakatime/wakatime/issues/102>`_
+
+
 6.0.2 (2017-10-19)
 ++++++++++++++++++
 
