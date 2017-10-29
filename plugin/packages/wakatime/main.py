@@ -330,11 +330,11 @@ def process_heartbeat(args, configs, hostname, heartbeat):
     if heartbeat['entity_type'] != 'file' or os.path.isfile(heartbeat['entity']):
 
         stats = get_file_stats(heartbeat['entity'],
-                                entity_type=heartbeat['entity_type'],
-                                lineno=heartbeat.get('lineno'),
-                                cursorpos=heartbeat.get('cursorpos'),
-                                plugin=args.plugin,
-                                language=heartbeat.get('language'))
+                               entity_type=heartbeat['entity_type'],
+                               lineno=heartbeat.get('lineno'),
+                               cursorpos=heartbeat.get('cursorpos'),
+                               plugin=args.plugin,
+                               language=heartbeat.get('language'))
 
         project = heartbeat.get('project') or heartbeat.get('alternate_project')
         branch = None

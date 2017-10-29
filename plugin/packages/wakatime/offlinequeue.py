@@ -27,11 +27,14 @@ log = logging.getLogger('WakaTime')
 
 
 class Queue(object):
-    db_file = os.path.join(os.path.expanduser('~'), '.wakatime.db')
+    db_file = '.wakatime.db'
     table_name = 'heartbeat_1'
 
     def get_db_file(self):
-        return self.db_file
+        home = '~'
+        if os.environ.get('WAKATIME_HOME'):
+            home = os.environ.get('WAKATIME_HOME')
+        return os.path.join(os.path.expanduser(home), '.wakatime.db')
 
     def connect(self):
         conn = sqlite3.connect(self.get_db_file(), isolation_level=None)

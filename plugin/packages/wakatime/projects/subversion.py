@@ -112,4 +112,3 @@ class Subversion(BaseProject):
         except:
             pass
         return False
-

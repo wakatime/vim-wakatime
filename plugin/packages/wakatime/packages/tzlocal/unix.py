@@ -44,21 +44,22 @@ def _get_localzone(_root='/'):
 
     # Now look for distribution specific configuration files
     # that contain the timezone name.
-    tzpath = os.path.join(_root, 'etc/timezone')
-    if os.path.exists(tzpath):
-        with open(tzpath, 'rb') as tzfile:
-            data = tzfile.read()
+    for configfile in ('etc/timezone', 'var/db/zoneinfo'):
+        tzpath = os.path.join(_root, configfile)
+        if os.path.exists(tzpath):
+            with open(tzpath, 'rb') as tzfile:
+                data = tzfile.read()
 
-            # Issue #3 was that /etc/timezone was a zoneinfo file.
-            # That's a misconfiguration, but we need to handle it gracefully:
-            if data[:5] != 'TZif2':
-                etctz = data.strip().decode()
-                # Get rid of host definitions and comments:
-                if ' ' in etctz:
-                    etctz, dummy = etctz.split(' ', 1)
-                if '#' in etctz:
-                    etctz, dummy = etctz.split('#', 1)
-                return pytz.timezone(etctz.replace(' ', '_'))
+                # Issue #3 was that /etc/timezone was a zoneinfo file.
+                # That's a misconfiguration, but we need to handle it gracefully:
+                if data[:5] != 'TZif2':
+                    etctz = data.strip().decode()
+                    # Get rid of host definitions and comments:
+                    if ' ' in etctz:
+                        etctz, dummy = etctz.split(' ', 1)
+                    if '#' in etctz:
+                        etctz, dummy = etctz.split('#', 1)
+                    return pytz.timezone(etctz.replace(' ', '_'))
 
     # CentOS has a ZONE setting in /etc/sysconfig/clock,
     # OpenSUSE has a TIMEZONE setting in /etc/sysconfig/clock and
@@ -90,7 +91,7 @@ def _get_localzone(_root='/'):
                 # We found a timezone
                 return pytz.timezone(etctz.replace(' ', '_'))
 
-    # systemd distributions use symlinks that include the zone name, 
+    # systemd distributions use symlinks that include the zone name,
     # see manpage of localtime(5) and timedatectl(1)
     tzpath = os.path.join(_root, 'etc/localtime')
     if os.path.exists(tzpath) and os.path.islink(tzpath):

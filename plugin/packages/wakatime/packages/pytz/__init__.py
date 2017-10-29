@@ -9,8 +9,8 @@ on how to use these modules.
 '''
 
 # The IANA (nee Olson) database is updated several times a year.
-OLSON_VERSION = '2016j'
-VERSION = '2016.10'  # Switching to pip compatible version numbering.
+OLSON_VERSION = '2017b'
+VERSION = '2017.2'  # Switching to pip compatible version numbering.
 __version__ = VERSION
 
 OLSEN_VERSION = OLSON_VERSION # Old releases had this misspelling
@@ -676,6 +676,7 @@ all_timezones = \
  'America/Porto_Acre',
  'America/Porto_Velho',
  'America/Puerto_Rico',
+ 'America/Punta_Arenas',
  'America/Rainy_River',
  'America/Rankin_Inlet',
  'America/Recife',
@@ -1256,6 +1257,7 @@ common_timezones = \
  'America/Port_of_Spain',
  'America/Porto_Velho',
  'America/Puerto_Rico',
+ 'America/Punta_Arenas',
  'America/Rainy_River',
  'America/Rankin_Inlet',
  'America/Recife',
@@ -1496,7 +1498,6 @@ common_timezones = \
  'Pacific/Guadalcanal',
  'Pacific/Guam',
  'Pacific/Honolulu',
- 'Pacific/Johnston',
  'Pacific/Kiritimati',
  'Pacific/Kosrae',
  'Pacific/Kwajalein',

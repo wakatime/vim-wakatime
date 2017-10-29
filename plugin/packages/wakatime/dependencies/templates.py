@@ -20,7 +20,7 @@ KEYWORDS = [
     '_',
     '$',
     'angular',
-    'assert', # probably mocha
+    'assert',  # probably mocha
     'backbone',
     'batman',
     'c3',
@@ -29,13 +29,13 @@ KEYWORDS = [
     'chai',
     'chaplin',
     'd3',
-    'define', # probably require
-    'describe', # mocha or jasmine
+    'define',  # probably require
+    'describe',  # mocha or jasmine
     'eco',
     'ember',
     'espresso',
-    'expect', # probably jasmine
-    'exports', # probably npm
+    'expect',  # probably jasmine
+    'exports',  # probably npm
     'express',
     'gulp',
     'handlebars',
@@ -43,8 +43,8 @@ KEYWORDS = [
     'jasmine',
     'jquery',
     'jstz',
-    'ko', # probably knockout
-    'm', # probably mithril
+    'ko',  # probably knockout
+    'm',  # probably mithril
     'marionette',
     'meteor',
     'moment',
@@ -56,7 +56,7 @@ KEYWORDS = [
     'qunit',
     'react',
     'reactive',
-    'require', # probably the commonjs spec
+    'require',  # probably the commonjs spec
     'ripple',
     'rivets',
     'socketio',

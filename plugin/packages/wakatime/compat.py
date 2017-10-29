@@ -82,7 +82,7 @@ except ImportError:  # pragma: nocover
         if name.startswith('.'):
             if not package:
                 raise TypeError("relative imports require the 'package' "
-                                + "argument")
+                                "argument")
             level = 0
             for character in name:
                 if character != '.':

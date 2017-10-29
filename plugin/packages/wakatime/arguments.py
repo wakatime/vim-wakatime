@@ -18,6 +18,7 @@ import re
 import time
 import traceback
 from .__about__ import __version__
+from .compat import basestring
 from .configs import parseConfigFile
 from .constants import AUTH_ERROR
 from .packages import argparse
@@ -26,11 +27,21 @@ from .packages import argparse
 class FileAction(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
+        if isinstance(values, basestring) and values.startswith('"'):
+            values = re.sub(r'\\"', '"', values.strip('"'))
         try:
             if os.path.isfile(values):
                 values = os.path.realpath(values)
         except:  # pragma: nocover
             pass
+        setattr(namespace, self.dest, values)
+
+
+class StoreWithoutQuotes(argparse.Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if isinstance(values, basestring) and values.startswith('"'):
+            values = re.sub(r'\\"', '"', values.strip('"'))
         setattr(namespace, self.dest, values)
 
 
@@ -49,28 +60,28 @@ def parseArguments():
                  'url, domain, or app when --entity-type is not file')
     parser.add_argument('--file', dest='file', action=FileAction,
             help=argparse.SUPPRESS)
-    parser.add_argument('--key', dest='key',
+    parser.add_argument('--key', dest='key', action=StoreWithoutQuotes,
             help='your wakatime api key; uses api_key from '+
                 '~/.wakatime.cfg by default')
     parser.add_argument('--write', dest='is_write',
             action='store_true',
             help='when set, tells api this heartbeat was triggered from '+
                  'writing to a file')
-    parser.add_argument('--plugin', dest='plugin',
+    parser.add_argument('--plugin', dest='plugin', action=StoreWithoutQuotes,
             help='optional text editor plugin name and version '+
                  'for User-Agent header')
     parser.add_argument('--time', dest='timestamp', metavar='time',
-            type=float,
+            type=float, action=StoreWithoutQuotes,
             help='optional floating-point unix epoch timestamp; '+
                  'uses current time by default')
-    parser.add_argument('--lineno', dest='lineno',
+    parser.add_argument('--lineno', dest='lineno', action=StoreWithoutQuotes,
             help='optional line number; current line being edited')
-    parser.add_argument('--cursorpos', dest='cursorpos',
+    parser.add_argument('--cursorpos', dest='cursorpos', action=StoreWithoutQuotes,
             help='optional cursor position in the current file')
-    parser.add_argument('--entity-type', dest='entity_type',
+    parser.add_argument('--entity-type', dest='entity_type', action=StoreWithoutQuotes,
             help='entity type for this heartbeat. can be one of "file", '+
                  '"domain", or "app"; defaults to file.')
-    parser.add_argument('--proxy', dest='proxy',
+    parser.add_argument('--proxy', dest='proxy', action=StoreWithoutQuotes,
                         help='optional proxy configuration. Supports HTTPS '+
                         'and SOCKS proxies. For example: '+
                         'https://user:pass@host:port or '+
@@ -80,17 +91,17 @@ def parseArguments():
                         action='store_true',
                         help='disables SSL certificate verification for HTTPS '+
                         'requests. By default, SSL certificates are verified.')
-    parser.add_argument('--project', dest='project',
+    parser.add_argument('--project', dest='project', action=StoreWithoutQuotes,
             help='optional project name')
-    parser.add_argument('--alternate-project', dest='alternate_project',
+    parser.add_argument('--alternate-project', dest='alternate_project', action=StoreWithoutQuotes,
             help='optional alternate project name; auto-discovered project '+
                  'takes priority')
-    parser.add_argument('--alternate-language',  dest='alternate_language',
+    parser.add_argument('--alternate-language', dest='alternate_language', action=StoreWithoutQuotes,
             help=argparse.SUPPRESS)
-    parser.add_argument('--language', dest='language',
+    parser.add_argument('--language', dest='language', action=StoreWithoutQuotes,
             help='optional language name; if valid, takes priority over '+
                  'auto-detected language')
-    parser.add_argument('--hostname', dest='hostname', help='hostname of '+
+    parser.add_argument('--hostname', dest='hostname', action=StoreWithoutQuotes, help='hostname of '+
                         'current machine.')
     parser.add_argument('--disableoffline', dest='offline',
             action='store_false',
@@ -110,14 +121,14 @@ def parseArguments():
     parser.add_argument('--extra-heartbeats', dest='extra_heartbeats',
             action='store_true',
             help='reads extra heartbeats from STDIN as a JSON array until EOF')
-    parser.add_argument('--logfile', dest='logfile',
+    parser.add_argument('--logfile', dest='logfile', action=StoreWithoutQuotes,
             help='defaults to ~/.wakatime.log')
-    parser.add_argument('--apiurl', dest='api_url',
+    parser.add_argument('--apiurl', dest='api_url', action=StoreWithoutQuotes,
             help='heartbeats api url; for debugging with a local server')
-    parser.add_argument('--timeout', dest='timeout', type=int,
+    parser.add_argument('--timeout', dest='timeout', type=int, action=StoreWithoutQuotes,
             help='number of seconds to wait when sending heartbeats to api; '+
                  'defaults to 60 seconds')
-    parser.add_argument('--config', dest='config',
+    parser.add_argument('--config', dest='config', action=StoreWithoutQuotes,
             help='defaults to ~/.wakatime.cfg')
     parser.add_argument('--verbose', dest='verbose', action='store_true',
             help='turns on debug messages in log file')
@@ -215,9 +226,9 @@ def parseArguments():
         is_valid = not not re.match(pattern, args.proxy, re.I)
         if not is_valid:
             parser.error('Invalid proxy. Must be in format ' +
-                            'https://user:pass@host:port or ' +
-                            'socks5://user:pass@host:port or ' +
-                            'domain\\user:pass.')
+                         'https://user:pass@host:port or ' +
+                         'socks5://user:pass@host:port or ' +
+                         'domain\\user:pass.')
     if configs.has_option('settings', 'no_ssl_verify'):
         args.nosslverify = configs.getboolean('settings', 'no_ssl_verify')
     if not args.verbose and configs.has_option('settings', 'verbose'):

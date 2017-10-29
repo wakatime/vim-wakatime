@@ -20,7 +20,6 @@ from .compat import urlparse, str, basestring
 from .cookies import extract_cookies_to_jar
 from ._internal_utils import to_native_string
 from .utils import parse_dict_header
-from .status_codes import codes
 
 CONTENT_TYPE_FORM_URLENCODED = 'application/x-www-form-urlencoded'
 CONTENT_TYPE_MULTI_PART = 'multipart/form-data'
@@ -193,7 +192,7 @@ class HTTPDigestAuth(AuthBase):
         elif qop == 'auth' or 'auth' in qop.split(','):
             noncebit = "%s:%s:%s:%s:%s" % (
                 nonce, ncvalue, cnonce, 'auth', HA2
-                )
+            )
             respdig = KD(HA1, noncebit)
         else:
             # XXX handle auth-int.
@@ -226,6 +225,12 @@ class HTTPDigestAuth(AuthBase):
 
         :rtype: requests.Response
         """
+
+        # If response is not 4xx, do not auth
+        # See https://github.com/requests/requests/issues/3772
+        if not 400 <= r.status_code < 500:
+            self._thread_local.num_401_calls = 1
+            return r
 
         if self._thread_local.pos is not None:
             # Rewind the file position indicator of the body to where

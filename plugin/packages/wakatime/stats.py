@@ -102,7 +102,7 @@ def smart_guess_lexer(file_name):
     if lexer1:
         lexer = lexer1
     if (lexer2 and accuracy2 and
-        (not accuracy1 or accuracy2 > accuracy1)):
+            (not accuracy1 or accuracy2 > accuracy1)):
         lexer = lexer2
 
     return lexer
