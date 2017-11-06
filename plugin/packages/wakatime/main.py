@@ -80,19 +80,6 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
         'entity': entity,
         'type': entity_type,
     }
-    if hidefilenames and entity is not None and entity_type == 'file':
-        for pattern in hidefilenames:
-            try:
-                compiled = re.compile(pattern, re.IGNORECASE)
-                if compiled.search(entity):
-                    extension = u(os.path.splitext(data['entity'])[1])
-                    data['entity'] = u('HIDDEN{0}').format(extension)
-                    break
-            except re.error as ex:
-                log.warning(u('Regex error ({msg}) for include pattern: {pattern}').format(
-                    msg=u(ex),
-                    pattern=u(pattern),
-                ))
     if stats.get('lines'):
         data['lines'] = stats['lines']
     if stats.get('language'):
@@ -109,6 +96,28 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
         data['project'] = project
     if branch:
         data['branch'] = branch
+
+    if hidefilenames and entity is not None and entity_type == 'file':
+        for pattern in hidefilenames:
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE)
+                if compiled.search(entity):
+                    extension = u(os.path.splitext(data['entity'])[1])
+                    data['entity'] = u('HIDDEN{0}').format(extension)
+
+                    # also delete any sensitive info when hiding file names
+                    sensitive = ['dependencies', 'lines', 'lineno', 'cursorpos', 'branch']
+                    for key in sensitive:
+                        if key in data:
+                            del data[key]
+
+                    break
+            except re.error as ex:
+                log.warning(u('Regex error ({msg}) for include pattern: {pattern}').format(
+                    msg=u(ex),
+                    pattern=u(pattern),
+                ))
+
     log.debug(data)
 
     # setup api request
@@ -219,8 +228,6 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
                 queue = Queue()
                 queue.push(data, json.dumps(stats), plugin)
                 log.warn(exception_data)
-            session_cache.delete()
-            return API_ERROR
 
     else:
         code = response.status_code if response is not None else None

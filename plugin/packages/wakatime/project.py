@@ -13,9 +13,9 @@ import logging
 
 from .projects.git import Git
 from .projects.mercurial import Mercurial
+from .projects.projectfile import ProjectFile
 from .projects.projectmap import ProjectMap
 from .projects.subversion import Subversion
-from .projects.wakatime_project_file import WakaTimeProjectFile
 
 
 log = logging.getLogger('WakaTime')
@@ -23,7 +23,7 @@ log = logging.getLogger('WakaTime')
 
 # List of plugin classes to find a project for the current file path.
 CONFIG_PLUGINS = [
-    WakaTimeProjectFile,
+    ProjectFile,
     ProjectMap,
 ]
 REV_CONTROL_PLUGINS = [
