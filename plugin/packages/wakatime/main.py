@@ -107,9 +107,9 @@ def send_heartbeat(project=None, branch=None, hostname=None, stats={}, key=None,
 
                     # also delete any sensitive info when hiding file names
                     sensitive = ['dependencies', 'lines', 'lineno', 'cursorpos', 'branch']
-                    for key in sensitive:
-                        if key in data:
-                            del data[key]
+                    for sensitiveKey in sensitive:
+                        if sensitiveKey in data:
+                            del data[sensitiveKey]
 
                     break
             except re.error as ex:
