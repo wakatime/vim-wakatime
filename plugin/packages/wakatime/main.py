@@ -24,10 +24,7 @@ from .__about__ import __version__
 from .api import send_heartbeats
 from .arguments import parse_arguments
 from .compat import u, json
-from .constants import (
-    SUCCESS,
-    UNKNOWN_ERROR,
-)
+from .constants import SUCCESS, UNKNOWN_ERROR
 from .logger import setup_logging
 
 log = logging.getLogger('WakaTime')

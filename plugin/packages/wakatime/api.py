@@ -16,12 +16,7 @@ import sys
 import traceback
 
 from .compat import u, is_py3, json
-from .constants import (
-    API_ERROR,
-    AUTH_ERROR,
-    SUCCESS,
-    UNKNOWN_ERROR,
-)
+from .constants import API_ERROR, AUTH_ERROR, SUCCESS, UNKNOWN_ERROR
 
 from .offlinequeue import Queue
 from .packages.requests.exceptions import RequestException
@@ -54,7 +49,7 @@ def send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=False):
 
     api_url = args.api_url
     if not api_url:
-        api_url = 'https://api.wakatime.com/api/v1/heartbeats.bulk'
+        api_url = 'https://api.wakatime.com/api/v1/users/current/heartbeats.bulk'
     log.debug('Sending heartbeats to api at %s' % api_url)
     timeout = args.timeout
     if not timeout:
@@ -143,35 +138,66 @@ def send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=False):
     else:
         code = response.status_code if response is not None else None
         content = response.text if response is not None else None
+        try:
+            results = response.json() if response is not None else []
+        except:
+            if log.isEnabledFor(logging.DEBUG):
+                log.traceback(logging.WARNING)
+            results = []
         if code == requests.codes.created or code == requests.codes.accepted:
             log.debug({
                 'response_code': code,
             })
+
+            for i in range(len(results)):
+                if len(heartbeats) <= i:
+                    log.debug('Results from server do not match heartbeats sent.')
+                    break
+
+                try:
+                    c = results[i][1]
+                except:
+                    c = 0
+                try:
+                    text = json.dumps(results[i][0])
+                except:
+                    if log.isEnabledFor(logging.DEBUG):
+                        log.traceback(logging.WARNING)
+                    text = ''
+                handle_result([heartbeats[i]], c, text, args, configs)
+
             session_cache.save(session)
             return SUCCESS
 
         if should_try_ntlm:
             return send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=True)
         else:
-            if args.offline:
-                if code == 400:
-                    log.error({
-                        'response_code': code,
-                        'response_content': content,
-                    })
-                else:
-                    if log.isEnabledFor(logging.DEBUG):
-                        log.warn({
-                            'response_code': code,
-                            'response_content': content,
-                        })
-                    queue = Queue(args, configs)
-                    queue.push_many(heartbeats)
-            else:
-                log.error({
-                    'response_code': code,
-                    'response_content': content,
-                })
+            handle_result(heartbeats, code, content, args, configs)
 
     session_cache.delete()
     return AUTH_ERROR if code == 401 else API_ERROR
+
+
+def handle_result(h, code, content, args, configs):
+    if code == requests.codes.created or code == requests.codes.accepted:
+        return
+
+    if args.offline:
+        if code == 400:
+            log.error({
+                'response_code': code,
+                'response_content': content,
+            })
+        else:
+            if log.isEnabledFor(logging.DEBUG):
+                log.warn({
+                    'response_code': code,
+                    'response_content': content,
+                })
+            queue = Queue(args, configs)
+            queue.push_many(h)
+    else:
+        log.error({
+            'response_code': code,
+            'response_content': content,
+        })
