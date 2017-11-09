@@ -3,6 +3,14 @@ History
 -------
 
 
+7.0.1 (2017-11-09)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v10.0.1.
+- Parse array of results from bulk heartbeats endpoint, only saving heartbeats
+  to local offline cache when they were not accepted by the api.
+
+
 7.0.0 (2017-11-08)
 ++++++++++++++++++
 
