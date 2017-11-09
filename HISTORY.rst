@@ -3,6 +3,17 @@ History
 -------
 
 
+7.0.0 (2017-11-08)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v10.0.0.
+- Upload multiple heartbeats to bulk endpoint for improved network performance.
+  `wakatime#107 <https://github.com/wakatime/wakatime/issues/107>`_
+- Fix bug causing 401 response when hidefilenames is enabled.
+  `wakatime#106 <https://github.com/wakatime/wakatime/issues/106>`_
+- Detect project and branch names from git submodules.
+  `wakatime#105 <https://github.com/wakatime/wakatime/issues/105>`_
+
 6.0.3 (2017-10-29)
 ++++++++++++++++++
 
