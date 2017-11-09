@@ -33,14 +33,8 @@ class SessionCache(object):
     db_file = '.wakatime.db'
     table_name = 'session'
 
-    def get_db_file(self):
-        home = '~'
-        if os.environ.get('WAKATIME_HOME'):
-            home = os.environ.get('WAKATIME_HOME')
-        return os.path.join(os.path.expanduser(home), '.wakatime.db')
-
     def connect(self):
-        conn = sqlite3.connect(self.get_db_file(), isolation_level=None)
+        conn = sqlite3.connect(self._get_db_file(), isolation_level=None)
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS {0} (
             value BLOB)
@@ -110,3 +104,9 @@ class SessionCache(object):
             conn.close()
         except:
             log.traceback(logging.DEBUG)
+
+    def _get_db_file(self):
+        home = '~'
+        if os.environ.get('WAKATIME_HOME'):
+            home = os.environ.get('WAKATIME_HOME')
+        return os.path.join(os.path.expanduser(home), '.wakatime.db')

@@ -45,7 +45,7 @@ class StoreWithoutQuotes(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
-def parseArguments():
+def parse_arguments():
     """Parse command line arguments and configs from ~/.wakatime.cfg.
     Command line arguments take precedence over config file settings.
     Returns instances of ArgumentParser and SafeConfigParser.

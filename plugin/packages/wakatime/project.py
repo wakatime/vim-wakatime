@@ -33,7 +33,7 @@ REV_CONTROL_PLUGINS = [
 ]
 
 
-def get_project_info(configs, heartbeat):
+def get_project_info(configs, heartbeat, data):
     """Find the current project and branch.
 
     First looks for a .wakatime-project file. Second, uses the --project arg.
@@ -43,21 +43,27 @@ def get_project_info(configs, heartbeat):
     Returns a project, branch tuple.
     """
 
-    project_name, branch_name = None, None
+    project_name, branch_name = heartbeat.project, heartbeat.branch
 
-    for plugin_cls in CONFIG_PLUGINS:
+    if heartbeat.type != 'file':
+        project_name = project_name or heartbeat.args.project or heartbeat.args.alternate_project
+        return project_name, branch_name
 
-        plugin_name = plugin_cls.__name__.lower()
-        plugin_configs = get_configs_for_plugin(plugin_name, configs)
+    if project_name is None or branch_name is None:
 
-        project = plugin_cls(heartbeat['entity'], configs=plugin_configs)
-        if project.process():
-            project_name = project_name or project.name()
-            branch_name = project.branch()
-            break
+        for plugin_cls in CONFIG_PLUGINS:
+
+            plugin_name = plugin_cls.__name__.lower()
+            plugin_configs = get_configs_for_plugin(plugin_name, configs)
+
+            project = plugin_cls(heartbeat.entity, configs=plugin_configs)
+            if project.process():
+                project_name = project_name or project.name()
+                branch_name = project.branch()
+                break
 
     if project_name is None:
-        project_name = heartbeat.get('project')
+        project_name = data.get('project') or heartbeat.args.project
 
     if project_name is None or branch_name is None:
 
@@ -66,14 +72,14 @@ def get_project_info(configs, heartbeat):
             plugin_name = plugin_cls.__name__.lower()
             plugin_configs = get_configs_for_plugin(plugin_name, configs)
 
-            project = plugin_cls(heartbeat['entity'], configs=plugin_configs)
+            project = plugin_cls(heartbeat.entity, configs=plugin_configs)
             if project.process():
                 project_name = project_name or project.name()
                 branch_name = branch_name or project.branch()
                 break
 
     if project_name is None:
-        project_name = heartbeat.get('alternate_project')
+        project_name = data.get('alternate_project') or heartbeat.args.alternate_project
 
     return project_name, branch_name
 
