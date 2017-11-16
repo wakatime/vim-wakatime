@@ -104,7 +104,7 @@ class Queue(object):
 
     def pop_many(self, limit=None):
         if limit is None:
-            limit = 100
+            limit = 5
 
         heartbeats = []
 
