@@ -3,6 +3,16 @@ History
 -------
 
 
+7.0.2 (2017-11-22)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v10.0.3.
+- Limit bulk syncing to 5 heartbeats per request.
+  `wakatime#109 <https://github.com/wakatime/wakatime/issues/109>`_
+- Support saving unicode heartbeats when working offline.
+  `wakatime#112 <https://github.com/wakatime/wakatime/issues/112>`_
+
+
 7.0.1 (2017-11-09)
 ++++++++++++++++++
 
