@@ -141,26 +141,41 @@ class Heartbeat(object):
     def dict(self):
         return {
             'time': self.time,
-            'entity': self.entity,
+            'entity': self._unicode(self.entity),
             'type': self.type,
             'is_write': self.is_write,
-            'project': self.project,
-            'branch': self.branch,
-            'language': self.language,
-            'dependencies': self.dependencies,
+            'project': self._unicode(self.project),
+            'branch': self._unicode(self.branch),
+            'language': self._unicode(self.language),
+            'dependencies': self._unicode_list(self.dependencies),
             'lines': self.lines,
             'lineno': self.lineno,
             'cursorpos': self.cursorpos,
-            'user_agent': self.user_agent,
+            'user_agent': self._unicode(self.user_agent),
         }
 
     def items(self):
         return self.dict().items()
 
     def get_id(self):
-        return u('{h.time}-{h.type}-{h.project}-{h.branch}-{h.entity}-{h.is_write}').format(
-            h=self,
+        return u('{time}-{type}-{project}-{branch}-{entity}-{is_write}').format(
+            time=self.time,
+            type=self.type,
+            project=self._unicode(self.project),
+            branch=self._unicode(self.branch),
+            entity=self._unicode(self.entity),
+            is_write=self.is_write,
         )
+
+    def _unicode(self, value):
+        if value is None:
+            return None
+        return u(value)
+
+    def _unicode_list(self, values):
+        if values is None:
+            return None
+        return [self._unicode(value) for value in values]
 
     def _excluded_by_pattern(self):
         return should_exclude(self.entity, self.args.include, self.args.exclude)
