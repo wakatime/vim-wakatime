@@ -3,6 +3,14 @@ History
 -------
 
 
+7.0.3 (2017-11-23)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v10.0.4.
+- Improve Java dependency detection.
+- Skip null or missing heartbeats from extra heartbeats argument.
+
+
 7.0.2 (2017-11-22)
 ++++++++++++++++++
 
