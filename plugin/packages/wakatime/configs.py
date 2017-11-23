@@ -21,7 +21,7 @@ from .constants import CONFIG_FILE_PARSE_ERROR
 
 try:
     import configparser
-except ImportError:
+except ImportError:  # pragma: nocover
     from .packages import configparser
 
 

@@ -41,6 +41,10 @@ class Heartbeat(object):
     user_agent = None
 
     def __init__(self, data, args, configs, _clone=None):
+        if not data:
+            self.skip = u('Skipping because heartbeat data is missing.')
+            return
+
         self.args = args
         self.configs = configs
 
@@ -62,7 +66,7 @@ class Heartbeat(object):
                 return
             if self.type == 'file':
                 self.entity = format_file_path(self.entity)
-            if self.type == 'file' and not os.path.isfile(self.entity):
+            if self.type == 'file' and (not self.entity or not os.path.isfile(self.entity)):
                 self.skip = u('File does not exist; ignoring this heartbeat.')
                 return
 
@@ -91,7 +95,6 @@ class Heartbeat(object):
         data = self.dict()
         data.update(attrs)
         heartbeat = Heartbeat(data, self.args, self.configs, _clone=True)
-        heartbeat.skip = self.skip
         return heartbeat
 
     def sanitize(self):

@@ -43,7 +43,7 @@ class JavaParser(TokenParser):
             self._process_other(token, content)
 
     def _process_namespace(self, token, content):
-        if u(content) == u('import'):
+        if u(content).split() and u(content).split()[0] == u('import'):
             self.state = 'import'
 
         elif self.state == 'import':

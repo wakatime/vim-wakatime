@@ -30,7 +30,7 @@ log = logging.getLogger('WakaTime')
 
 try:
     from .packages import requests
-except ImportError:
+except ImportError:  # pragma: nocover
     log.traceback(logging.ERROR)
     print(traceback.format_exc())
     log.error('Please upgrade Python to the latest version.')
@@ -138,50 +138,53 @@ def send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=False):
     else:
         code = response.status_code if response is not None else None
         content = response.text if response is not None else None
-        try:
-            results = response.json() if response is not None else []
-        except:
-            if log.isEnabledFor(logging.DEBUG):
-                log.traceback(logging.WARNING)
-            results = []
-        if code == requests.codes.created or code == requests.codes.accepted:
-            log.debug({
-                'response_code': code,
-            })
 
-            for i in range(len(results)):
-                if len(heartbeats) <= i:
-                    log.debug('Results from server do not match heartbeats sent.')
-                    break
-
-                try:
-                    c = results[i][1]
-                except:
-                    c = 0
-                try:
-                    text = json.dumps(results[i][0])
-                except:
-                    if log.isEnabledFor(logging.DEBUG):
-                        log.traceback(logging.WARNING)
-                    text = ''
-                handle_result([heartbeats[i]], c, text, args, configs)
-
+        if _success(code):
+            results = _get_results(response)
+            _process_server_results(heartbeats, code, content, results, args, configs)
             session_cache.save(session)
             return SUCCESS
 
         if should_try_ntlm:
             return send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=True)
-        else:
-            handle_result(heartbeats, code, content, args, configs)
+
+        _handle_unsent_heartbeats(heartbeats, code, content, args, configs)
 
     session_cache.delete()
     return AUTH_ERROR if code == 401 else API_ERROR
 
 
-def handle_result(h, code, content, args, configs):
-    if code == requests.codes.created or code == requests.codes.accepted:
-        return
+def _process_server_results(heartbeats, code, content, results, args, configs):
+    log.debug({
+        'response_code': code,
+    })
 
+    for i in range(len(results)):
+        if len(heartbeats) <= i:
+            log.warn('Results from api not matching heartbeats sent.')
+            break
+
+        try:
+            c = results[i][1]
+        except:
+            log.traceback(logging.WARNING)
+            c = 0
+        try:
+            text = json.dumps(results[i][0])
+        except:
+            log.traceback(logging.WARNING)
+            text = ''
+        if not _success(c):
+            _handle_unsent_heartbeats([heartbeats[i]], c, text, args, configs)
+
+    leftover = len(heartbeats) - len(results)
+    if leftover > 0:
+        log.warn('Missing {0} results from api.'.format(leftover))
+        start = len(heartbeats) - leftover
+        _handle_unsent_heartbeats(heartbeats[start:], code, content, args, configs)
+
+
+def _handle_unsent_heartbeats(heartbeats, code, content, args, configs):
     if args.offline:
         if code == 400:
             log.error({
@@ -195,9 +198,23 @@ def handle_result(h, code, content, args, configs):
                     'response_content': content,
                 })
             queue = Queue(args, configs)
-            queue.push_many(h)
+            queue.push_many(heartbeats)
     else:
         log.error({
             'response_code': code,
             'response_content': content,
         })
+
+
+def _get_results(response):
+    results = []
+    if response is not None:
+        try:
+            results = response.json()
+        except:
+            log.traceback(logging.WARNING)
+    return results
+
+
+def _success(code):
+    return code == requests.codes.created or code == requests.codes.accepted

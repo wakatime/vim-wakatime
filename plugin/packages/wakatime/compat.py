@@ -96,5 +96,5 @@ except ImportError:  # pragma: nocover
 
 try:
     from .packages import simplejson as json
-except (ImportError, SyntaxError):
+except (ImportError, SyntaxError):  # pragma: nocover
     import json

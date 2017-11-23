@@ -123,6 +123,6 @@ class Git(BaseProject):
             subpath = line[len('gitdir: '):].strip()
             if os.path.isfile(os.path.join(path, subpath, 'config')) and \
                     os.path.isfile(os.path.join(path, subpath, 'HEAD')):
-                return os.path.join(path, subpath)
+                return os.path.realpath(os.path.join(path, subpath))
 
         return None
