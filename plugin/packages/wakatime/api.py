@@ -210,7 +210,7 @@ def _get_results(response):
     results = []
     if response is not None:
         try:
-            results = response.json()
+            results = response.json()['responses']
         except:
             log.traceback(logging.WARNING)
     return results
