@@ -3,6 +3,15 @@ History
 -------
 
 
+7.0.4 (2018-01-04)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v10.1.0.
+- Ability to only track folders containing a .wakatime-project file using new
+  include_only_with_project_file argument and config option.
+- Fix bug that caused heartbeats to be cached locally instead of sent to API.
+
+
 7.0.3 (2017-11-23)
 ++++++++++++++++++
 
