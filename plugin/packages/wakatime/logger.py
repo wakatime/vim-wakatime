@@ -75,7 +75,7 @@ def setup_logging(args, version):
     for handler in logger.handlers:
         logger.removeHandler(handler)
     set_log_level(logger, args)
-    logfile = args.logfile
+    logfile = args.log_file
     if not logfile:
         logfile = '~/.wakatime.log'
     handler = logging.FileHandler(os.path.expanduser(logfile))

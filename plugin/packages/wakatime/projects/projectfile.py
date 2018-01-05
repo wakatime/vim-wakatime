@@ -12,11 +12,11 @@
 """
 
 import logging
-import os
 import sys
 
 from .base import BaseProject
 from ..compat import u, open
+from ..utils import find_project_file
 
 
 log = logging.getLogger('WakaTime')
@@ -25,7 +25,7 @@ log = logging.getLogger('WakaTime')
 class ProjectFile(BaseProject):
 
     def process(self):
-        self.config = self._find_config(self.path)
+        self.config = find_project_file(self.path)
         self._project_name = None
         self._project_branch = None
 
@@ -33,13 +33,13 @@ class ProjectFile(BaseProject):
 
             try:
                 with open(self.config, 'r', encoding='utf-8') as fh:
-                    self._project_name = u(fh.readline().strip())
-                    self._project_branch = u(fh.readline().strip())
+                    self._project_name = u(fh.readline().strip()) or None
+                    self._project_branch = u(fh.readline().strip()) or None
             except UnicodeDecodeError:  # pragma: nocover
                 try:
                     with open(self.config, 'r', encoding=sys.getfilesystemencoding()) as fh:
-                        self._project_name = u(fh.readline().strip())
-                        self._project_branch = u(fh.readline().strip())
+                        self._project_name = u(fh.readline().strip()) or None
+                        self._project_branch = u(fh.readline().strip()) or None
                 except:
                     log.traceback(logging.WARNING)
             except IOError:  # pragma: nocover
@@ -53,14 +53,3 @@ class ProjectFile(BaseProject):
 
     def branch(self):
         return self._project_branch
-
-    def _find_config(self, path):
-        path = os.path.realpath(path)
-        if os.path.isfile(path):
-            path = os.path.split(path)[0]
-        if os.path.isfile(os.path.join(path, '.wakatime-project')):
-            return os.path.join(path, '.wakatime-project')
-        split_path = os.path.split(path)
-        if split_path[1] == '':
-            return None
-        return self._find_config(split_path[0])

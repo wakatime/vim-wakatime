@@ -82,3 +82,15 @@ def format_file_path(filepath):
 
 def get_hostname(args):
     return args.hostname or socket.gethostname()
+
+
+def find_project_file(path):
+    path = os.path.realpath(path)
+    if os.path.isfile(path):
+        path = os.path.split(path)[0]
+    if os.path.isfile(os.path.join(path, '.wakatime-project')):
+        return os.path.join(path, '.wakatime-project')
+    split_path = os.path.split(path)
+    if split_path[1] == '':
+        return None
+    return find_project_file(split_path[0])

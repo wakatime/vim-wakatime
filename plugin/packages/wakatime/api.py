@@ -144,6 +144,11 @@ def send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=False):
             _process_server_results(heartbeats, code, content, results, args, configs)
             session_cache.save(session)
             return SUCCESS
+        else:
+            log.debug({
+                'response_code': code,
+                'response_text': content,
+            })
 
         if should_try_ntlm:
             return send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=True)
@@ -157,6 +162,7 @@ def send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=False):
 def _process_server_results(heartbeats, code, content, results, args, configs):
     log.debug({
         'response_code': code,
+        'results': results,
     })
 
     for i in range(len(results)):

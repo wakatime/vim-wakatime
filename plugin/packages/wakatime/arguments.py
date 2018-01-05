@@ -103,12 +103,17 @@ def parse_arguments():
                  'auto-detected language')
     parser.add_argument('--hostname', dest='hostname', action=StoreWithoutQuotes, help='hostname of '+
                         'current machine.')
-    parser.add_argument('--disableoffline', dest='offline',
+    parser.add_argument('--disable-offline', dest='offline',
             action='store_false',
             help='disables offline time logging instead of queuing logged time')
+    parser.add_argument('--disableoffline', dest='offline_deprecated',
+            action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--hide-filenames', dest='hide_filenames',
+            action='store_true',
+            help='obfuscate filenames; will not send file names to api')
     parser.add_argument('--hidefilenames', dest='hidefilenames',
             action='store_true',
-            help='obfuscate file names; will not send file names to api')
+            help=argparse.SUPPRESS)
     parser.add_argument('--exclude', dest='exclude', action='append',
             help='filename patterns to exclude from logging; POSIX regex '+
                  'syntax; can be used more than once')
@@ -116,15 +121,24 @@ def parse_arguments():
             help='filename patterns to log; when used in combination with '+
                  '--exclude, files matching include will still be logged; '+
                  'POSIX regex syntax; can be used more than once')
+    parser.add_argument('--include-only-with-project-file',
+                        dest='include_only_with_project_file',
+                        action='store_true',
+                        help='disables tracking folders unless they contain '+
+                        'a .wakatime-project file; defaults to false')
     parser.add_argument('--ignore', dest='ignore', action='append',
             help=argparse.SUPPRESS)
     parser.add_argument('--extra-heartbeats', dest='extra_heartbeats',
             action='store_true',
             help='reads extra heartbeats from STDIN as a JSON array until EOF')
-    parser.add_argument('--logfile', dest='logfile', action=StoreWithoutQuotes,
+    parser.add_argument('--log-file', dest='log_file', action=StoreWithoutQuotes,
             help='defaults to ~/.wakatime.log')
-    parser.add_argument('--apiurl', dest='api_url', action=StoreWithoutQuotes,
+    parser.add_argument('--logfile', dest='logfile', action=StoreWithoutQuotes,
+            help=argparse.SUPPRESS)
+    parser.add_argument('--api-url', dest='api_url', action=StoreWithoutQuotes,
             help='heartbeats api url; for debugging with a local server')
+    parser.add_argument('--apiurl', dest='apiurl', action=StoreWithoutQuotes,
+            help=argparse.SUPPRESS)
     parser.add_argument('--timeout', dest='timeout', type=int, action=StoreWithoutQuotes,
             help='number of seconds to wait when sending heartbeats to api; '+
                  'defaults to 60 seconds')
@@ -194,6 +208,8 @@ def parse_arguments():
                     args.exclude.append(pattern)
         except TypeError:  # pragma: nocover
             pass
+    if not args.include_only_with_project_file and configs.has_option('settings', 'include_only_with_project_file'):
+        args.include_only_with_project_file = configs.get('settings', 'include_only_with_project_file')
     if not args.include:
         args.include = []
     if configs.has_option('settings', 'include'):
@@ -203,18 +219,26 @@ def parse_arguments():
                     args.include.append(pattern)
         except TypeError:  # pragma: nocover
             pass
-    if args.hidefilenames:
-        args.hidefilenames = ['.*']
+    if not args.hide_filenames and args.hidefilenames:
+        args.hide_filenames = args.hidefilenames
+    if args.hide_filenames:
+        args.hide_filenames = ['.*']
     else:
-        args.hidefilenames = []
+        args.hide_filenames = []
+        option = None
         if configs.has_option('settings', 'hidefilenames'):
             option = configs.get('settings', 'hidefilenames')
+        if configs.has_option('settings', 'hide_filenames'):
+            option = configs.get('settings', 'hide_filenames')
+        if option is not None:
             if option.strip().lower() == 'true':
-                args.hidefilenames = ['.*']
+                args.hide_filenames = ['.*']
             elif option.strip().lower() != 'false':
                 for pattern in option.split("\n"):
                     if pattern.strip() != '':
-                        args.hidefilenames.append(pattern)
+                        args.hide_filenames.append(pattern)
+    if args.offline_deprecated:
+        args.offline = False
     if args.offline and configs.has_option('settings', 'offline'):
         args.offline = configs.getboolean('settings', 'offline')
     if not args.proxy and configs.has_option('settings', 'proxy'):
@@ -235,11 +259,15 @@ def parse_arguments():
         args.verbose = configs.getboolean('settings', 'verbose')
     if not args.verbose and configs.has_option('settings', 'debug'):
         args.verbose = configs.getboolean('settings', 'debug')
-    if not args.logfile and configs.has_option('settings', 'logfile'):
-        args.logfile = configs.get('settings', 'logfile')
-    if not args.logfile and os.environ.get('WAKATIME_HOME'):
+    if not args.log_file and args.logfile:
+        args.log_file = args.logfile
+    if not args.log_file and configs.has_option('settings', 'log_file'):
+        args.log_file = configs.get('settings', 'log_file')
+    if not args.log_file and os.environ.get('WAKATIME_HOME'):
         home = os.environ.get('WAKATIME_HOME')
-        args.logfile = os.path.join(os.path.expanduser(home), '.wakatime.log')
+        args.log_file = os.path.join(os.path.expanduser(home), '.wakatime.log')
+    if not args.api_url and args.apiurl:
+        args.api_url = args.apiurl
     if not args.api_url and configs.has_option('settings', 'api_url'):
         args.api_url = configs.get('settings', 'api_url')
     if not args.timeout and configs.has_option('settings', 'timeout'):

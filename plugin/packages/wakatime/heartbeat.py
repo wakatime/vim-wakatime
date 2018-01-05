@@ -14,7 +14,7 @@ import re
 from .compat import u, json
 from .project import get_project_info
 from .stats import get_file_stats
-from .utils import get_user_agent, should_exclude, format_file_path
+from .utils import get_user_agent, should_exclude, format_file_path, find_project_file
 
 
 log = logging.getLogger('WakaTime')
@@ -66,9 +66,12 @@ class Heartbeat(object):
                 return
             if self.type == 'file':
                 self.entity = format_file_path(self.entity)
-            if self.type == 'file' and (not self.entity or not os.path.isfile(self.entity)):
-                self.skip = u('File does not exist; ignoring this heartbeat.')
-                return
+                if not self.entity or not os.path.isfile(self.entity):
+                    self.skip = u('File does not exist; ignoring this heartbeat.')
+                    return
+                if self._excluded_by_missing_project_file():
+                    self.skip = u('Skipping because missing .wakatime-project file in parent path.')
+                    return
 
             project, branch = get_project_info(configs, self, data)
             self.project = project
@@ -103,7 +106,7 @@ class Heartbeat(object):
         Returns a Heartbeat.
         """
 
-        if not self.args.hidefilenames:
+        if not self.args.hide_filenames:
             return self
 
         if self.entity is None:
@@ -112,7 +115,7 @@ class Heartbeat(object):
         if self.type != 'file':
             return self
 
-        for pattern in self.args.hidefilenames:
+        for pattern in self.args.hide_filenames:
             try:
                 compiled = re.compile(pattern, re.IGNORECASE)
                 if compiled.search(self.entity):
@@ -182,6 +185,11 @@ class Heartbeat(object):
 
     def _excluded_by_pattern(self):
         return should_exclude(self.entity, self.args.include, self.args.exclude)
+
+    def _excluded_by_missing_project_file(self):
+        if not self.args.include_only_with_project_file:
+            return False
+        return find_project_file(self.entity) is None
 
     def __repr__(self):
         return self.json()
