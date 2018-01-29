@@ -3,6 +3,13 @@ History
 -------
 
 
+7.0.5 (2018-01-28)
+++++++++++++++++++
+
+- Correctly handle async output in Neovim as list not string.
+  `#62 <https://github.com/wakatime/vim-wakatime/issues/62>`_
+
+
 7.0.4 (2018-01-04)
 ++++++++++++++++++
 
