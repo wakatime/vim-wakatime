@@ -329,11 +329,12 @@ let s:VERSION = '7.0.4'
                 call ch_sendraw(channel, extra_heartbeats . "\n")
             endif
         elseif s:nvim_async
+            let s:nvim_async_output = ['']
             let job = jobstart([&shell, &shellcmdflag, s:JoinArgs(cmd)], {
                 \ 'detach': 1,
-                \ 'on_stdout': function('s:AsyncNeovimHandler'),
-                \ 'on_stderr': function('s:AsyncNeovimHandler'),
-                \ 'on_exit': function('s:AsyncNeovimHandler')})
+                \ 'on_stdout': function('s:NeovimAsyncOutputHandler'),
+                \ 'on_stderr': function('s:NeovimAsyncOutputHandler'),
+                \ 'on_exit': function('s:NeovimAsyncExitHandler')})
             if extra_heartbeats != ''
                 call jobsend(job, extra_heartbeats . "\n")
             endif
@@ -413,9 +414,18 @@ let s:VERSION = '7.0.4'
         endif
     endfunction
 
-    function! s:AsyncNeovimHandler(job_id, output, event)
-        if s:is_debug_on && a:output != ''
-            echoerr '[WakaTime] Error: ' . a:output
+    function! s:NeovimAsyncOutputHandler(job_id, output, event)
+        let s:nvim_async_output[-1] .= a:output[0]
+        call extend(s:nvim_async_output, a:output[1:])
+    endfunction
+
+    function! s:NeovimAsyncExitHandler(job_id, exit_code, event)
+        let output = s:StripWhitespace(join(s:nvim_async_output, "\n"))
+        if a:exit_code == 104
+            let output .= 'Invalid API Key'
+        endif
+        if (s:is_debug_on || a:exit_code == 103 || a:exit_code == 104) && (a:exit_code != 0 || output != '')
+            echoerr printf('[WakaTime] Error %d: %s', a:exit_code, output)
         endif
     endfunction
 
