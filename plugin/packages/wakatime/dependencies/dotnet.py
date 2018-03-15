@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.languages.dotnet
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    wakatime.dependencies.dotnet
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Parse dependencies from .NET code.
 

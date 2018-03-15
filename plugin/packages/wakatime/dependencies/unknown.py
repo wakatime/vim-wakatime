@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.languages.unknown
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    wakatime.dependencies.unknown
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Parse dependencies from files of unknown language.
 

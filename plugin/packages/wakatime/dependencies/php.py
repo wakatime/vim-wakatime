@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.languages.php
-    ~~~~~~~~~~~~~~~~~~~~~~
+    wakatime.dependencies.php
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Parse dependencies from PHP code.
 
@@ -16,6 +16,10 @@ from ..compat import u
 class PhpParser(TokenParser):
     state = None
     parens = 0
+    exclude = [
+        r'^app$',
+        r'app\.php$',
+    ]
 
     def parse(self):
         for index, token, content in self.tokens:

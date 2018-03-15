@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.languages.data
-    ~~~~~~~~~~~~~~~~~~~~~~~
+    wakatime.dependencies.data
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Parse dependencies from data files.
 

@@ -37,7 +37,7 @@ class JavascriptLexer(RegexLexer):
 
     name = 'JavaScript'
     aliases = ['js', 'javascript']
-    filenames = ['*.js', '*.jsm']
+    filenames = ['*.js', '*.jsm', '*.mjs']
     mimetypes = ['application/javascript', 'application/x-javascript',
                  'text/x-javascript', 'text/javascript']
 
@@ -1035,7 +1035,6 @@ class CoffeeScriptLexer(RegexLexer):
     filenames = ['*.coffee']
     mimetypes = ['text/coffeescript']
 
-
     _operator_re = (
         r'\+\+|~|&&|\band\b|\bor\b|\bis\b|\bisnt\b|\bnot\b|\?|:|'
         r'\|\||\\(?=\n)|'
@@ -1463,6 +1462,7 @@ class EarlGreyLexer(RegexLexer):
             (r'\d+', Number.Integer)
         ],
     }
+
 
 class JuttleLexer(RegexLexer):
     """

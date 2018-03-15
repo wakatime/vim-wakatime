@@ -106,8 +106,8 @@ class DependencyParser(object):
         self.lexer = lexer
 
         if self.lexer:
-            module_name = self.lexer.__module__.rsplit('.', 1)[-1]
-            class_name = self.lexer.__class__.__name__.replace('Lexer', 'Parser', 1)
+            module_name = self.root_lexer.__module__.rsplit('.', 1)[-1]
+            class_name = self.root_lexer.__class__.__name__.replace('Lexer', 'Parser', 1)
         else:
             module_name = 'unknown'
             class_name = 'UnknownParser'
@@ -120,6 +120,12 @@ class DependencyParser(object):
                 log.debug('Parsing dependencies not supported for {0}.{1}'.format(module_name, class_name))
         except ImportError:
             log.debug('Parsing dependencies not supported for {0}.{1}'.format(module_name, class_name))
+
+    @property
+    def root_lexer(self):
+        if hasattr(self.lexer, 'root_lexer'):
+            return self.lexer.root_lexer
+        return self.lexer
 
     def parse(self):
         if self.parser:

@@ -17,6 +17,7 @@ import sys
 from .compat import u, open
 from .constants import MAX_FILE_SIZE_SUPPORTED
 from .dependencies import DependencyParser
+from .exceptions import SkipHeartbeat
 from .language_priorities import LANGUAGES
 
 from .packages.pygments.lexers import (
@@ -52,6 +53,8 @@ def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None,
         language, lexer = standardize_language(language, plugin)
         if not language:
             language, lexer = guess_language(file_name)
+
+        language = use_root_language(language, lexer)
 
         parser = DependencyParser(file_name, lexer)
         dependencies = parser.parse()
@@ -118,6 +121,8 @@ def guess_lexer_using_filename(file_name, text):
 
     try:
         lexer = custom_pygments_guess_lexer_for_filename(file_name, text)
+    except SkipHeartbeat as ex:
+        raise SkipHeartbeat(u(ex))
     except:
         log.traceback(logging.DEBUG)
 
@@ -167,7 +172,7 @@ def get_language_from_extension(file_name):
 
     filepart, extension = os.path.splitext(file_name)
 
-    if re.match(r'\.h.*', extension, re.IGNORECASE) or re.match(r'\.c.*', extension, re.IGNORECASE):
+    if re.match(r'\.h.*$', extension, re.IGNORECASE) or re.match(r'\.c.*$', extension, re.IGNORECASE):
 
         if os.path.exists(u('{0}{1}').format(u(filepart), u('.c'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.C'))):
             return 'C'
@@ -177,6 +182,18 @@ def get_language_from_extension(file_name):
             return 'C++'
         if '.c' in available_extensions:
             return 'C'
+
+        if os.path.exists(u('{0}{1}').format(u(filepart), u('.m'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.M'))):
+            return 'Objective-C'
+
+        if os.path.exists(u('{0}{1}').format(u(filepart), u('.mm'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.MM'))):
+            return 'Objective-C++'
+
+    if re.match(r'\.m$', extension, re.IGNORECASE) and (os.path.exists(u('{0}{1}').format(u(filepart), u('.h'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.H')))):
+        return 'Objective-C'
+
+    if re.match(r'\.mm$', extension, re.IGNORECASE) and (os.path.exists(u('{0}{1}').format(u(filepart), u('.h'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.H')))):
+        return 'Objective-C++'
 
     return None
 
@@ -234,6 +251,13 @@ def get_lexer(language):
         return lexer_cls()
 
     return None
+
+
+def use_root_language(language, lexer):
+    if lexer and hasattr(lexer, 'root_lexer'):
+        return u(lexer.root_lexer.name)
+
+    return language
 
 
 def get_language_from_json(language, key):
@@ -299,6 +323,12 @@ def custom_pygments_guess_lexer_for_filename(_fn, _text, **options):
             return lexer(**options)
         result.append(customize_lexer_priority(_fn, rv, lexer))
 
+    matlab = list(filter(lambda x: x[2].name.lower() == 'matlab', result))
+    if len(matlab) > 0:
+        objc = list(filter(lambda x: x[2].name.lower() == 'objective-c', result))
+        if objc and objc[0][0] == matlab[0][0]:
+            raise SkipHeartbeat('Skipping because not enough language accuracy.')
+
     def type_sort(t):
         # sort by:
         # - analyse score
@@ -322,7 +352,17 @@ def customize_lexer_priority(file_name, accuracy, lexer):
     elif lexer_name == 'matlab':
         available_extensions = extensions_in_same_folder(file_name)
         if '.mat' in available_extensions:
-            priority = 0.06
+            accuracy += 0.01
+        if '.h' not in available_extensions:
+            accuracy += 0.01
+    elif lexer_name == 'objective-c':
+        available_extensions = extensions_in_same_folder(file_name)
+        if '.mat' in available_extensions:
+            accuracy -= 0.01
+        else:
+            accuracy += 0.01
+        if '.h' in available_extensions:
+            accuracy += 0.01
 
     return (accuracy, priority, lexer)
 

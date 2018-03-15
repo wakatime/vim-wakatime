@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.languages.go
-    ~~~~~~~~~~~~~~~~~~~~~
+    wakatime.dependencies.go
+    ~~~~~~~~~~~~~~~~~~~~~~~~
 
     Parse dependencies from Go code.
 

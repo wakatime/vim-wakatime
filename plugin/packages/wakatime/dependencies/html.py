@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.languages.templates
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    wakatime.dependencies.html
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Parse dependencies from Templates.
+    Parse dependencies from HTML.
 
     :copyright: (c) 2014 Alan Hamlett.
     :license: BSD, see LICENSE for more details.
@@ -69,7 +69,7 @@ KEYWORDS = [
 ]
 
 
-class HtmlDjangoParser(TokenParser):
+class HtmlParser(TokenParser):
     tags = []
     opening_tag = False
     getting_attrs = False
@@ -141,63 +141,3 @@ class HtmlDjangoParser(TokenParser):
             elif content.startswith('"') or content.startswith("'"):
                 if self.current_attr_value is None:
                     self.current_attr_value = content
-
-
-class VelocityHtmlParser(HtmlDjangoParser):
-    pass
-
-
-class MyghtyHtmlParser(HtmlDjangoParser):
-    pass
-
-
-class MasonParser(HtmlDjangoParser):
-    pass
-
-
-class MakoHtmlParser(HtmlDjangoParser):
-    pass
-
-
-class CheetahHtmlParser(HtmlDjangoParser):
-    pass
-
-
-class HtmlGenshiParser(HtmlDjangoParser):
-    pass
-
-
-class RhtmlParser(HtmlDjangoParser):
-    pass
-
-
-class HtmlPhpParser(HtmlDjangoParser):
-    pass
-
-
-class HtmlSmartyParser(HtmlDjangoParser):
-    pass
-
-
-class EvoqueHtmlParser(HtmlDjangoParser):
-    pass
-
-
-class ColdfusionHtmlParser(HtmlDjangoParser):
-    pass
-
-
-class LassoHtmlParser(HtmlDjangoParser):
-    pass
-
-
-class HandlebarsHtmlParser(HtmlDjangoParser):
-    pass
-
-
-class YamlJinjaParser(HtmlDjangoParser):
-    pass
-
-
-class TwigHtmlParser(HtmlDjangoParser):
-    pass

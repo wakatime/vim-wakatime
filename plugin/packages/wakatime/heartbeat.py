@@ -12,6 +12,7 @@ import logging
 import re
 
 from .compat import u, json
+from .exceptions import SkipHeartbeat
 from .project import get_project_info
 from .stats import get_file_stats
 from .utils import get_user_agent, should_exclude, format_file_path, find_project_file
@@ -77,12 +78,17 @@ class Heartbeat(object):
             self.project = project
             self.branch = branch
 
-            stats = get_file_stats(self.entity,
-                                   entity_type=self.type,
-                                   lineno=data.get('lineno'),
-                                   cursorpos=data.get('cursorpos'),
-                                   plugin=args.plugin,
-                                   language=data.get('language'))
+            try:
+                stats = get_file_stats(self.entity,
+                                       entity_type=self.type,
+                                       lineno=data.get('lineno'),
+                                       cursorpos=data.get('cursorpos'),
+                                       plugin=args.plugin,
+                                       language=data.get('language'))
+            except SkipHeartbeat as ex:
+                self.skip = u(ex) or 'Skipping'
+                return
+
         else:
             self.project = data.get('project')
             self.branch = data.get('branch')

@@ -12,3 +12,8 @@
 
 class NotYetImplemented(Exception):
     """This method needs to be implemented."""
+
+
+class SkipHeartbeat(Exception):
+    """Raised to prevent the current heartbeat from being sent."""
+    pass

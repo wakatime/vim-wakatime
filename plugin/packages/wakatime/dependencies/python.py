@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.languages.python
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    wakatime.dependencies.python
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Parse dependencies from Python code.
 

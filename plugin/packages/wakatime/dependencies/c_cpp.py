@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    wakatime.languages.c_cpp
-    ~~~~~~~~~~~~~~~~~~~~~~~~
+    wakatime.dependencies.c_cpp
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Parse dependencies from C++ code.
 
