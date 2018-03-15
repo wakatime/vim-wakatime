@@ -177,17 +177,17 @@ def get_language_from_extension(file_name):
         if os.path.exists(u('{0}{1}').format(u(filepart), u('.c'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.C'))):
             return 'C'
 
-        available_extensions = extensions_in_same_folder(file_name)
-        if '.cpp' in available_extensions:
-            return 'C++'
-        if '.c' in available_extensions:
-            return 'C'
-
         if os.path.exists(u('{0}{1}').format(u(filepart), u('.m'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.M'))):
             return 'Objective-C'
 
         if os.path.exists(u('{0}{1}').format(u(filepart), u('.mm'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.MM'))):
             return 'Objective-C++'
+
+        available_extensions = extensions_in_same_folder(file_name)
+        if '.cpp' in available_extensions:
+            return 'C++'
+        if '.c' in available_extensions:
+            return 'C'
 
     if re.match(r'\.m$', extension, re.IGNORECASE) and (os.path.exists(u('{0}{1}').format(u(filepart), u('.h'))) or os.path.exists(u('{0}{1}').format(u(filepart), u('.H')))):
         return 'Objective-C'
