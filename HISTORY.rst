@@ -3,6 +3,13 @@ History
 -------
 
 
+7.0.7 (2018-03-15)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v10.1.3.
+- Smarter C vs C++ vs Objective-C language detection.
+
+
 7.0.6 (2018-03-15)
 ++++++++++++++++++
 
