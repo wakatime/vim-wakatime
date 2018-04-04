@@ -221,8 +221,10 @@ let s:VERSION = '7.0.7'
         return expand("%:p")
     endfunction
 
-    function! s:EscapeArg(arg)
-        return substitute(shellescape(a:arg), '!', '\\!', '')
+    function! s:SanitizeArg(arg)
+        let sanitized = shellescape(a:arg)
+        let sanitized = substitute(sanitized, '!', '\\!', '')
+        return sanitized
     endfunction
 
     function! s:JsonEscape(str)
@@ -232,7 +234,7 @@ let s:VERSION = '7.0.7'
     function! s:JoinArgs(args)
         let safeArgs = []
         for arg in a:args
-            let safeArgs = safeArgs + [s:EscapeArg(arg)]
+            let safeArgs = safeArgs + [s:SanitizeArg(arg)]
         endfor
         return join(safeArgs, ' ')
     endfunction
