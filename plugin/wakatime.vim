@@ -277,23 +277,7 @@ let s:VERSION = '7.0.7'
         endif
     endfunction
 
-    function! s:SendHeartbeats()
-        let start_time = localtime()
-        let stdout = ''
-
-        if len(s:heartbeats_buffer) == 0
-            let s:last_sent = start_time
-            return
-        endif
-
-        let heartbeat = s:heartbeats_buffer[0]
-        let s:heartbeats_buffer = s:heartbeats_buffer[1:-1]
-        if len(s:heartbeats_buffer) > 0
-            let extra_heartbeats = s:GetHeartbeatsJson()
-        else
-            let extra_heartbeats = ''
-        endif
-
+    function! s:GetPythonBinary()
         let python_bin = g:wakatime_PythonBinary
         if !filereadable(python_bin)
             let paths = ['python3']
@@ -320,7 +304,27 @@ let s:VERSION = '7.0.7'
         if s:IsWindows() && filereadable(printf('%sw', python_bin))
             let python_bin = printf('%sw', python_bin)
         endif
+        return python_bin
+    endfunction
 
+    function! s:SendHeartbeats()
+        let start_time = localtime()
+        let stdout = ''
+
+        if len(s:heartbeats_buffer) == 0
+            let s:last_sent = start_time
+            return
+        endif
+
+        let heartbeat = s:heartbeats_buffer[0]
+        let s:heartbeats_buffer = s:heartbeats_buffer[1:-1]
+        if len(s:heartbeats_buffer) > 0
+            let extra_heartbeats = s:GetHeartbeatsJson()
+        else
+            let extra_heartbeats = ''
+        endif
+
+        let python_bin = s:GetPythonBinary()
         let cmd = [python_bin, '-W', 'ignore', s:cli_location]
         let cmd = cmd + ['--entity', heartbeat.entity]
         let cmd = cmd + ['--time', heartbeat.time]
