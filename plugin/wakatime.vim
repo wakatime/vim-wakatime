@@ -223,7 +223,7 @@ let s:VERSION = '7.1.0'
 
     function! s:SanitizeArg(arg)
         let sanitized = shellescape(a:arg)
-        let sanitized = substitute(sanitized, '!', '\\!', '')
+        let sanitized = substitute(sanitized, '!', '\\!', 'g')
         return sanitized
     endfunction
 
@@ -250,7 +250,7 @@ let s:VERSION = '7.1.0'
         if s:has_reltime
             return split(reltimestr(reltime()))[0]
         endif
-        return printf('%d', localtime())
+        return s:n2s(localtime())
     endfunction
 
     function! s:AppendHeartbeat(file, now, is_write, last)
@@ -330,7 +330,7 @@ let s:VERSION = '7.1.0'
         let cmd = [python_bin, '-W', 'ignore', s:cli_location]
         let cmd = cmd + ['--entity', heartbeat.entity]
         let cmd = cmd + ['--time', heartbeat.time]
-        let cmd = cmd + ['--plugin', printf('vim/%d vim-wakatime/%s', v:version, s:VERSION)]
+        let cmd = cmd + ['--plugin', printf('vim/%s vim-wakatime/%s', s:n2s(v:version), s:VERSION)]
         if heartbeat.is_write
             let cmd = cmd + ['--write']
         endif
@@ -460,7 +460,7 @@ let s:VERSION = '7.1.0'
         " Add a milisecond to a:time.
         " Time prevision doesn't matter, but order of heartbeats does.
         if !(a:time_str =~ "\.")
-            let millisecond = printf('%d', a:loop_count)
+            let millisecond = s:n2s(a:loop_count)
             while strlen(millisecond) < 6
                 let millisecond = '0' . millisecond
             endwhile
@@ -487,9 +487,13 @@ let s:VERSION = '7.1.0'
         let s:last_heartbeat = {'last_activity_at': a:last_activity_at, 'last_heartbeat_at': a:last_heartbeat_at, 'file': a:file}
     endfunction
 
+    function! s:n2s(number)
+        return substitute(printf('%d', a:number), ',', '.', '')
+    endfunction
+
     function! s:SetLastHeartbeat(last_activity_at, last_heartbeat_at, file)
         call s:SetLastHeartbeatInMemory(a:last_activity_at, a:last_heartbeat_at, a:file)
-        call writefile([substitute(printf('%d', a:last_activity_at), ',', '.', ''), substitute(printf('%d', a:last_heartbeat_at), ',', '.', ''), a:file], s:data_file)
+        call writefile([s:n2s(a:last_activity_at), s:n2s(a:last_heartbeat_at), a:file], s:data_file)
     endfunction
 
     function! s:EnoughTimePassed(now, last)
