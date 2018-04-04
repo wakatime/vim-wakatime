@@ -295,11 +295,32 @@ let s:VERSION = '7.0.7'
         endif
 
         let python_bin = g:wakatime_PythonBinary
-        if s:IsWindows()
-            if python_bin == 'python'
-                let python_bin = 'pythonw'
+        if !filereadable(python_bin)
+            let paths = ['python3']
+            if s:IsWindows()
+                let pyver = 50
+                while pyver >= 26
+                    let paths = paths + [printf('/Python%d/pythonw', pyver), printf('/python%d/pythonw', pyver), printf('/Python%d/python', pyver), printf('/python%d/python', pyver)]
+                    let pyver = pyver - 1
+                endwhile
+            else
+                let paths = paths + ['/usr/bin/python3', '/usr/local/bin/python3', '/usr/bin/python3.6', '/usr/local/bin/python3.6', '/usr/bin/python', '/usr/local/bin/python', '/usr/bin/python2', '/usr/local/bin/python2']
             endif
+            let paths = paths + ['python']
+            let index = 0
+            let limit = len(paths)
+            while index < limit
+                if filereadable(paths[index])
+                    let python_bin = paths[index]
+                    let index = limit
+                endif
+                let index = index + 1
+            endwhile
         endif
+        if s:IsWindows() && filereadable(printf('%sw', python_bin))
+            let python_bin = printf('%sw', python_bin)
+        endif
+
         let cmd = [python_bin, '-W', 'ignore', s:cli_location]
         let cmd = cmd + ['--entity', heartbeat.entity]
         let cmd = cmd + ['--time', heartbeat.time]
