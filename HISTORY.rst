@@ -3,6 +3,13 @@ History
 -------
 
 
+7.1.1 (2018-04-04)
+++++++++++++++++++
+
+- Force forward slash for wakatime-cli path on Windows.
+  `#56 <https://github.com/wakatime/vim-wakatime/issues/56>`_
+
+
 7.1.0 (2018-04-03)
 ++++++++++++++++++
 
