@@ -42,7 +42,7 @@ let s:VERSION = '7.1.1'
     if s:home == '$WAKATIME_HOME'
         let s:home = expand("$HOME")
     endif
-    let s:cli_location = substitute(substitute(expand("<sfile>:p:h"), '\', '/', 'g'), '/plugin$', '', '') . '/autoload/packages/wakatime/cli.py'
+    let s:cli_location = substitute(substitute(expand("<sfile>:p:h"), '\', '/', 'g'), '/plugin$', '', '') . '/packages/wakatime/cli.py'
     let s:config_file = s:home . '/.wakatime.cfg'
     let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
     let s:data_file = s:home . '/.wakatime.data'
