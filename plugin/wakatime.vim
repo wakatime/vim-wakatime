@@ -348,7 +348,12 @@ let s:VERSION = '7.1.1'
         endif
 
         if s:has_async
-            let job = job_start([&shell, &shellcmdflag, s:JoinArgs(cmd)], {
+            if s:IsWindows()
+                let job_cmd = [&shell, &shellcmdflag] + cmd
+            else
+                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            endif
+            let job = job_start(job_cmd, {
                 \ 'stoponexit': '',
                 \ 'callback': {channel, output -> s:AsyncHandler(output, cmd)}})
             if extra_heartbeats != ''
