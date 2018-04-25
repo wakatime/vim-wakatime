@@ -62,6 +62,12 @@ class Git(BaseProject):
                 self._project_name = os.path.basename(path)
                 self._head_file = os.path.join(submodule_path, 'HEAD')
                 return True
+        if os.path.isfile(os.path.join(path, '.git')):
+            root_path, worktree_path = self._find_worktree_path(os.path.join(path, '.git'))
+            if root_path:
+                self._project_name = os.path.basename(root_path)
+                self._head_file = os.path.join(worktree_path, 'HEAD')
+                return True
         split_path = os.path.split(path)
         if split_path[1] == '':
             return False
@@ -126,3 +132,33 @@ class Git(BaseProject):
                 return os.path.realpath(os.path.join(path, subpath))
 
         return None
+
+    def _find_worktree_path(self, path):
+        try:
+            with open(path, 'r', encoding='utf-8') as fh:
+                return self._parse_worktree_spec(fh.readline())
+        except UnicodeDecodeError:
+            try:
+                with open(path, 'r', encoding=sys.getfilesystemencoding()) as fh:
+                    return self._parse_worktree_spec(fh.readline())
+            except:
+                log.traceback(logging.WARNING)
+        except IOError:
+            log.traceback(logging.WARNING)
+
+        return None, None
+
+    def _parse_worktree_spec(self, line):
+        prefix = 'gitdir: '
+        if not line.startswith(prefix):
+            return None, None
+
+        worktree_path = line.strip().replace(prefix, '')
+        root_path = worktree_path
+
+        for _ in range(3): # <root>/.git/worktrees/<worktree_path>
+            root_path = os.path.dirname(root_path)
+
+        if not (os.path.isdir(root_path) and os.path.isdir(worktree_path)):
+            return None, None
+        return root_path, worktree_path
