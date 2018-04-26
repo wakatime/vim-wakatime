@@ -31,6 +31,7 @@ class Heartbeat(object):
     time = None
     entity = None
     type = None
+    category = None
     is_write = None
     project = None
     branch = None
@@ -58,6 +59,21 @@ class Heartbeat(object):
         if self.type not in ['file', 'domain', 'app']:
             self.type = 'file'
 
+        self.category = data.get('category')
+        allowed_categories = [
+            'coding',
+            'building',
+            'indexing',
+            'debugging',
+            'running tests',
+            'manual testing',
+            'browsing',
+            'code reviewing',
+            'designing',
+        ]
+        if self.category not in allowed_categories:
+            self.category = None
+
         if not _clone:
             exclude = self._excluded_by_pattern()
             if exclude:
@@ -77,6 +93,10 @@ class Heartbeat(object):
             project, branch = get_project_info(configs, self, data)
             self.project = project
             self.branch = branch
+
+            if self._excluded_by_unknown_project():
+                self.skip = u('Skipping because project unknown.')
+                return
 
             try:
                 stats = get_file_stats(self.entity,
@@ -155,6 +175,7 @@ class Heartbeat(object):
             'time': self.time,
             'entity': self._unicode(self.entity),
             'type': self.type,
+            'category': self.category,
             'is_write': self.is_write,
             'project': self._unicode(self.project),
             'branch': self._unicode(self.branch),
@@ -170,9 +191,10 @@ class Heartbeat(object):
         return self.dict().items()
 
     def get_id(self):
-        return u('{time}-{type}-{project}-{branch}-{entity}-{is_write}').format(
+        return u('{time}-{type}-{category}-{project}-{branch}-{entity}-{is_write}').format(
             time=self.time,
             type=self.type,
+            category=self.category,
             project=self._unicode(self.project),
             branch=self._unicode(self.branch),
             entity=self._unicode(self.entity),
@@ -191,6 +213,11 @@ class Heartbeat(object):
 
     def _excluded_by_pattern(self):
         return should_exclude(self.entity, self.args.include, self.args.exclude)
+
+    def _excluded_by_unknown_project(self):
+        if self.project:
+            return False
+        return self.args.exclude_unknown_project
 
     def _excluded_by_missing_project_file(self):
         if not self.args.include_only_with_project_file:

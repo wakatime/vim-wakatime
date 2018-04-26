@@ -24,6 +24,10 @@ from .compat import u
 log = logging.getLogger('WakaTime')
 
 
+BACKSLASH_REPLACE_PATTERN = re.compile(r'[\\/]+')
+WINDOWS_DRIVE_PATTERN = re.compile(r'^[a-z]:/')
+
+
 def should_exclude(entity, include, exclude):
     if entity is not None and entity.strip() != '':
         for pattern in include:
@@ -74,8 +78,10 @@ def format_file_path(filepath):
 
     try:
         filepath = os.path.realpath(os.path.abspath(filepath))
-        filepath = re.sub(r'[/\\]', os.path.sep, filepath)
-    except:  # pragma: nocover
+        filepath = re.sub(BACKSLASH_REPLACE_PATTERN, '/', filepath)
+        if WINDOWS_DRIVE_PATTERN.match(filepath):
+            filepath = filepath.capitalize()
+    except:
         pass
     return filepath
 

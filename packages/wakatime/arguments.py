@@ -52,100 +52,128 @@ def parse_arguments():
     """
 
     # define supported command line arguments
-    parser = argparse.ArgumentParser(
-            description='Common interface for the WakaTime api.')
+    parser = argparse.ArgumentParser(description='Common interface for the ' +
+                                                 'WakaTime api.')
     parser.add_argument('--entity', dest='entity', metavar='FILE',
-            action=FileAction,
-            help='absolute path to file for the heartbeat; can also be a '+
-                 'url, domain, or app when --entity-type is not file')
+                        action=FileAction,
+                        help='Absolute path to file for the heartbeat. Can ' +
+                             'also be a url, domain or app when ' +
+                             '--entity-type is not file.')
     parser.add_argument('--file', dest='file', action=FileAction,
-            help=argparse.SUPPRESS)
+                        help=argparse.SUPPRESS)
     parser.add_argument('--key', dest='key', action=StoreWithoutQuotes,
-            help='your wakatime api key; uses api_key from '+
-                '~/.wakatime.cfg by default')
-    parser.add_argument('--write', dest='is_write',
-            action='store_true',
-            help='when set, tells api this heartbeat was triggered from '+
-                 'writing to a file')
+                        help='Your wakatime api key; uses api_key from ' +
+                             '~/.wakatime.cfg by default.')
+    parser.add_argument('--write', dest='is_write', action='store_true',
+                        help='When set, tells api this heartbeat was ' +
+                             'triggered from writing to a file.')
     parser.add_argument('--plugin', dest='plugin', action=StoreWithoutQuotes,
-            help='optional text editor plugin name and version '+
-                 'for User-Agent header')
+                        help='Optional text editor plugin name and version ' +
+                             'for User-Agent header.')
     parser.add_argument('--time', dest='timestamp', metavar='time',
-            type=float, action=StoreWithoutQuotes,
-            help='optional floating-point unix epoch timestamp; '+
-                 'uses current time by default')
+                        type=float, action=StoreWithoutQuotes,
+                        help='Optional floating-point unix epoch timestamp. ' +
+                             'Uses current time by default.')
     parser.add_argument('--lineno', dest='lineno', action=StoreWithoutQuotes,
-            help='optional line number; current line being edited')
-    parser.add_argument('--cursorpos', dest='cursorpos', action=StoreWithoutQuotes,
-            help='optional cursor position in the current file')
-    parser.add_argument('--entity-type', dest='entity_type', action=StoreWithoutQuotes,
-            help='entity type for this heartbeat. can be one of "file", '+
-                 '"domain", or "app"; defaults to file.')
+                        help='Optional line number. This is the current ' +
+                             'line being edited.')
+    parser.add_argument('--cursorpos', dest='cursorpos',
+                        action=StoreWithoutQuotes,
+                        help='Optional cursor position in the current file.')
+    parser.add_argument('--entity-type', dest='entity_type',
+                        action=StoreWithoutQuotes,
+                        help='Entity type for this heartbeat. Can be ' +
+                             '"file", "domain" or "app". Defaults to "file".')
+    parser.add_argument('--category', dest='category',
+                        action=StoreWithoutQuotes,
+                        help='Category of this heartbeat activity. Can be ' +
+                             '"coding", "building", "indexing", ' +
+                             '"debugging", "running tests", ' +
+                             '"manual testing", "browsing", ' +
+                             '"code reviewing" or "designing". ' +
+                             'Defaults to "coding".')
     parser.add_argument('--proxy', dest='proxy', action=StoreWithoutQuotes,
-                        help='optional proxy configuration. Supports HTTPS '+
-                        'and SOCKS proxies. For example: '+
-                        'https://user:pass@host:port or '+
-                        'socks5://user:pass@host:port or ' +
-                        'domain\\user:pass')
+                        help='Optional proxy configuration. Supports HTTPS '+
+                             'and SOCKS proxies. For example: '+
+                             'https://user:pass@host:port or '+
+                             'socks5://user:pass@host:port or ' +
+                             'domain\\user:pass')
     parser.add_argument('--no-ssl-verify', dest='nosslverify',
                         action='store_true',
-                        help='disables SSL certificate verification for HTTPS '+
-                        'requests. By default, SSL certificates are verified.')
+                        help='Disables SSL certificate verification for HTTPS '+
+                             'requests. By default, SSL certificates are ' +
+                             'verified.')
     parser.add_argument('--project', dest='project', action=StoreWithoutQuotes,
-            help='optional project name')
-    parser.add_argument('--alternate-project', dest='alternate_project', action=StoreWithoutQuotes,
-            help='optional alternate project name; auto-discovered project '+
-                 'takes priority')
-    parser.add_argument('--alternate-language', dest='alternate_language', action=StoreWithoutQuotes,
-            help=argparse.SUPPRESS)
-    parser.add_argument('--language', dest='language', action=StoreWithoutQuotes,
-            help='optional language name; if valid, takes priority over '+
-                 'auto-detected language')
-    parser.add_argument('--hostname', dest='hostname', action=StoreWithoutQuotes, help='hostname of '+
-                        'current machine.')
+                        help='Optional project name.')
+    parser.add_argument('--alternate-project', dest='alternate_project',
+                        action=StoreWithoutQuotes,
+                        help='Optional alternate project name. ' +
+                             'Auto-discovered project takes priority.')
+    parser.add_argument('--alternate-language', dest='alternate_language',
+                        action=StoreWithoutQuotes,
+                        help=argparse.SUPPRESS)
+    parser.add_argument('--language', dest='language',
+                        action=StoreWithoutQuotes,
+                        help='Optional language name. If valid, takes ' +
+                             'priority over auto-detected language.')
+    parser.add_argument('--hostname', dest='hostname',
+                        action=StoreWithoutQuotes,
+                        help='Hostname of current machine.')
     parser.add_argument('--disable-offline', dest='offline',
-            action='store_false',
-            help='disables offline time logging instead of queuing logged time')
+                        action='store_false',
+                        help='Disables offline time logging instead of ' +
+                             'queuing logged time.')
     parser.add_argument('--disableoffline', dest='offline_deprecated',
-            action='store_true', help=argparse.SUPPRESS)
+                        action='store_true',
+                        help=argparse.SUPPRESS)
     parser.add_argument('--hide-filenames', dest='hide_filenames',
-            action='store_true',
-            help='obfuscate filenames; will not send file names to api')
+                        action='store_true',
+                        help='Obfuscate filenames. Will not send file names ' +
+                             'to api.')
     parser.add_argument('--hidefilenames', dest='hidefilenames',
-            action='store_true',
-            help=argparse.SUPPRESS)
+                        action='store_true',
+                        help=argparse.SUPPRESS)
     parser.add_argument('--exclude', dest='exclude', action='append',
-            help='filename patterns to exclude from logging; POSIX regex '+
-                 'syntax; can be used more than once')
+                        help='Filename patterns to exclude from logging. ' +
+                             'POSIX regex syntax. Can be used more than once.')
+    parser.add_argument('--exclude-unknown-project',
+                        dest='exclude_unknown_project', action='store_true',
+                        help='When set, any activity where the project ' +
+                             'cannot be detected will be ignored.')
     parser.add_argument('--include', dest='include', action='append',
-            help='filename patterns to log; when used in combination with '+
-                 '--exclude, files matching include will still be logged; '+
-                 'POSIX regex syntax; can be used more than once')
+                        help='Filename patterns to log. When used in ' +
+                             'combination with --exclude, files matching ' +
+                             'include will still be logged. POSIX regex ' +
+                             'syntax. Can be used more than once.')
     parser.add_argument('--include-only-with-project-file',
                         dest='include_only_with_project_file',
                         action='store_true',
-                        help='disables tracking folders unless they contain '+
-                        'a .wakatime-project file; defaults to false')
+                        help='Disables tracking folders unless they contain ' +
+                             'a .wakatime-project file. Defaults to false.')
     parser.add_argument('--ignore', dest='ignore', action='append',
-            help=argparse.SUPPRESS)
+                        help=argparse.SUPPRESS)
     parser.add_argument('--extra-heartbeats', dest='extra_heartbeats',
-            action='store_true',
-            help='reads extra heartbeats from STDIN as a JSON array until EOF')
-    parser.add_argument('--log-file', dest='log_file', action=StoreWithoutQuotes,
-            help='defaults to ~/.wakatime.log')
+                        action='store_true',
+                        help='Reads extra heartbeats from STDIN as a JSON ' +
+                             'array until EOF.')
+    parser.add_argument('--log-file', dest='log_file',
+                        action=StoreWithoutQuotes,
+                        help='Defaults to ~/.wakatime.log.')
     parser.add_argument('--logfile', dest='logfile', action=StoreWithoutQuotes,
-            help=argparse.SUPPRESS)
+                        help=argparse.SUPPRESS)
     parser.add_argument('--api-url', dest='api_url', action=StoreWithoutQuotes,
-            help='heartbeats api url; for debugging with a local server')
+                        help='Heartbeats api url. For debugging with a ' +
+                             'local server.')
     parser.add_argument('--apiurl', dest='apiurl', action=StoreWithoutQuotes,
-            help=argparse.SUPPRESS)
-    parser.add_argument('--timeout', dest='timeout', type=int, action=StoreWithoutQuotes,
-            help='number of seconds to wait when sending heartbeats to api; '+
-                 'defaults to 60 seconds')
+                        help=argparse.SUPPRESS)
+    parser.add_argument('--timeout', dest='timeout', type=int,
+                        action=StoreWithoutQuotes,
+                        help='Number of seconds to wait when sending ' +
+                             'heartbeats to api. Defaults to 60 seconds.')
     parser.add_argument('--config', dest='config', action=StoreWithoutQuotes,
-            help='defaults to ~/.wakatime.cfg')
+                        help='Defaults to ~/.wakatime.cfg.')
     parser.add_argument('--verbose', dest='verbose', action='store_true',
-            help='turns on debug messages in log file')
+                        help='Turns on debug messages in log file.')
     parser.add_argument('--version', action='version', version=__version__)
 
     # parse command line arguments
@@ -172,14 +200,14 @@ def parse_arguments():
             args.key = default_key
         else:
             try:
-                parser.error('Missing api key. Find your api key from wakatime.com/settings.')
+                parser.error('Missing api key. Find your api key from wakatime.com/settings/api-key.')
             except SystemExit:
                 raise SystemExit(AUTH_ERROR)
 
     is_valid = not not re.match(r'^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$', args.key, re.I)
     if not is_valid:
         try:
-            parser.error('Invalid api key. Find your api key from wakatime.com/settings.')
+            parser.error('Invalid api key. Find your api key from wakatime.com/settings/api-key.')
         except SystemExit:
             raise SystemExit(AUTH_ERROR)
 
@@ -219,6 +247,8 @@ def parse_arguments():
                     args.include.append(pattern)
         except TypeError:  # pragma: nocover
             pass
+    if not args.exclude_unknown_project and configs.has_option('settings', 'exclude_unknown_project'):
+        args.exclude_unknown_project = configs.getboolean('settings', 'exclude_unknown_project')
     if not args.hide_filenames and args.hidefilenames:
         args.hide_filenames = args.hidefilenames
     if args.hide_filenames:
