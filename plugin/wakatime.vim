@@ -327,7 +327,11 @@ let s:VERSION = '7.1.1'
         endif
 
         let python_bin = s:GetPythonBinary()
-        let cmd = [python_bin, '-W', 'ignore', s:cli_location]
+        if exists("g:wakatime_Binary")
+            let cmd = [g:wakatime_Binary]
+        else
+            let cmd = [python_bin, '-W', 'ignore', s:cli_location]
+        endif
         let cmd = cmd + ['--entity', heartbeat.entity]
         let cmd = cmd + ['--time', heartbeat.time]
         let cmd = cmd + ['--plugin', printf('vim/%s vim-wakatime/%s', s:n2s(v:version), s:VERSION)]
