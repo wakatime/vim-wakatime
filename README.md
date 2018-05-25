@@ -48,6 +48,13 @@ Configuring
 Tells the plugin to use a custom python binary.
 The default is to use `python` from your system PATH.
 
+    let g:wakatime_OverrideCommandPrefix = '/usr/bin/wakatime'  " (Default: '')
+
+Overrides the WakaTime CLI command prefix. You might need this when running
+[wakatime-cli][wakatime-cli] with a custom wrapper script or from the pip
+installed binary. Normally, the bundled [wakatime-cli][wakatime-cli] is used
+so this setting is not needed.
+
 WakaTime plugins also share a common `~/.wakatime.cfg` config file. [See common configs...][wakatime-cli-config]
 
 

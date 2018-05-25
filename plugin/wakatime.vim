@@ -309,6 +309,16 @@ let s:VERSION = '7.1.1'
         return python_bin
     endfunction
 
+    function! s:GetCommandPrefix()
+        if exists("g:wakatime_OverrideCommandPrefix") && g:wakatime_OverrideCommandPrefix
+            let prefix = [g:wakatime_OverrideCommandPrefix]
+        else
+            let python_bin = s:GetPythonBinary()
+            let prefix = [python_bin, '-W', 'ignore', s:cli_location]
+        endif
+        return prefix
+    endfunction
+
     function! s:SendHeartbeats()
         let start_time = localtime()
         let stdout = ''
@@ -326,9 +336,7 @@ let s:VERSION = '7.1.1'
             let extra_heartbeats = ''
         endif
 
-        let python_bin = s:GetPythonBinary()
-        let cmd = [python_bin, '-W', 'ignore', s:cli_location]
-        let cmd = cmd + ['--entity', heartbeat.entity]
+        let cmd = s:GetCommandPrefix() + ['--entity', heartbeat.entity]
         let cmd = cmd + ['--time', heartbeat.time]
         let cmd = cmd + ['--plugin', printf('vim/%s vim-wakatime/%s', s:n2s(v:version), s:VERSION)]
         if heartbeat.is_write
