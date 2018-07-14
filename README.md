@@ -19,7 +19,7 @@ Installation
    Or with [Vim-plug](https://github.com/junegunn/vim-plug):  add `Plug 'wakatime/vim-wakatime` to /.vimrc file, reload .vimrc with `:so ~/.vimrc`, 
    `:PlugInstall` to install.
 
-2. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`.
+2. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`. _(does not apply to vim-plug)_
 
 3. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
 
@@ -87,6 +87,7 @@ Uninstalling
 3. Run in terminal: `vim +PluginClean`.
 
 _If using vim-plug_
+
 **While in vim**
 
 1. Delete or comment out `Plug` command
