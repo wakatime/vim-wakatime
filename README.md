@@ -86,9 +86,9 @@ Uninstalling
 
 3. Run in terminal: `vim +PluginClean`.
 
-_If using vim-plug_
+**_If using vim-plug_**
 
-**While in vim**
+_While in vim_
 
 1. Delete or comment out `Plug` command
 
