@@ -16,6 +16,9 @@ Installation
 
    Or with [Pathogen](https://github.com/tpope/vim-pathogen): `cd ~/.vim/bundle && git clone git://github.com/wakatime/vim-wakatime.git`
 
+   Or with [Vim-plug](https://github.com/junegunn/vim-plug):  add `Plug 'wakatime/vim-wakatime` to /.vimrc file, reload .vimrc with `:so ~/.vimrc`, 
+   `:PlugInstall` to install.
+
 2. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`.
 
 3. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
@@ -83,6 +86,14 @@ Uninstalling
 
 3. Run in terminal: `vim +PluginClean`.
 
+_If using vim-plug_
+**While in vim**
+
+1. Delete or comment out `Plug` command
+
+2. Reload vimrc (`:so ~/.vimrc`) or restart vim
+
+3. Run `:PlugClean`, it will detect and remove undeclared plugins.
 
 [wakatime-cli]: https://github.com/wakatime/wakatime
 [wakatime-cli-config]: https://github.com/wakatime/wakatime#configuring
