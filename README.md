@@ -16,7 +16,7 @@ Installation
 
    Or with [Pathogen](https://github.com/tpope/vim-pathogen): `cd ~/.vim/bundle && git clone git://github.com/wakatime/vim-wakatime.git`
 
-   Or with [Vim-plug](https://github.com/junegunn/vim-plug):  add `Plug 'wakatime/vim-wakatime` to /.vimrc file, reload .vimrc with `:so ~/.vimrc`, 
+   Or with [Vim-plug](https://github.com/junegunn/vim-plug):  add `Plug 'wakatime/vim-wakatime'` to /.vimrc file, reload .vimrc with `:so ~/.vimrc`, 
    `:PlugInstall` to install.
 
 2. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`. _(does not apply to vim-plug)_
