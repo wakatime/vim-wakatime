@@ -3,6 +3,27 @@ History
 -------
 
 
+7.1.2 (2018-09-20)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v10.2.4.
+- Default --sync-offline-activity to 100 instead of 5, so offline coding is
+  synced to dashboard faster.
+- Batch heartbeats in groups of 10 per api request.
+- New config hide_project_name and argument --hide-project-names for
+  obfuscating project names when sending coding activity to api.
+- Fix mispelled Gosu language.
+  `wakatime#137 <https://github.com/wakatime/wakatime/issues/137>`_
+- Remove metadata when hiding project or file names.
+- New --local-file argument to be used when --entity is a remote file.
+- New argument --sync-offline-activity for configuring the maximum offline
+  heartbeats to sync to the WakaTime API.
+- Support for project detection from git worktree folders.
+- Force forward slash for file paths.
+- New --category argument.
+- New --exclude-unknown-project argument and corresponding config setting.
+
+
 7.1.1 (2018-04-04)
 ++++++++++++++++++
 
