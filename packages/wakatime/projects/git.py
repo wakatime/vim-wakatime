@@ -25,6 +25,7 @@ class Git(BaseProject):
     _submodule = None
     _project_name = None
     _head_file = None
+    _project_folder = None
 
     def process(self):
         return self._find_git_config_file(self.path)
@@ -40,6 +41,9 @@ class Git(BaseProject):
                 return self._get_branch_from_head_file(line)
         return u('master')
 
+    def folder(self):
+        return self._project_folder
+
     def _find_git_config_file(self, path):
         path = os.path.realpath(path)
         if os.path.isfile(path):
@@ -47,6 +51,7 @@ class Git(BaseProject):
         if os.path.isfile(os.path.join(path, '.git', 'config')):
             self._project_name = os.path.basename(path)
             self._head_file = os.path.join(path, '.git', 'HEAD')
+            self._project_folder = path
             return True
 
         link_path = self._path_from_gitdir_link_file(path)
@@ -56,12 +61,14 @@ class Git(BaseProject):
             if self._is_worktree(link_path):
                 self._project_name = self._project_from_worktree(link_path)
                 self._head_file = os.path.join(link_path, 'HEAD')
+                self._project_folder = path
                 return True
 
             # next check if this is a submodule
             if self._submodules_supported_for_path(path):
                 self._project_name = os.path.basename(path)
                 self._head_file = os.path.join(link_path, 'HEAD')
+                self._project_folder = path
                 return True
 
         split_path = os.path.split(path)

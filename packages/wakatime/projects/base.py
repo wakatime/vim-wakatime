@@ -43,3 +43,8 @@ class BaseProject(object):
         """ Returns the current branch.
         """
         raise NotYetImplemented()
+
+    def folder(self):
+        """ Returns the project's top folder path.
+        """
+        raise NotYetImplemented()

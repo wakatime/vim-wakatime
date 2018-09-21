@@ -40,7 +40,7 @@ log = logging.getLogger('WakaTime')
 
 
 def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None,
-                   plugin=None, language=None):
+                   plugin=None, language=None, local_file=None):
     if entity_type != 'file':
         stats = {
             'language': None,
@@ -52,24 +52,24 @@ def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None,
     else:
         language, lexer = standardize_language(language, plugin)
         if not language:
-            language, lexer = guess_language(file_name)
+            language, lexer = guess_language(file_name, local_file)
 
         language = use_root_language(language, lexer)
 
-        parser = DependencyParser(file_name, lexer)
+        parser = DependencyParser(local_file or file_name, lexer)
         dependencies = parser.parse()
 
         stats = {
             'language': language,
             'dependencies': dependencies,
-            'lines': number_lines_in_file(file_name),
+            'lines': number_lines_in_file(local_file or file_name),
             'lineno': lineno,
             'cursorpos': cursorpos,
         }
     return stats
 
 
-def guess_language(file_name):
+def guess_language(file_name, local_file):
     """Guess lexer and language for a file.
 
     Returns a tuple of (language_str, lexer_obj).
@@ -81,14 +81,14 @@ def guess_language(file_name):
     if language:
         lexer = get_lexer(language)
     else:
-        lexer = smart_guess_lexer(file_name)
+        lexer = smart_guess_lexer(file_name, local_file)
         if lexer:
             language = u(lexer.name)
 
     return language, lexer
 
 
-def smart_guess_lexer(file_name):
+def smart_guess_lexer(file_name, local_file):
     """Guess Pygments lexer for a file.
 
     Looks for a vim modeline in file contents, then compares the accuracy
@@ -99,7 +99,7 @@ def smart_guess_lexer(file_name):
 
     text = get_file_head(file_name)
 
-    lexer1, accuracy1 = guess_lexer_using_filename(file_name, text)
+    lexer1, accuracy1 = guess_lexer_using_filename(local_file or file_name, text)
     lexer2, accuracy2 = guess_lexer_using_modeline(text)
 
     if lexer1:

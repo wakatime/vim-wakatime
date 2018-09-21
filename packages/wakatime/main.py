@@ -24,7 +24,7 @@ from .__about__ import __version__
 from .api import send_heartbeats
 from .arguments import parse_arguments
 from .compat import u, json
-from .constants import SUCCESS, UNKNOWN_ERROR
+from .constants import SUCCESS, UNKNOWN_ERROR, HEARTBEATS_PER_REQUEST
 from .logger import setup_logging
 
 log = logging.getLogger('WakaTime')
@@ -63,12 +63,22 @@ def execute(argv=None):
                     msg=u(ex),
                 ))
 
-        retval = send_heartbeats(heartbeats, args, configs)
+        retval = SUCCESS
+        while heartbeats:
+            retval = send_heartbeats(heartbeats[:HEARTBEATS_PER_REQUEST], args, configs)
+            heartbeats = heartbeats[HEARTBEATS_PER_REQUEST:]
+            if retval != SUCCESS:
+                break
+
+        if heartbeats:
+            Queue(args, configs).push_many(heartbeats)
+
         if retval == SUCCESS:
             queue = Queue(args, configs)
-            offline_heartbeats = queue.pop_many()
-            if len(offline_heartbeats) > 0:
+            for offline_heartbeats in queue.pop_many(args.sync_offline_activity):
                 retval = send_heartbeats(offline_heartbeats, args, configs)
+                if retval != SUCCESS:
+                    break
 
         return retval
 

@@ -47,6 +47,11 @@ class Mercurial(BaseProject):
                 log.traceback(logging.WARNING)
         return u('default')
 
+    def folder(self):
+        if self.configDir:
+            return os.path.dirname(self.configDir)
+        return None
+
     def _find_hg_config_dir(self, path):
         path = os.path.realpath(path)
         if os.path.isfile(path):

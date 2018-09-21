@@ -42,6 +42,8 @@ class Heartbeat(object):
     cursorpos = None
     user_agent = None
 
+    _sensitive = ('dependencies', 'lines', 'lineno', 'cursorpos', 'branch')
+
     def __init__(self, data, args, configs, _clone=None):
         if not data:
             self.skip = u('Skipping because heartbeat data is missing.')
@@ -83,12 +85,15 @@ class Heartbeat(object):
                 return
             if self.type == 'file':
                 self.entity = format_file_path(self.entity)
-                if not self.entity or not os.path.isfile(self.entity):
+                if not self._file_exists():
                     self.skip = u('File does not exist; ignoring this heartbeat.')
                     return
                 if self._excluded_by_missing_project_file():
                     self.skip = u('Skipping because missing .wakatime-project file in parent path.')
                     return
+
+            if args.local_file and not os.path.isfile(args.local_file):
+                args.local_file = None
 
             project, branch = get_project_info(configs, self, data)
             self.project = project
@@ -104,7 +109,8 @@ class Heartbeat(object):
                                        lineno=data.get('lineno'),
                                        cursorpos=data.get('cursorpos'),
                                        plugin=args.plugin,
-                                       language=data.get('language'))
+                                       language=data.get('language'),
+                                       local_file=args.local_file)
             except SkipHeartbeat as ex:
                 self.skip = u(ex) or 'Skipping'
                 return
@@ -132,7 +138,7 @@ class Heartbeat(object):
         Returns a Heartbeat.
         """
 
-        if not self.args.hide_filenames:
+        if not self.args.hide_file_names:
             return self
 
         if self.entity is None:
@@ -141,29 +147,12 @@ class Heartbeat(object):
         if self.type != 'file':
             return self
 
-        for pattern in self.args.hide_filenames:
-            try:
-                compiled = re.compile(pattern, re.IGNORECASE)
-                if compiled.search(self.entity):
-
-                    sanitized = {}
-                    sensitive = ['dependencies', 'lines', 'lineno', 'cursorpos', 'branch']
-                    for key, val in self.items():
-                        if key in sensitive:
-                            sanitized[key] = None
-                        else:
-                            sanitized[key] = val
-
-                    extension = u(os.path.splitext(self.entity)[1])
-                    sanitized['entity'] = u('HIDDEN{0}').format(extension)
-
-                    return self.update(sanitized)
-
-            except re.error as ex:
-                log.warning(u('Regex error ({msg}) for include pattern: {pattern}').format(
-                    msg=u(ex),
-                    pattern=u(pattern),
-                ))
+        if self.should_obfuscate_filename():
+            self._sanitize_metadata()
+            extension = u(os.path.splitext(self.entity)[1])
+            self.entity = u('HIDDEN{0}').format(extension)
+        elif self.should_obfuscate_project():
+            self._sanitize_metadata()
 
         return self
 
@@ -201,6 +190,38 @@ class Heartbeat(object):
             is_write=self.is_write,
         )
 
+    def should_obfuscate_filename(self):
+        """Returns True if hide_file_names is true or the entity file path
+        matches one in the list of obfuscated file paths."""
+
+        for pattern in self.args.hide_file_names:
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE)
+                if compiled.search(self.entity):
+                    return True
+            except re.error as ex:
+                log.warning(u('Regex error ({msg}) for hide_file_names pattern: {pattern}').format(
+                    msg=u(ex),
+                    pattern=u(pattern),
+                ))
+        return False
+
+    def should_obfuscate_project(self):
+        """Returns True if hide_project_names is true or the entity file path
+        matches one in the list of obfuscated project paths."""
+
+        for pattern in self.args.hide_project_names:
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE)
+                if compiled.search(self.entity):
+                    return True
+            except re.error as ex:
+                log.warning(u('Regex error ({msg}) for hide_project_names pattern: {pattern}').format(
+                    msg=u(ex),
+                    pattern=u(pattern),
+                ))
+        return False
+
     def _unicode(self, value):
         if value is None:
             return None
@@ -210,6 +231,10 @@ class Heartbeat(object):
         if values is None:
             return None
         return [self._unicode(value) for value in values]
+
+    def _file_exists(self):
+        return (self.entity and os.path.isfile(self.entity) or
+            self.args.local_file and os.path.isfile(self.args.local_file))
 
     def _excluded_by_pattern(self):
         return should_exclude(self.entity, self.args.include, self.args.exclude)
@@ -223,6 +248,10 @@ class Heartbeat(object):
         if not self.args.include_only_with_project_file:
             return False
         return find_project_file(self.entity) is None
+
+    def _sanitize_metadata(self):
+        for key in self._sensitive:
+            setattr(self, key, None)
 
     def __repr__(self):
         return self.json()

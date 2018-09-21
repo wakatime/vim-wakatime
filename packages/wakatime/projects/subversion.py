@@ -41,6 +41,11 @@ class Subversion(BaseProject):
             return None  # pragma: nocover
         return u(self.info['URL'].split('/')[-1].split('\\')[-1])
 
+    def folder(self):
+        if 'Repository Root' not in self.info:
+            return None
+        return self.info['Repository Root']
+
     def _find_binary(self):
         if self.binary_location:
             return self.binary_location
