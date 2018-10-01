@@ -12,10 +12,10 @@
 import logging
 import os
 import platform
-from subprocess import Popen, PIPE
+from subprocess import PIPE
 
 from .base import BaseProject
-from ..compat import u, open
+from ..compat import u, open, Popen
 try:
     from collections import OrderedDict
 except ImportError:  # pragma: nocover
@@ -86,8 +86,6 @@ class Subversion(BaseProject):
         return info
 
     def _find_project_base(self, path, found=False):
-        if platform.system() == 'Windows':
-            return False  # pragma: nocover
         path = os.path.realpath(path)
         if os.path.isfile(path):
             path = os.path.split(path)[0]

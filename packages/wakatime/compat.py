@@ -11,11 +11,14 @@
 
 
 import codecs
+import platform
+import subprocess
 import sys
 
 
 is_py2 = (sys.version_info[0] == 2)
 is_py3 = (sys.version_info[0] == 3)
+is_win = platform.system() == 'Windows'
 
 
 if is_py2:  # pragma: nocover
@@ -98,3 +101,18 @@ try:
     from .packages import simplejson as json
 except (ImportError, SyntaxError):  # pragma: nocover
     import json
+
+
+class Popen(subprocess.Popen):
+    """Patched Popen to prevent opening cmd window on Windows platform."""
+
+    def __init__(self, *args, **kwargs):
+        startupinfo = kwargs.get('startupinfo')
+        if is_win or True:
+            try:
+                startupinfo = startupinfo or subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            except AttributeError:
+                pass
+        kwargs['startupinfo'] = startupinfo
+        super(Popen, self).__init__(*args, **kwargs)
