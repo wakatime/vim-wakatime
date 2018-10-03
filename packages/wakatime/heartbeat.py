@@ -10,8 +10,9 @@
 import os
 import logging
 import re
+from subprocess import PIPE
 
-from .compat import u, json
+from .compat import u, json, is_win, Popen
 from .exceptions import SkipHeartbeat
 from .project import get_project_info
 from .stats import get_file_stats
@@ -85,6 +86,7 @@ class Heartbeat(object):
                 return
             if self.type == 'file':
                 self.entity = format_file_path(self.entity)
+                self._format_local_file()
                 if not self._file_exists():
                     self.skip = u('File does not exist; ignoring this heartbeat.')
                     return
@@ -235,6 +237,84 @@ class Heartbeat(object):
     def _file_exists(self):
         return (self.entity and os.path.isfile(self.entity) or
             self.args.local_file and os.path.isfile(self.args.local_file))
+
+    def _format_local_file(self):
+        """When args.local_file empty on Windows, tries to map args.entity to a
+        unc path.
+
+        Updates args.local_file in-place without returning anything.
+        """
+
+        if self.type != 'file':
+            return
+
+        if not is_win:
+            return
+
+        if self._file_exists():
+            return
+
+        self.args.local_file = self._to_unc_path(self.entity)
+
+    def _to_unc_path(self, filepath):
+        drive, rest = self._splitdrive(filepath)
+        if not drive:
+            return filepath
+
+        stdout = None
+        try:
+            stdout, stderr = Popen(['net', 'use'], stdout=PIPE, stderr=PIPE).communicate()
+        except OSError:
+            pass
+        else:
+            if stdout:
+                cols = None
+                for line in stdout.strip().splitlines()[1:]:
+                    line = u(line)
+                    if not line.strip():
+                        continue
+                    if not cols:
+                        cols = self._unc_columns(line)
+                        continue
+                    start, end = cols.get('local', (0, 0))
+                    if not start and not end:
+                        break
+                    local = line[start:end].strip().split(':')[0].upper()
+                    if not local.isalpha():
+                        continue
+                    if local == drive:
+                        start, end = cols.get('remote', (0, 0))
+                        if not start and not end:
+                            break
+                        remote = line[start:end].strip()
+                        return remote + rest
+
+        return filepath
+
+    def _unc_columns(self, line):
+        cols = {}
+        current_col = u('')
+        newcol = False
+        start, end = 0, 0
+        for char in line:
+            if char.isalpha():
+                if newcol:
+                    cols[current_col.strip().lower()] = (start, end)
+                    current_col = u('')
+                    start = end
+                    newcol = False
+                current_col += u(char)
+            else:
+                newcol = True
+            end += 1
+        if start != end and current_col:
+            cols[current_col.strip().lower()] = (start, -1)
+        return cols
+
+    def _splitdrive(self, filepath):
+        if filepath[1:2] != ':' or not filepath[0].isalpha():
+            return None, filepath
+        return filepath[0].upper(), filepath[2:]
 
     def _excluded_by_pattern(self):
         return should_exclude(self.entity, self.args.include, self.args.exclude)

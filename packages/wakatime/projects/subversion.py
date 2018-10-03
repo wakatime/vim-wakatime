@@ -70,17 +70,17 @@ class Subversion(BaseProject):
         if not self._is_mac() or self._has_xcode_tools():
             stdout = None
             try:
-                os.environ['LANG'] = 'en_US'
-                stdout, stderr = Popen([
-                    self._find_binary(), 'info', os.path.realpath(path)
-                ], stdout=PIPE, stderr=PIPE).communicate()
+                stdout, stderr = Popen(
+                    [self._find_binary(), 'info', os.path.realpath(path)],
+                    stdout=PIPE,
+                    stderr=PIPE,
+                ).communicate()
             except OSError:
                 pass
             else:
                 if stdout:
                     for line in stdout.splitlines():
-                        line = u(line)
-                        line = line.split(': ', 1)
+                        line = u(line).split(': ', 1)
                         if len(line) == 2:
                             info[line[0]] = line[1]
         return info

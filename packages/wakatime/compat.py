@@ -11,6 +11,7 @@
 
 
 import codecs
+import os
 import platform
 import subprocess
 import sys
@@ -115,4 +116,7 @@ class Popen(subprocess.Popen):
             except AttributeError:
                 pass
         kwargs['startupinfo'] = startupinfo
-        super(Popen, self).__init__(*args, **kwargs)
+        if 'env' not in kwargs:
+            kwargs['env'] = os.environ.copy()
+            kwargs['env']['LANG'] = 'en-US' if is_win else 'en_US.UTF-8'
+        subprocess.Popen.__init__(self, *args, **kwargs)
