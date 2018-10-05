@@ -46,11 +46,11 @@ Default is 2MB.
 """
 MAX_FILE_SIZE_SUPPORTED = 2000000
 
-""" Default number of offline heartbeats to sync before exiting."""
+""" Default limit of number of offline heartbeats to sync before exiting."""
 DEFAULT_SYNC_OFFLINE_ACTIVITY = 100
 
 """ Number of heartbeats per api request.
 Even when sending more heartbeats, this is the number of heartbeats sent per
 individual https request to the WakaTime API.
 """
-HEARTBEATS_PER_REQUEST = 10
+HEARTBEATS_PER_REQUEST = 50

@@ -14,6 +14,7 @@ from __future__ import print_function
 import logging
 import os
 import sys
+import time
 import traceback
 
 pwd = os.path.dirname(os.path.abspath(__file__))
@@ -76,6 +77,7 @@ def execute(argv=None):
         if retval == SUCCESS:
             queue = Queue(args, configs)
             for offline_heartbeats in queue.pop_many(args.sync_offline_activity):
+                time.sleep(1)
                 retval = send_heartbeats(offline_heartbeats, args, configs)
                 if retval != SUCCESS:
                     break
