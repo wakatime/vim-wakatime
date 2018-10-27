@@ -285,7 +285,7 @@ let s:VERSION = '7.1.2'
             let paths = ['python3']
             if s:IsWindows()
                 let pyver = 39
-                while pyver >= 26
+                while pyver >= 27
                     let paths = paths + [printf('/Python%d/pythonw', pyver), printf('/python%d/pythonw', pyver), printf('/Python%d/python', pyver), printf('/python%d/python', pyver)]
                     let pyver = pyver - 1
                 endwhile
