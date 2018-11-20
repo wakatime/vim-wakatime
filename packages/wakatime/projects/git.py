@@ -87,10 +87,10 @@ class Git(BaseProject):
 
         disabled = self._configs.get('submodules_disabled')
 
+        if not disabled or disabled.strip().lower() == 'false':
+            return True
         if disabled.strip().lower() == 'true':
             return False
-        if disabled.strip().lower() == 'false':
-            return True
 
         for pattern in disabled.split("\n"):
             if pattern.strip():

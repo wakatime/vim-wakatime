@@ -131,5 +131,5 @@ class DependencyParser(object):
         if self.parser:
             plugin = self.parser(self.source_file, lexer=self.lexer)
             dependencies = plugin.parse()
-            return list(set(dependencies))
+            return list(filter(bool, set(dependencies)))
         return []
