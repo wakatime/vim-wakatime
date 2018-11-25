@@ -34,3 +34,7 @@ nosetests.xml
 .project
 .pydevproject
 .DS_Store
+
+# Generated Documentation
+doc/tags
+
