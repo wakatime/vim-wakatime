@@ -3,6 +3,19 @@ History
 -------
 
 
+7.1.3 (2018-12-19)
+++++++++++++++++++
+- Upgrade wakatime-cli to v10.6.1.
+- Correctly parse include_only_with_project_file when set to false.
+  `wakatime#161 <https://github.com/wakatime/wakatime/issues/161>`_
+- Support language argument for non-file entity types.
+- Send 25 heartbeats per API request.
+- New category "Writing Tests".
+  `wakatime#156 <https://github.com/wakatime/wakatime/issues/156>`_
+- Fix bug caused by git config section without any submodule option defined.
+  `wakatime#152 <https://github.com/wakatime/wakatime/issues/152>`_
+
+
 7.1.2 (2018-09-20)
 ++++++++++++++++++
 
@@ -50,10 +63,10 @@ History
 - Upgrade wakatime-cli to v10.1.2.
 - Detect dependencies from Swift, Objective-C, TypeScript and JavaScript files.
 - Categorize .mjs files as JavaScript.
-  `#wakatime121 <https://github.com/wakatime/wakatime/issues/121>`_
+  `wakatime#121 <https://github.com/wakatime/wakatime/issues/121>`_
 - Detect dependencies from Elm, Haskell, Haxe, Kotlin, Rust, and Scala files.
 - Improved Matlab vs Objective-C language detection.
-  `#wakatime129 <https://github.com/wakatime/wakatime/issues/129>`_
+  `wakatime#129 <https://github.com/wakatime/wakatime/issues/129>`_
 
 
 7.0.5 (2018-01-28)
