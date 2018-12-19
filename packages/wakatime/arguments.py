@@ -89,8 +89,8 @@ def parse_arguments():
                         help='Category of this heartbeat activity. Can be ' +
                              '"coding", "building", "indexing", ' +
                              '"debugging", "running tests", ' +
-                             '"manual testing", "browsing", ' +
-                             '"code reviewing" or "designing". ' +
+                             '"writing tests", "manual testing", ' +
+                             '"code reviewing", "browsing", or "designing". ' +
                              'Defaults to "coding".')
     parser.add_argument('--proxy', dest='proxy', action=StoreWithoutQuotes,
                         help='Optional proxy configuration. Supports HTTPS '+
@@ -275,7 +275,7 @@ def parse_arguments():
         except TypeError:  # pragma: nocover
             pass
     if not args.include_only_with_project_file and configs.has_option('settings', 'include_only_with_project_file'):
-        args.include_only_with_project_file = configs.get('settings', 'include_only_with_project_file')
+        args.include_only_with_project_file = configs.get('settings', 'include_only_with_project_file') == 'true'
     if not args.include:
         args.include = []
     if configs.has_option('settings', 'include'):

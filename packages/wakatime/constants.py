@@ -53,4 +53,4 @@ DEFAULT_SYNC_OFFLINE_ACTIVITY = 100
 Even when sending more heartbeats, this is the number of heartbeats sent per
 individual https request to the WakaTime API.
 """
-HEARTBEATS_PER_REQUEST = 50
+HEARTBEATS_PER_REQUEST = 25

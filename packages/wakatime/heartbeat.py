@@ -70,6 +70,7 @@ class Heartbeat(object):
             'debugging',
             'running tests',
             'manual testing',
+            'writing tests',
             'browsing',
             'code reviewing',
             'designing',
