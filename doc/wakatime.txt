@@ -1,0 +1,6 @@
+*wakatime.txt*          WakaTime, automatic time tracking for Vim.   *wakatime*
+
+                              WAKATIME MANUAL
+
+1. About WakaTime                                  |wakatime-about|
+2. Quick Start                                     |wakatime-quickstart|
