@@ -26,6 +26,7 @@ log = logging.getLogger('WakaTime')
 
 BACKSLASH_REPLACE_PATTERN = re.compile(r'[\\/]+')
 WINDOWS_DRIVE_PATTERN = re.compile(r'^[a-z]:/')
+WINDOWS_NETWORK_MOUNT_PATTERN = re.compile(r'^\\{2}[a-z]+', re.IGNORECASE)
 
 
 def should_exclude(entity, include, exclude):
@@ -77,10 +78,16 @@ def format_file_path(filepath):
     """Formats a path as absolute and with the correct platform separator."""
 
     try:
+        is_windows_network_mount = WINDOWS_NETWORK_MOUNT_PATTERN.match(filepath)
         filepath = os.path.realpath(os.path.abspath(filepath))
         filepath = re.sub(BACKSLASH_REPLACE_PATTERN, '/', filepath)
-        if WINDOWS_DRIVE_PATTERN.match(filepath):
+        is_windows_drive = WINDOWS_DRIVE_PATTERN.match(filepath)
+        if is_windows_drive:
             filepath = filepath.capitalize()
+        if is_windows_network_mount:
+            # Add back a / to the front, since the previous modifications
+            # will have replaced any double slashes with single
+            filepath = '/' + filepath
     except:
         pass
     return filepath

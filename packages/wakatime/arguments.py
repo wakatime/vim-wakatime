@@ -103,6 +103,10 @@ def parse_arguments():
                         help='Disables SSL certificate verification for HTTPS '+
                              'requests. By default, SSL certificates are ' +
                              'verified.')
+    parser.add_argument('--ssl-certs-file', dest='ssl_certs_file',
+                        action=StoreWithoutQuotes,
+                        help='Override the bundled Python Requests CA certs ' +
+                             'file. By default, uses certifi for ca certs.')
     parser.add_argument('--project', dest='project', action=StoreWithoutQuotes,
                         help='Optional project name.')
     parser.add_argument('--alternate-project', dest='alternate_project',
@@ -307,6 +311,8 @@ def parse_arguments():
                          'domain\\user:pass.')
     if configs.has_option('settings', 'no_ssl_verify'):
         args.nosslverify = configs.getboolean('settings', 'no_ssl_verify')
+    if configs.has_option('settings', 'ssl_certs_file'):
+        args.ssl_certs_file = configs.get('settings', 'ssl_certs_file')
     if not args.verbose and configs.has_option('settings', 'verbose'):
         args.verbose = configs.getboolean('settings', 'verbose')
     if not args.verbose and configs.has_option('settings', 'debug'):
@@ -335,7 +341,7 @@ def boolean_or_list(config_name, args, configs, alternative_names=[]):
     """Get a boolean or list of regexes from args and configs."""
 
     # when argument flag present, set to wildcard regex
-    for key in alternative_names:
+    for key in alternative_names + [config_name]:
         if hasattr(args, key) and getattr(args, key):
             setattr(args, config_name, ['.*'])
             return

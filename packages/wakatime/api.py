@@ -99,12 +99,16 @@ def send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=False):
             should_try_ntlm = '\\' in args.proxy
             proxies['https'] = args.proxy
 
+    ssl_verify = not args.nosslverify
+    if args.ssl_certs_file and ssl_verify:
+        ssl_verify = args.ssl_certs_file
+
     # send request to api
     response, code = None, None
     try:
         response = session.post(api_url, data=request_body, headers=headers,
                                 proxies=proxies, timeout=timeout,
-                                verify=not args.nosslverify)
+                                verify=ssl_verify)
     except RequestException:
         if should_try_ntlm:
             return send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=True)

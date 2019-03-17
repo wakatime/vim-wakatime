@@ -249,6 +249,9 @@ class Heartbeat(object):
         if self.type != 'file':
             return
 
+        if not self.entity:
+            return
+
         if not is_win:
             return
 

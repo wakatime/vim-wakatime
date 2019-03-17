@@ -69,6 +69,8 @@ def get_project_info(configs, heartbeat, data):
         project_name = data.get('project') or heartbeat.args.project
 
     hide_project = heartbeat.should_obfuscate_project()
+    if hide_project and project_name is not None:
+        return project_name, None
 
     if project_name is None or branch_name is None:
 
