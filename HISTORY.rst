@@ -3,8 +3,25 @@ History
 -------
 
 
+7.1.4 (2019-03-30)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v10.8.2.
+- Detect go.mod files as Go language.
+  `jetbrains-wakatime#119 <https://github.com/wakatime/jetbrains-wakatime/issues/119>`_
+- Detect C++ language from all C++ file extensions.
+  `vscode-wakatime#87 <https://github.com/wakatime/vscode-wakatime/issues/87>`_
+- Add ssl_certs_file arg and config for custom ca bundles.
+  `#164 <https://github.com/wakatime/wakatime/issues/164>`_
+- Fix bug causing random project names when hide project names enabled.
+  `vscode-wakatime#162 <https://github.com/wakatime/vscode-wakatime/issues/61>`_
+- Add support for UNC network shares without drive letter mapped on Winows.
+  `#162 <https://github.com/wakatime/wakatime/issues/162>`_
+
+
 7.1.3 (2018-12-19)
 ++++++++++++++++++
+
 - Upgrade wakatime-cli to v10.6.1.
 - Correctly parse include_only_with_project_file when set to false.
   `wakatime#161 <https://github.com/wakatime/wakatime/issues/161>`_
