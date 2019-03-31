@@ -169,6 +169,10 @@ def get_language_from_extension(file_name):
     """
 
     filepart, extension = os.path.splitext(file_name)
+    pathpart, filename = os.path.split(file_name)
+
+    if filename == 'go.mod':
+        return 'Go'
 
     if re.match(r'\.h.*$', extension, re.IGNORECASE) or re.match(r'\.c.*$', extension, re.IGNORECASE):
 
