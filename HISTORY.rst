@@ -3,6 +3,15 @@ History
 -------
 
 
+7.1.5 (2019-04-30)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v10.8.4.
+- Use wakatime fork of certifi package.
+  `sublime-wakatime#95 <https://github.com/wakatime/sublime-wakatime/issues/95>`_
+- Upgrade certifi to version 2019.03.09.
+
+
 7.1.4 (2019-03-30)
 ++++++++++++++++++
 
