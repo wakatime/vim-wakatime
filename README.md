@@ -19,7 +19,7 @@ Installation
    Or with [Vim-plug](https://github.com/junegunn/vim-plug):  add `Plug 'wakatime/vim-wakatime'` to .vimrc file. While in vim reload .vimrc with `:so ~/.vimrc` or restart vim, enter
     `:PlugInstall`.
 
-2. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`. 
+2. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`.
 
 3. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
 
@@ -43,6 +43,7 @@ Configuring
 * `:WakaTimeScreenRedrawEnable` - enable screen redraw to prevent artifacts (only for Vim < 8.0)
 * `:WakaTimeScreenRedrawEnableAuto` - redraw screen when plugin takes too long (only for Vim < 8.0)
 * `:WakaTimeScreenRedrawDisable` - disable screen redraw
+* `:WakaTimeToday` - echo your total coding activity for Today
 
 #### Vimrc Settings:
 

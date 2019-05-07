@@ -118,6 +118,10 @@ let s:VERSION = '7.1.5'
         return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
     endfunction
 
+    function! s:Chomp(str)
+        return substitute(a:str, '\n\+$', '', '')
+    endfunction
+
     function! s:SetupConfigFile()
         if !s:config_file_already_setup
 
@@ -588,6 +592,11 @@ let s:VERSION = '7.1.5'
         endif
     endfunction
 
+    function! g:WakaTimeToday()
+        let cmd = s:GetCommandPrefix() + ['--show-time-today']
+        echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
+    endfunction
+
 " }}}
 
 
@@ -616,6 +625,7 @@ call s:Init()
     :command -nargs=0 WakaTimeScreenRedrawDisable call s:DisableScreenRedraw()
     :command -nargs=0 WakaTimeScreenRedrawEnable call s:EnableScreenRedraw()
     :command -nargs=0 WakaTimeScreenRedrawEnableAuto call s:EnableScreenRedrawAuto()
+    :command -nargs=0 WakaTimeToday call g:WakaTimeToday()
 
 " }}}
 
