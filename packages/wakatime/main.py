@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.dirname(pwd))
 sys.path.insert(0, os.path.join(pwd, 'packages'))
 
 from .__about__ import __version__
-from .api import send_heartbeats
+from .api import send_heartbeats, get_coding_time
 from .arguments import parse_arguments
 from .compat import u, json
 from .constants import SUCCESS, UNKNOWN_ERROR, HEARTBEATS_PER_REQUEST
@@ -41,6 +41,12 @@ def execute(argv=None):
     args, configs = parse_arguments()
 
     setup_logging(args, __version__)
+
+    if args.show_time_today:
+        text, retval = get_coding_time('today', 'today', args)
+        if text:
+            print(text)
+        return retval
 
     try:
         heartbeats = []

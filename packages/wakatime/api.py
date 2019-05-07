@@ -163,6 +163,119 @@ def send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=False):
     return AUTH_ERROR if code == 401 else API_ERROR
 
 
+def get_coding_time(start, end, args, use_ntlm_proxy=False):
+    """Get coding time from WakaTime API for given time range.
+
+    Returns total time as string or `None` when unable to fetch summary from
+    the API. When verbose output enabled, returns error message when unable to
+    fetch summary.
+    """
+
+    url = 'https://api.wakatime.com/api/v1/users/current/summaries'
+    timeout = args.timeout
+    if not timeout:
+        timeout = 60
+
+    api_key = u(base64.b64encode(str.encode(args.key) if is_py3 else args.key))
+    auth = u('Basic {api_key}').format(api_key=api_key)
+    headers = {
+        'User-Agent': get_user_agent(args.plugin),
+        'Accept': 'application/json',
+        'Authorization': auth,
+    }
+
+    session_cache = SessionCache()
+    session = session_cache.get()
+
+    should_try_ntlm = False
+    proxies = {}
+    if args.proxy:
+        if use_ntlm_proxy:
+            from .packages.requests_ntlm import HttpNtlmAuth
+            username = args.proxy.rsplit(':', 1)
+            password = ''
+            if len(username) == 2:
+                password = username[1]
+            username = username[0]
+            session.auth = HttpNtlmAuth(username, password, session)
+        else:
+            should_try_ntlm = '\\' in args.proxy
+            proxies['https'] = args.proxy
+
+    ssl_verify = not args.nosslverify
+    if args.ssl_certs_file and ssl_verify:
+        ssl_verify = args.ssl_certs_file
+
+    params = {
+        'start': start,
+        'end': end,
+    }
+
+    # send request to api
+    response, code = None, None
+    try:
+        response = session.get(url, params=params, headers=headers,
+                               proxies=proxies, timeout=timeout,
+                               verify=ssl_verify)
+    except RequestException:
+        if should_try_ntlm:
+            return get_coding_time(start, end, args, use_ntlm_proxy=True)
+
+        session_cache.delete()
+        if log.isEnabledFor(logging.DEBUG):
+            exception_data = {
+                sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
+                'traceback': traceback.format_exc(),
+            }
+            log.error(exception_data)
+            return '{}: {}'.format(sys.exc_info()[0].__name__, u(sys.exc_info()[1])), API_ERROR
+        return None, API_ERROR
+
+    except:  # delete cached session when requests raises unknown exception
+        if should_try_ntlm:
+            return get_coding_time(start, end, args, use_ntlm_proxy=True)
+
+        session_cache.delete()
+        if log.isEnabledFor(logging.DEBUG):
+            exception_data = {
+                sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
+                'traceback': traceback.format_exc(),
+            }
+            log.error(exception_data)
+            return '{}: {}'.format(sys.exc_info()[0].__name__, u(sys.exc_info()[1])), API_ERROR
+        return None, API_ERROR
+
+    code = response.status_code if response is not None else None
+    content = response.text if response is not None else None
+
+    if code == requests.codes.ok:
+        try:
+            text = response.json()['data'][0]['grand_total']['text']
+            session_cache.save(session)
+            return text, SUCCESS
+        except:
+            if log.isEnabledFor(logging.DEBUG):
+                exception_data = {
+                    sys.exc_info()[0].__name__: u(sys.exc_info()[1]),
+                    'traceback': traceback.format_exc(),
+                }
+                log.error(exception_data)
+                return '{}: {}'.format(sys.exc_info()[0].__name__, u(sys.exc_info()[1])), API_ERROR
+            return None, API_ERROR
+    else:
+        if should_try_ntlm:
+            return get_coding_time(start, end, args, use_ntlm_proxy=True)
+
+        session_cache.delete()
+        log.debug({
+            'response_code': code,
+            'response_text': content,
+        })
+        if log.isEnabledFor(logging.DEBUG):
+            return 'Error: {}'.format(code), API_ERROR
+        return None, API_ERROR
+
+
 def _process_server_results(heartbeats, code, content, results, args, configs):
     log.debug({
         'response_code': code,
