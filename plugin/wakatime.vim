@@ -593,7 +593,7 @@ let s:VERSION = '7.1.5'
     endfunction
 
     function! g:WakaTimeToday()
-        let cmd = s:GetCommandPrefix() + ['--show-time-today']
+        let cmd = s:GetCommandPrefix() + ['--today']
         echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
     endfunction
 
