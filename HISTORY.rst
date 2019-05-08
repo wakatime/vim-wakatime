@@ -3,6 +3,15 @@ History
 -------
 
 
+7.2.0 (2019-05-07)
+++++++++++++++++++
+
+- Upgrade wakatime-cli to v11.0.0.
+- New command :WakaTimeToday for displaying today's coding time.
+- Rename argument --show-time-today to --today.
+- New argument --show-time-today for printing Today's coding time.
+
+
 7.1.5 (2019-04-30)
 ++++++++++++++++++
 
