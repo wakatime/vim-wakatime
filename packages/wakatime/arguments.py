@@ -201,7 +201,7 @@ def parse_arguments():
                              'online 5 offline heartbeats are synced. Can ' +
                              'be used without --entity to only sync offline ' +
                              'activity without generating new heartbeats.')
-    parser.add_argument('--show-time-today', dest='show_time_today',
+    parser.add_argument('--today', dest='today',
                         action='store_true',
                         help='Prints dashboard time for Today, then exits.')
     parser.add_argument('--config', dest='config', action=StoreWithoutQuotes,
@@ -248,7 +248,7 @@ def parse_arguments():
     if not args.entity:
         if args.file:
             args.entity = args.file
-        elif (not args.sync_offline_activity or args.sync_offline_activity == 'none') and not args.show_time_today:
+        elif (not args.sync_offline_activity or args.sync_offline_activity == 'none') and not args.today:
             parser.error('argument --entity is required')
 
     if not args.sync_offline_activity:

@@ -163,7 +163,7 @@ def send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=False):
     return AUTH_ERROR if code == 401 else API_ERROR
 
 
-def get_coding_time(start, end, args, use_ntlm_proxy=False):
+def get_time_today(args, use_ntlm_proxy=False):
     """Get coding time from WakaTime API for given time range.
 
     Returns total time as string or `None` when unable to fetch summary from
@@ -207,8 +207,8 @@ def get_coding_time(start, end, args, use_ntlm_proxy=False):
         ssl_verify = args.ssl_certs_file
 
     params = {
-        'start': start,
-        'end': end,
+        'start': 'today',
+        'end': 'today',
     }
 
     # send request to api
@@ -219,7 +219,7 @@ def get_coding_time(start, end, args, use_ntlm_proxy=False):
                                verify=ssl_verify)
     except RequestException:
         if should_try_ntlm:
-            return get_coding_time(start, end, args, use_ntlm_proxy=True)
+            return get_time_today(args, use_ntlm_proxy=True)
 
         session_cache.delete()
         if log.isEnabledFor(logging.DEBUG):
@@ -228,12 +228,12 @@ def get_coding_time(start, end, args, use_ntlm_proxy=False):
                 'traceback': traceback.format_exc(),
             }
             log.error(exception_data)
-            return '{}: {}'.format(sys.exc_info()[0].__name__, u(sys.exc_info()[1])), API_ERROR
+            return '{0}: {1}'.format(sys.exc_info()[0].__name__, u(sys.exc_info()[1])), API_ERROR
         return None, API_ERROR
 
     except:  # delete cached session when requests raises unknown exception
         if should_try_ntlm:
-            return get_coding_time(start, end, args, use_ntlm_proxy=True)
+            return get_time_today(args, use_ntlm_proxy=True)
 
         session_cache.delete()
         if log.isEnabledFor(logging.DEBUG):
@@ -242,7 +242,7 @@ def get_coding_time(start, end, args, use_ntlm_proxy=False):
                 'traceback': traceback.format_exc(),
             }
             log.error(exception_data)
-            return '{}: {}'.format(sys.exc_info()[0].__name__, u(sys.exc_info()[1])), API_ERROR
+            return '{0}: {1}'.format(sys.exc_info()[0].__name__, u(sys.exc_info()[1])), API_ERROR
         return None, API_ERROR
 
     code = response.status_code if response is not None else None
@@ -260,11 +260,11 @@ def get_coding_time(start, end, args, use_ntlm_proxy=False):
                     'traceback': traceback.format_exc(),
                 }
                 log.error(exception_data)
-                return '{}: {}'.format(sys.exc_info()[0].__name__, u(sys.exc_info()[1])), API_ERROR
+                return '{0}: {1}'.format(sys.exc_info()[0].__name__, u(sys.exc_info()[1])), API_ERROR
             return None, API_ERROR
     else:
         if should_try_ntlm:
-            return get_coding_time(start, end, args, use_ntlm_proxy=True)
+            return get_time_today(args, use_ntlm_proxy=True)
 
         session_cache.delete()
         log.debug({
@@ -272,7 +272,7 @@ def get_coding_time(start, end, args, use_ntlm_proxy=False):
             'response_text': content,
         })
         if log.isEnabledFor(logging.DEBUG):
-            return 'Error: {}'.format(code), API_ERROR
+            return 'Error: {0}'.format(code), API_ERROR
         return None, API_ERROR
 
 
