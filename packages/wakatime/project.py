@@ -69,8 +69,6 @@ def get_project_info(configs, heartbeat, data):
         project_name = data.get('project') or heartbeat.args.project
 
     hide_project = heartbeat.should_obfuscate_project()
-    if hide_project and project_name is not None:
-        return project_name, None
 
     if project_name is None or branch_name is None:
 
@@ -78,24 +76,25 @@ def get_project_info(configs, heartbeat, data):
 
             plugin_name = plugin_cls.__name__.lower()
             plugin_configs = get_configs_for_plugin(plugin_name, configs)
-
             project = plugin_cls(heartbeat.entity, configs=plugin_configs)
+
             if project.process():
-                project_name = project_name or project.name()
+                if not hide_project:
+                    project_name = project_name or project.name()
                 branch_name = branch_name or project.branch()
-                if hide_project:
-                    branch_name = None
-                    project_name = generate_project_name()
-                    project_file = os.path.join(project.folder(), '.wakatime-project')
-                    try:
-                        with open(project_file, 'w') as fh:
-                            fh.write(project_name)
-                    except IOError:
-                        project_name = None
                 break
 
-    if project_name is None and not hide_project:
-        project_name = data.get('alternate_project') or heartbeat.args.alternate_project
+    if project_name is None:
+        if not hide_project:
+            project_name = data.get('alternate_project') or heartbeat.args.alternate_project
+        else:
+            project_name = generate_project_name()
+            project_file = os.path.join(project.folder(), '.wakatime-project')
+            try:
+                with open(project_file, 'w') as fh:
+                    fh.write(project_name)
+            except IOError:
+                project_name = None
 
     return project_name, branch_name
 

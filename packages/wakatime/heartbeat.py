@@ -43,7 +43,15 @@ class Heartbeat(object):
     cursorpos = None
     user_agent = None
 
-    _sensitive = ('dependencies', 'lines', 'lineno', 'cursorpos', 'branch')
+    _sensitive_when_hiding_filename = (
+        'dependencies',
+        'lines',
+        'lineno',
+        'cursorpos',
+    )
+    _sensitive_when_hiding_branch = (
+        'branch',
+    )
 
     def __init__(self, data, args, configs, _clone=None):
         if not data:
@@ -141,21 +149,24 @@ class Heartbeat(object):
         Returns a Heartbeat.
         """
 
-        if not self.args.hide_file_names:
-            return self
-
         if self.entity is None:
             return self
 
         if self.type != 'file':
             return self
 
-        if self.should_obfuscate_filename():
-            self._sanitize_metadata()
+        if self._should_obfuscate_filename():
+            self._sanitize_metadata(keys=self._sensitive_when_hiding_filename)
+            if self._should_obfuscate_branch(default=True):
+                self._sanitize_metadata(keys=self._sensitive_when_hiding_branch)
             extension = u(os.path.splitext(self.entity)[1])
             self.entity = u('HIDDEN{0}').format(extension)
         elif self.should_obfuscate_project():
-            self._sanitize_metadata()
+            self._sanitize_metadata(keys=self._sensitive_when_hiding_filename)
+            if self._should_obfuscate_branch(default=True):
+                self._sanitize_metadata(keys=self._sensitive_when_hiding_branch)
+        elif self._should_obfuscate_branch():
+            self._sanitize_metadata(keys=self._sensitive_when_hiding_branch)
 
         return self
 
@@ -193,22 +204,6 @@ class Heartbeat(object):
             is_write=self.is_write,
         )
 
-    def should_obfuscate_filename(self):
-        """Returns True if hide_file_names is true or the entity file path
-        matches one in the list of obfuscated file paths."""
-
-        for pattern in self.args.hide_file_names:
-            try:
-                compiled = re.compile(pattern, re.IGNORECASE)
-                if compiled.search(self.entity):
-                    return True
-            except re.error as ex:
-                log.warning(u('Regex error ({msg}) for hide_file_names pattern: {pattern}').format(
-                    msg=u(ex),
-                    pattern=u(pattern),
-                ))
-        return False
-
     def should_obfuscate_project(self):
         """Returns True if hide_project_names is true or the entity file path
         matches one in the list of obfuscated project paths."""
@@ -223,6 +218,49 @@ class Heartbeat(object):
                     msg=u(ex),
                     pattern=u(pattern),
                 ))
+
+        return False
+
+    def _should_obfuscate_filename(self):
+        """Returns True if hide_file_names is true or the entity file path
+        matches one in the list of obfuscated file paths."""
+
+        for pattern in self.args.hide_file_names:
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE)
+                if compiled.search(self.entity):
+                    return True
+            except re.error as ex:
+                log.warning(u('Regex error ({msg}) for hide_file_names pattern: {pattern}').format(
+                    msg=u(ex),
+                    pattern=u(pattern),
+                ))
+
+        return False
+
+    def _should_obfuscate_branch(self, default=False):
+        """Returns True if hide_file_names is true or the entity file path
+        matches one in the list of obfuscated file paths."""
+
+        # when project names or file names are hidden and hide_branch_names is
+        # not set, we default to hiding branch names along with file/project.
+        if default and self.args.hide_branch_names is None:
+            return True
+
+        if not self.branch or not self.args.hide_branch_names:
+            return False
+
+        for pattern in self.args.hide_branch_names:
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE)
+                if compiled.search(self.entity) or compiled.search(self.branch):
+                    return True
+            except re.error as ex:
+                log.warning(u('Regex error ({msg}) for hide_branch_names pattern: {pattern}').format(
+                    msg=u(ex),
+                    pattern=u(pattern),
+                ))
+
         return False
 
     def _unicode(self, value):
@@ -333,8 +371,8 @@ class Heartbeat(object):
             return False
         return find_project_file(self.entity) is None
 
-    def _sanitize_metadata(self):
-        for key in self._sensitive:
+    def _sanitize_metadata(self, keys=[]):
+        for key in keys:
             setattr(self, key, None)
 
     def __repr__(self):

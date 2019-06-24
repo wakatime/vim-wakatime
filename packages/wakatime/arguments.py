@@ -153,6 +153,10 @@ def parse_arguments():
                              'folder name as the project, a ' +
                              '.wakatime-project file is created with a ' +
                              'random project name.')
+    parser.add_argument('--hide-branch-names', dest='hide_branch_names',
+                        action='store_true',
+                        help='Obfuscate branch names. Will not send revision ' +
+                             'control branch names to api.')
     parser.add_argument('--exclude', dest='exclude', action='append',
                         help='Filename patterns to exclude from logging. ' +
                              'POSIX regex syntax. Can be used more than once.')
@@ -294,8 +298,9 @@ def parse_arguments():
             pass
     if not args.exclude_unknown_project and configs.has_option('settings', 'exclude_unknown_project'):
         args.exclude_unknown_project = configs.getboolean('settings', 'exclude_unknown_project')
-    boolean_or_list('hide_file_names', args, configs, alternative_names=['hide_filenames', 'hidefilenames'])
-    boolean_or_list('hide_project_names', args, configs, alternative_names=['hide_projectnames', 'hideprojectnames'])
+    _boolean_or_list('hide_file_names', args, configs, alternative_names=['hide_filenames', 'hidefilenames'])
+    _boolean_or_list('hide_project_names', args, configs, alternative_names=['hide_projectnames', 'hideprojectnames'])
+    _boolean_or_list('hide_branch_names', args, configs, alternative_names=['hide_branchnames', 'hidebranchnames'], default=None)
     if args.offline_deprecated:
         args.offline = False
     if args.offline and configs.has_option('settings', 'offline'):
@@ -340,7 +345,7 @@ def parse_arguments():
     return args, configs
 
 
-def boolean_or_list(config_name, args, configs, alternative_names=[]):
+def _boolean_or_list(config_name, args, configs, alternative_names=[], default=[]):
     """Get a boolean or list of regexes from args and configs."""
 
     # when argument flag present, set to wildcard regex
@@ -349,7 +354,7 @@ def boolean_or_list(config_name, args, configs, alternative_names=[]):
             setattr(args, config_name, ['.*'])
             return
 
-    setattr(args, config_name, [])
+    setattr(args, config_name, default)
 
     option = None
     alternative_names.insert(0, config_name)
@@ -361,7 +366,11 @@ def boolean_or_list(config_name, args, configs, alternative_names=[]):
     if option is not None:
         if option.strip().lower() == 'true':
             setattr(args, config_name, ['.*'])
-        elif option.strip().lower() != 'false':
+        elif option.strip().lower() == 'false':
+            setattr(args, config_name, [])
+        else:
             for pattern in option.split("\n"):
                 if pattern.strip() != '':
+                    if not getattr(args, config_name):
+                        setattr(args, config_name, [])
                     getattr(args, config_name).append(pattern)
