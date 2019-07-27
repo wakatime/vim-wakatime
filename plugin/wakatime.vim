@@ -373,8 +373,13 @@ let s:VERSION = '8.0.0'
                 call ch_sendraw(channel, extra_heartbeats . "\n")
             endif
         elseif s:nvim_async
+            if s:IsWindows()
+                let job_cmd = cmd
+            else
+                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            endif
             let s:nvim_async_output = ['']
-            let job = jobstart([&shell, &shellcmdflag, s:JoinArgs(cmd)], {
+            let job = jobstart(job_cmd, {
                 \ 'detach': 1,
                 \ 'on_stdout': function('s:NeovimAsyncOutputHandler'),
                 \ 'on_stderr': function('s:NeovimAsyncOutputHandler'),
