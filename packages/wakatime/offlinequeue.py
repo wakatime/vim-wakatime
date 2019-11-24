@@ -60,9 +60,12 @@ class Queue(object):
             }
             c.execute('INSERT INTO {0} VALUES (:id,:heartbeat)'.format(self.table_name), data)
             conn.commit()
-            conn.close()
         except sqlite3.Error:
             log.traceback()
+        try:
+            conn.close()
+        except:  # pragma: nocover
+            pass
 
     def pop(self):
         if not HAS_SQL:

@@ -55,9 +55,12 @@ class SessionCache(object):
             }
             c.execute('INSERT INTO {0} VALUES (:value)'.format(self.table_name), values)
             conn.commit()
-            conn.close()
         except:  # pragma: nocover
             log.traceback(logging.DEBUG)
+        try:
+            conn.close()
+        except:  # pragma: nocover
+            pass
 
     def get(self):
         """Returns a requests.Session object.
@@ -87,7 +90,7 @@ class SessionCache(object):
         try:
             conn.close()
         except:  # pragma: nocover
-            log.traceback(logging.DEBUG)
+            pass
 
         return session if session is not None else requests.session()
 
@@ -101,9 +104,12 @@ class SessionCache(object):
             conn, c = self.connect()
             c.execute('DELETE FROM {0}'.format(self.table_name))
             conn.commit()
-            conn.close()
         except:
             log.traceback(logging.DEBUG)
+        try:
+            conn.close()
+        except:  # pragma: nocover
+            pass
 
     def _get_db_file(self):
         home = '~'

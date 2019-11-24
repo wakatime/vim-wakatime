@@ -250,7 +250,11 @@ def get_time_today(args, use_ntlm_proxy=False):
 
     if code == requests.codes.ok:
         try:
-            text = response.json()['data'][0]['grand_total']['text']
+            summary = response.json()['data'][0]
+            if len(summary['categories']) > 1:
+                text = ', '.join(['{0} {1}'.format(x['text'], x['name'].lower()) for x in summary['categories']])
+            else:
+                text = summary['grand_total']['text']
             session_cache.save(session)
             return text, SUCCESS
         except:

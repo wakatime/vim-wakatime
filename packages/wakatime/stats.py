@@ -259,6 +259,12 @@ def get_lexer(language):
 
 
 def use_root_language(language, lexer):
+    override = {
+        'Coldfusion HTML': 'ColdFusion',
+    }
+    if language in override:
+        return override[language]
+
     if lexer and hasattr(lexer, 'root_lexer'):
         return u(lexer.root_lexer.name)
 

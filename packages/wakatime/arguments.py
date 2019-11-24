@@ -19,8 +19,8 @@ import time
 import traceback
 from .__about__ import __version__
 from .compat import basestring
-from .configs import parseConfigFile
-from .constants import AUTH_ERROR, DEFAULT_SYNC_OFFLINE_ACTIVITY
+from .configs import getConfigFile, parseConfigFile
+from .constants import AUTH_ERROR, DEFAULT_SYNC_OFFLINE_ACTIVITY, SUCCESS
 from .packages import argparse
 
 
@@ -62,6 +62,7 @@ def parse_arguments():
     parser.add_argument('--file', dest='file', action=FileAction,
                         help=argparse.SUPPRESS)
     parser.add_argument('--key', dest='key', action=StoreWithoutQuotes,
+                        metavar='API_KEY',
                         help='Your wakatime api key; uses api_key from ' +
                              '~/.wakatime.cfg by default.')
     parser.add_argument('--write', dest='is_write', action='store_true',
@@ -75,10 +76,11 @@ def parse_arguments():
                         help='Optional floating-point unix epoch timestamp. ' +
                              'Uses current time by default.')
     parser.add_argument('--lineno', dest='lineno', action=StoreWithoutQuotes,
+                        metavar='INT',
                         help='Optional line number. This is the current ' +
                              'line being edited.')
     parser.add_argument('--cursorpos', dest='cursorpos',
-                        action=StoreWithoutQuotes,
+                        metavar='INT', action=StoreWithoutQuotes,
                         help='Optional cursor position in the current file.')
     parser.add_argument('--entity-type', dest='entity_type',
                         action=StoreWithoutQuotes,
@@ -104,13 +106,13 @@ def parse_arguments():
                              'requests. By default, SSL certificates are ' +
                              'verified.')
     parser.add_argument('--ssl-certs-file', dest='ssl_certs_file',
-                        action=StoreWithoutQuotes,
+                        metavar='FILE', action=StoreWithoutQuotes,
                         help='Override the bundled Python Requests CA certs ' +
                              'file. By default, uses certifi for ca certs.')
     parser.add_argument('--project', dest='project', action=StoreWithoutQuotes,
                         help='Optional project name.')
     parser.add_argument('--alternate-project', dest='alternate_project',
-                        action=StoreWithoutQuotes,
+                        metavar='PROJECT', action=StoreWithoutQuotes,
                         help='Optional alternate project name. ' +
                              'Auto-discovered project takes priority.')
     parser.add_argument('--alternate-language', dest='alternate_language',
@@ -158,6 +160,7 @@ def parse_arguments():
                         help='Obfuscate branch names. Will not send revision ' +
                              'control branch names to api.')
     parser.add_argument('--exclude', dest='exclude', action='append',
+                        metavar='PATH',
                         help='Filename patterns to exclude from logging. ' +
                              'POSIX regex syntax. Can be used more than once.')
     parser.add_argument('--exclude-unknown-project',
@@ -165,6 +168,7 @@ def parse_arguments():
                         help='When set, any activity where the project ' +
                              'cannot be detected will be ignored.')
     parser.add_argument('--include', dest='include', action='append',
+                        metavar='PATH',
                         help='Filename patterns to log. When used in ' +
                              'combination with --exclude, files matching ' +
                              'include will still be logged. POSIX regex ' +
@@ -181,20 +185,21 @@ def parse_arguments():
                         help='Reads extra heartbeats from STDIN as a JSON ' +
                              'array until EOF.')
     parser.add_argument('--log-file', dest='log_file',
-                        action=StoreWithoutQuotes,
+                        metavar='FILE', action=StoreWithoutQuotes,
                         help='Defaults to ~/.wakatime.log.')
     parser.add_argument('--logfile', dest='logfile', action=StoreWithoutQuotes,
                         help=argparse.SUPPRESS)
     parser.add_argument('--api-url', dest='api_url', action=StoreWithoutQuotes,
+                        metavar='URL',
                         help='Heartbeats api url. For debugging with a ' +
                              'local server.')
     parser.add_argument('--apiurl', dest='apiurl', action=StoreWithoutQuotes,
                         help=argparse.SUPPRESS)
     parser.add_argument('--timeout', dest='timeout', type=int,
-                        action=StoreWithoutQuotes,
+                        metavar='SECONDS', action=StoreWithoutQuotes,
                         help='Number of seconds to wait when sending ' +
                              'heartbeats to api. Defaults to 60 seconds.')
-    parser.add_argument('--sync-offline-activity',
+    parser.add_argument('--sync-offline-activity', metavar='AMOUNT',
                         dest='sync_offline_activity',
                         action=StoreWithoutQuotes,
                         help='Amount of offline activity to sync from your ' +
@@ -209,7 +214,20 @@ def parse_arguments():
                         action='store_true',
                         help='Prints dashboard time for Today, then exits.')
     parser.add_argument('--config', dest='config', action=StoreWithoutQuotes,
-                        help='Defaults to ~/.wakatime.cfg.')
+                        metavar='FILE', help='Defaults to ~/.wakatime.cfg.')
+    parser.add_argument('--config-section', dest='config_section',
+                        metavar='SECTION', action=StoreWithoutQuotes,
+                        help='Optional config section when reading or ' +
+                             'writing a config key. Defaults to [settings].')
+    parser.add_argument('--config-read', dest='config_read',
+                        metavar='KEY', action=StoreWithoutQuotes,
+                        help='Prints value for the given config key, then ' +
+                             'exits.')
+    parser.add_argument('--config-write', dest='config_write',
+                        nargs=2, metavar=('KEY', 'VALUE'),
+                        action=StoreWithoutQuotes,
+                        help='Writes value to a config key, then exits. ' +
+                             'Expects two arguments, key and value.')
     parser.add_argument('--verbose', dest='verbose', action='store_true',
                         help='Turns on debug messages in log file.')
     parser.add_argument('--version', action='version', version=__version__)
@@ -217,12 +235,29 @@ def parse_arguments():
     # parse command line arguments
     args = parser.parse_args()
 
+    # parse ~/.wakatime.cfg file
+    configs = parseConfigFile(args.config)
+
+    if args.config_read:
+        section = args.config_section or 'settings'
+        key = args.config_read
+        print(configs.get(section, key))
+        raise SystemExit(SUCCESS)
+
+    if args.config_write:
+        section = args.config_section or 'settings'
+        key = args.config_write[0]
+        val = args.config_write[1]
+        if not configs.has_section(section):
+            configs.add_section(section)
+        configs.set(section, key, val)
+        with open(args.config or getConfigFile(), 'w', encoding='utf-8') as fh:
+            configs.write(fh)
+        raise SystemExit(SUCCESS)
+
     # use current unix epoch timestamp by default
     if not args.timestamp:
         args.timestamp = time.time()
-
-    # parse ~/.wakatime.cfg file
-    configs = parseConfigFile(args.config)
 
     # update args from configs
     if not args.hostname:
