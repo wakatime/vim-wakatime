@@ -2,6 +2,7 @@
 [![Neovim](https://wakatime.com/static/img/Neovim-supported-brightgreen.svg)](https://github.com/wakatime/vim-wakatime#installation)
 [![MacVim](https://wakatime.com/static/img/MacVim-supported-brightgreen.svg)](https://github.com/wakatime/vim-wakatime#installation)
 [![gVim](https://wakatime.com/static/img/gVim-supported-brightgreen.svg)](https://github.com/wakatime/vim-wakatime#installation)
+[![Coding time tracker](https://wakatime.com/badge/github/wakatime/vim-wakatime.svg)](https://wakatime.com/badge/github/wakatime/vim-wakatime)
 
 
 # vim-wakatime
