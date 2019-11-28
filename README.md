@@ -1,17 +1,14 @@
+# vim-wakatime
+
 [![Vim](https://wakatime.com/static/img/Vim-supported-brightgreen.svg)](https://github.com/wakatime/vim-wakatime#installation)
 [![Neovim](https://wakatime.com/static/img/Neovim-supported-brightgreen.svg)](https://github.com/wakatime/vim-wakatime#installation)
 [![MacVim](https://wakatime.com/static/img/MacVim-supported-brightgreen.svg)](https://github.com/wakatime/vim-wakatime#installation)
 [![gVim](https://wakatime.com/static/img/gVim-supported-brightgreen.svg)](https://github.com/wakatime/vim-wakatime#installation)
 [![Coding time tracker](https://wakatime.com/badge/github/wakatime/vim-wakatime.svg)](https://wakatime.com/badge/github/wakatime/vim-wakatime)
 
-
-# vim-wakatime
-
 Quantify your coding inside Vim.
 
-
-Installation
-------------
+## Installation
 
 1. With [Vundle](https://github.com/gmarik/vundle): `echo "Plugin 'wakatime/vim-wakatime'" >> ~/.vimrc && vim +PluginInstall`
 
@@ -27,14 +24,12 @@ Installation
 Note: WakaTime depends on [Python](http://www.python.org/getit/) being installed to work correctly.
 
 
-Screen Shots
-------------
+## Screen Shots
 
 ![Project Overview](https://wakatime.com/static/img/ScreenShots/Screen-Shot-2016-03-21.png)
 
 
-Configuring
------------
+## Configuring
 
 #### Commands:
 
@@ -63,8 +58,7 @@ so this setting is not needed.
 WakaTime plugins also share a common `~/.wakatime.cfg` config file. [See common configs...][wakatime-cli-config]
 
 
-Troubleshooting
----------------
+## Troubleshooting
 
 Run `:WakaTimeDebugEnable` in Vim then run this Terminal command:
 
@@ -79,8 +73,7 @@ The [How to Debug Plugins][how to debug] guide shows how to check when coding ac
 For more general troubleshooting info, see the [wakatime-cli Troubleshooting Section][wakatime-cli-help].
 
 
-Uninstalling
-------------
+## Uninstalling
 
 1. Remove `Plugin 'wakatime/vim-wakatime'` from your `.vimrc` file.
 
