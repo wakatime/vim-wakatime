@@ -36,11 +36,11 @@ class Mercurial(BaseProject):
             branch_file = os.path.join(self.configDir, 'branch')
             try:
                 with open(branch_file, 'r', encoding='utf-8') as fh:
-                    return u(fh.readline().strip().rsplit('/', 1)[-1])
+                    return u(fh.readline().strip())
             except UnicodeDecodeError:  # pragma: nocover
                 try:
                     with open(branch_file, 'r', encoding=sys.getfilesystemencoding()) as fh:
-                        return u(fh.readline().strip().rsplit('/', 1)[-1])
+                        return u(fh.readline().strip())
                 except:
                     log.traceback(logging.WARNING)
             except IOError:  # pragma: nocover

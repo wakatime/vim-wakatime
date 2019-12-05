@@ -206,10 +206,11 @@ def parse_arguments():
                              'local ~/.wakatime.db sqlite3 file to your ' +
                              'WakaTime Dashboard before exiting. Can be ' +
                              '"none" or a positive integer number. Defaults ' +
-                             'to 5, meaning for every heartbeat sent while ' +
-                             'online 5 offline heartbeats are synced. Can ' +
-                             'be used without --entity to only sync offline ' +
-                             'activity without generating new heartbeats.')
+                             'to 100, meaning for every heartbeat sent ' +
+                             'while online, 100 offline heartbeats are ' +
+                             'synced. Can be used without --entity to only ' +
+                             'sync offline activity without generating new ' +
+                             'heartbeats.')
     parser.add_argument('--today', dest='today',
                         action='store_true',
                         help='Prints dashboard time for Today, then exits.')

@@ -78,7 +78,7 @@ class Git(BaseProject):
 
     def _get_branch_from_head_file(self, line):
         if u(line.strip()).startswith('ref: '):
-            return u(line.strip().rsplit('/', 1)[-1])
+            return u(line.strip().split('/', 2)[-1])
         return None
 
     def _submodules_supported_for_path(self, path):
