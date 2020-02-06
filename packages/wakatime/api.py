@@ -19,7 +19,6 @@ from .compat import u, is_py3, json
 from .constants import API_ERROR, AUTH_ERROR, SUCCESS, UNKNOWN_ERROR
 
 from .offlinequeue import Queue
-from .packages.requests.exceptions import RequestException
 from .session_cache import SessionCache
 from .utils import get_hostname, get_user_agent
 from .packages import tzlocal
@@ -36,6 +35,9 @@ except ImportError:  # pragma: nocover
     log.error('Please upgrade Python to the latest version.')
     print('Please upgrade Python to the latest version.')
     sys.exit(UNKNOWN_ERROR)
+
+
+from .packages.requests.exceptions import RequestException
 
 
 def send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=False):

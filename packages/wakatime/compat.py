@@ -18,6 +18,7 @@ import sys
 
 
 is_py2 = (sys.version_info[0] == 2)
+is_py26 = (sys.version_info[0] == 2 and sys.version_info[1] == 6)
 is_py3 = (sys.version_info[0] == 3)
 is_win = platform.system() == 'Windows'
 
