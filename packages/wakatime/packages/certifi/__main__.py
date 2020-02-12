@@ -1,2 +1,2 @@
-from . import where
+from certifi import where
 print(where())
