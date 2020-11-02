@@ -314,7 +314,7 @@ let s:VERSION = '8.0.0'
     endfunction
 
     function! s:GetCommandPrefix()
-        if exists("g:wakatime_OverrideCommandPrefix") && g:wakatime_OverrideCommandPrefix
+        if exists("g:wakatime_OverrideCommandPrefix") && g:wakatime_OverrideCommandPrefix != ''
             let prefix = [g:wakatime_OverrideCommandPrefix]
         else
             let python_bin = s:GetPythonBinary()
