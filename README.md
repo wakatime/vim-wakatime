@@ -6,7 +6,7 @@
 [![gVim](https://wakatime.com/static/img/gVim-supported-brightgreen.svg)](https://github.com/wakatime/vim-wakatime#installation)
 [![Coding time tracker](https://wakatime.com/badge/github/wakatime/vim-wakatime.svg)](https://wakatime.com/badge/github/wakatime/vim-wakatime)
 
-Quantify your coding inside Vim.
+[WakaTime][wakatime] is an open source Vim plugin for metrics, insights, and time tracking automatically generated from your programming activity.
 
 ## Installation
 
@@ -91,6 +91,7 @@ _While in vim_
 
 3. Run `:PlugClean`, it will detect and remove undeclared plugins.
 
+[wakatime]: https://wakatime.com/sublime-text
 [wakatime-cli]: https://github.com/wakatime/wakatime
 [wakatime-cli-config]: https://github.com/wakatime/wakatime#configuring
 [wakatime-cli-help]: https://github.com/wakatime/wakatime#troubleshooting
