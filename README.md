@@ -91,7 +91,7 @@ _While in vim_
 
 3. Run `:PlugClean`, it will detect and remove undeclared plugins.
 
-[wakatime]: https://wakatime.com/sublime-text
+[wakatime]: https://wakatime.com/vim
 [wakatime-cli]: https://github.com/wakatime/wakatime
 [wakatime-cli-config]: https://github.com/wakatime/wakatime#configuring
 [wakatime-cli-help]: https://github.com/wakatime/wakatime#troubleshooting
