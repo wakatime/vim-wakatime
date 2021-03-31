@@ -14,22 +14,35 @@ import os
 import re
 import sys
 
-from .compat import u, open
+from .compat import is_py26, u, open
 from .constants import MAX_FILE_SIZE_SUPPORTED
 from .dependencies import DependencyParser
 from .exceptions import SkipHeartbeat
 from .language_priorities import LANGUAGES
 
-from .packages.pygments.lexers import (
-    _iter_lexerclasses,
-    _fn_matches,
-    basename,
-    ClassNotFound,
-    CppLexer,
-    find_lexer_class,
-    get_lexer_by_name,
-)
-from .packages.pygments.modeline import get_filetype_from_buffer
+if is_py26:
+    from .packages.py26.pygments.lexers import (
+        _iter_lexerclasses,
+        _fn_matches,
+        basename,
+        ClassNotFound,
+        CppLexer,
+        find_lexer_class,
+        get_lexer_by_name,
+    )
+    from .packages.py26.pygments.modeline import get_filetype_from_buffer
+else:
+    from .packages.py27.pygments.lexers import (
+        _iter_lexerclasses,
+        _fn_matches,
+        basename,
+        ClassNotFound,
+        CppLexer,
+        find_lexer_class,
+        get_lexer_by_name,
+    )
+    from .packages.py27.pygments.modeline import get_filetype_from_buffer
+
 
 try:
     from .packages import simplejson as json  # pragma: nocover
@@ -55,11 +68,12 @@ def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None,
 
     if entity_type == 'file':
         lexer = get_lexer(language)
-        if not language:
-            language, lexer = guess_language(file_name, local_file)
+        if not lexer:
+            lexer = guess_lexer(file_name, local_file)
+            language = root_language(lexer)
         parser = DependencyParser(local_file or file_name, lexer)
         stats.update({
-            'language': use_root_language(language, lexer),
+            'language': standardize_language(language),
             'dependencies': parser.parse(),
             'lines': number_lines_in_file(local_file or file_name),
         })
@@ -67,10 +81,12 @@ def get_file_stats(file_name, entity_type='file', lineno=None, cursorpos=None,
     return stats
 
 
-def guess_language(file_name, local_file):
-    """Guess lexer and language for a file.
+def guess_lexer(file_name, local_file):
+    """Guess Pygments lexer for a file.
 
-    Returns a tuple of (language_str, lexer_obj).
+    Looks for a vim modeline in file contents, then compares the accuracy
+    of that lexer with a second guess. The second guess looks up all lexers
+    matching the file name, then runs a text analysis for the best choice.
     """
 
     lexer = None
@@ -78,33 +94,16 @@ def guess_language(file_name, local_file):
     language = get_language_from_extension(file_name)
     if language:
         lexer = get_lexer(language)
-    else:
-        lexer = smart_guess_lexer(file_name, local_file)
-        if lexer:
-            language = u(lexer.name)
 
-    return language, lexer
-
-
-def smart_guess_lexer(file_name, local_file):
-    """Guess Pygments lexer for a file.
-
-    Looks for a vim modeline in file contents, then compares the accuracy
-    of that lexer with a second guess. The second guess looks up all lexers
-    matching the file name, then runs a text analysis for the best choice.
-    """
-    lexer = None
-
-    text = get_file_head(file_name)
-
-    lexer1, accuracy1 = guess_lexer_using_filename(local_file or file_name, text)
-    lexer2, accuracy2 = guess_lexer_using_modeline(text)
-
-    if lexer1:
-        lexer = lexer1
-    if (lexer2 and accuracy2 and
-            (not accuracy1 or accuracy2 > accuracy1)):
-        lexer = lexer2
+    if not lexer:
+        text = get_file_head(file_name)
+        lexer1, accuracy1 = guess_lexer_using_filename(local_file or file_name, text)
+        lexer2, accuracy2 = guess_lexer_using_modeline(text)
+        if lexer1:
+            lexer = lexer1
+        if (lexer2 and accuracy2 is not None and
+                (accuracy1 is None or accuracy2 > accuracy1)):
+            lexer = lexer2
 
     return lexer
 
@@ -225,7 +224,7 @@ def number_lines_in_file(file_name):
     return lines
 
 
-def standardize_language(language, plugin):
+def standardize_language(language, plugin=None):
     """Maps a string to the equivalent Pygments language.
 
     Returns the standardized language string.
@@ -234,15 +233,17 @@ def standardize_language(language, plugin):
     if not language:
         return None
 
-    # standardize language for this plugin
     if plugin:
         plugin = plugin.split(' ')[-1].split('/')[0].split('-')[0]
         standardized = get_language_from_json(language, plugin)
         if standardized is not None:
-            return standardized
+            language = standardized
 
-    # standardize language against default languages
-    return get_language_from_json(language, 'default')
+    standardized = get_language_from_json(language, 'default')
+    if standardized is not None:
+        language = standardized
+
+    return language
 
 
 def get_lexer(language):
@@ -258,17 +259,15 @@ def get_lexer(language):
     return None
 
 
-def use_root_language(language, lexer):
-    override = {
-        'Coldfusion HTML': 'ColdFusion',
-    }
-    if language in override:
-        return override[language]
-
-    if lexer and hasattr(lexer, 'root_lexer'):
-        return u(lexer.root_lexer.name)
-
-    return language
+def root_language(lexer):
+    if lexer:
+        prevent_using_root = set([
+            'coldfusion html',
+        ])
+        if hasattr(lexer, 'root_lexer') and u(lexer.name).lower() not in prevent_using_root:
+            lexer = lexer.root_lexer
+        return u(lexer.name)
+    return None
 
 
 def get_language_from_json(language, key):

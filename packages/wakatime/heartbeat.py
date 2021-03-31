@@ -152,9 +152,6 @@ class Heartbeat(object):
         if self.entity is None:
             return self
 
-        if self.type != 'file':
-            return self
-
         if self._should_obfuscate_filename():
             self._sanitize_metadata(keys=self._sensitive_when_hiding_filename)
             if self._should_obfuscate_branch(default=True):

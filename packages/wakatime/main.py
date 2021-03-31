@@ -23,7 +23,9 @@ sys.path.insert(0, os.path.join(pwd, 'packages'))
 
 from .compat import is_py26
 
-if not is_py26:
+if is_py26:
+    sys.path.insert(0, os.path.join(pwd, 'packages', 'py26'))
+else:
     sys.path.insert(0, os.path.join(pwd, 'packages', 'py27'))
 
 from .__about__ import __version__

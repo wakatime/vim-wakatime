@@ -39,6 +39,8 @@ class JavaParser(TokenParser):
             self._process_attribute(token, content)
         elif self.partial(token) == 'Operator':
             self._process_operator(token, content)
+        elif self.partial(token) == 'Punctuation':
+            self._process_operator(token, content)
         else:
             self._process_other(token, content)
 
