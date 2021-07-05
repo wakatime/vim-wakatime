@@ -51,7 +51,8 @@ def send_heartbeats(heartbeats, args, configs, use_ntlm_proxy=False):
 
     api_url = args.api_url
     if not api_url:
-        api_url = 'https://api.wakatime.com/api/v1/users/current/heartbeats.bulk'
+        api_url = 'https://api.wakatime.com/api/'
+    api_url += 'v1/users/current/heartbeats.bulk'
     log.debug('Sending heartbeats to api at %s' % api_url)
     timeout = args.timeout
     if not timeout:

@@ -342,6 +342,7 @@ let s:VERSION = '8.0.0'
 
         let cmd = s:GetCommandPrefix() + ['--entity', heartbeat.entity]
         let cmd = cmd + ['--time', heartbeat.time]
+        let cmd = cmd + ['--api-url', s:GetIniSetting('settings', 'api_url')]
         let cmd = cmd + ['--plugin', printf('vim/%s vim-wakatime/%s', s:n2s(v:version), s:VERSION)]
         if heartbeat.is_write
             let cmd = cmd + ['--write']
