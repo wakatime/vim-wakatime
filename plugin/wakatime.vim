@@ -342,7 +342,13 @@ let s:VERSION = '8.0.0'
 
         let cmd = s:GetCommandPrefix() + ['--entity', heartbeat.entity]
         let cmd = cmd + ['--time', heartbeat.time]
-        let cmd = cmd + ['--plugin', printf('vim/%s vim-wakatime/%s', s:n2s(v:version), s:VERSION)]
+
+        let editor_name = 'vim'
+        if has('nvim')
+            let editor_name = 'neovim'
+        endif
+        let cmd = cmd + ['--plugin', printf('vim/%s %s-wakatime/%s', s:n2s(v:version), s:editor_name, s:VERSION)]
+        
         if heartbeat.is_write
             let cmd = cmd + ['--write']
         endif
