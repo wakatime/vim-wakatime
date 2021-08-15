@@ -347,8 +347,8 @@ let s:VERSION = '8.0.0'
         if has('nvim')
             let editor_name = 'neovim'
         endif
-        let cmd = cmd + ['--plugin', printf('vim/%s %s-wakatime/%s', s:n2s(v:version), s:editor_name, s:VERSION)]
-        
+        let cmd = cmd + ['--plugin', printf('vim/%s %s-wakatime/%s', s:n2s(v:version), editor_name, s:VERSION)]
+
         if heartbeat.is_write
             let cmd = cmd + ['--write']
         endif
