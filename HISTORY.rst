@@ -3,6 +3,32 @@ History
 -------
 
 
+8.0.1 (2021-08-23)
+++++++++++++++++++
+
+- Fix Neovim on Windows echos error every few minutes.
+  `#82 <https://github.com/wakatime/vim-wakatime/issues/82>`_
+- Fix using g:wakatime_OverrideCommandPrefix override.
+- Detect Neovim as distinct IDE in dashboards.
+  `#93 <https://github.com/wakatime/vim-wakatime/issues/93>`_
+- Execute :WakaTimeToday command asynchronously.
+  `#95 <https://github.com/wakatime/vim-wakatime/issues/95>`_
+- Upgrade wakatime-cli to v13.0.5.
+- Upgrade bundled certifi to v2019.11.28.
+- Bundle cryptography, pyopenssl, and ipaddress packages for improved SSL
+  support on Python2.
+- Support slashes in Mercurial and Git branch names.
+  `wakatime#199 <https://github.com/wakatime/wakatime/issues/199>`_
+- Filter dependencies longer than 200 characters.
+- Close sqlite connection even when error raised.
+  `wakatime#196 <https://github.com/wakatime/wakatime/issues/196>`_
+- Detect ColdFusion as root language instead of HTML.
+- New arguments for reading and writing ini config file.
+- Today argument shows categories when available.
+- Prevent unnecessarily debug log when syncing offline heartbeats.
+- Support for Python 3.7.
+
+
 8.0.0 (2019-06-23)
 ++++++++++++++++++
 
