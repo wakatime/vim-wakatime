@@ -6,7 +6,7 @@
 " Website:     https://wakatime.com/
 " ============================================================================
 
-let s:VERSION = '8.0.0'
+let s:VERSION = '8.0.1'
 
 
 " Init {{{
@@ -603,9 +603,42 @@ let s:VERSION = '8.0.0'
         endif
     endfunction
 
+    function! s:AsyncHandlerWakaTimeToday(output, cmd)
+        echo "Today: " . a:output
+    endfunction
+
+    function! s:NeovimAsyncOutputHandlerWakaTimeToday(job_id, output, event)
+        let s:nvim_async_output[-1] .= a:output[0]
+        echo "Today: " . a:output
+    endfunction
+
     function! g:WakaTimeToday()
         let cmd = s:GetCommandPrefix() + ['--today']
-        echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
+
+        if s:has_async
+            if s:IsWindows()
+                let job_cmd = [&shell, &shellcmdflag] + cmd
+            else
+                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            endif
+            let job = job_start(job_cmd, {
+                \ 'stoponexit': '',
+                \ 'callback': {channel, output -> s:AsyncHandlerWakaTimeToday(output, cmd)}})
+        elseif s:nvim_async
+            if s:IsWindows()
+                let job_cmd = cmd
+            else
+                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            endif
+            let s:nvim_async_output = ['']
+            let job = jobstart(job_cmd, {
+                \ 'detach': 1,
+                \ 'on_stdout': function('s:NeovimAsyncOutputHandlerWakaTimeToday'),
+                \ 'on_stderr': function('s:NeovimAsyncOutputHandlerWakaTimeToday'),
+                \ 'on_exit': function('s:NeovimAsyncExitHandler')})
+        else
+            echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
+        endif
     endfunction
 
 " }}}
