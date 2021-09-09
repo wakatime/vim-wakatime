@@ -603,13 +603,23 @@ let s:VERSION = '8.0.1'
         endif
     endfunction
 
-    function! s:AsyncHandlerWakaTimeToday(output, cmd)
+    function! s:AsyncHandlerToday(output, cmd)
         echo "Today: " . a:output
     endfunction
 
-    function! s:NeovimAsyncOutputHandlerWakaTimeToday(job_id, output, event)
-        let s:nvim_async_output[-1] .= a:output[0]
-        echo "Today: " . a:output
+    function! s:NeovimAsyncOutputHandlerToday(job_id, output, event)
+        let s:nvim_async_output_today[-1] .= a:output[0]
+        call extend(s:nvim_async_output_today, a:output[1:])
+    endfunction
+
+    function! s:NeovimAsyncExitHandlerToday(job_id, exit_code, event)
+        let output = s:StripWhitespace(join(s:nvim_async_output_today, "\n"))
+        if a:exit_code == 104
+            let output .= 'Invalid API Key'
+        endif
+        if output != ''
+            echo "Today: " . output
+        endif
     endfunction
 
     function! g:WakaTimeToday()
@@ -623,19 +633,19 @@ let s:VERSION = '8.0.1'
             endif
             let job = job_start(job_cmd, {
                 \ 'stoponexit': '',
-                \ 'callback': {channel, output -> s:AsyncHandlerWakaTimeToday(output, cmd)}})
+                \ 'callback': {channel, output -> s:AsyncHandlerToday(output, cmd)}})
         elseif s:nvim_async
             if s:IsWindows()
                 let job_cmd = cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
-            let s:nvim_async_output = ['']
+            let s:nvim_async_output_today = ['']
             let job = jobstart(job_cmd, {
                 \ 'detach': 1,
-                \ 'on_stdout': function('s:NeovimAsyncOutputHandlerWakaTimeToday'),
-                \ 'on_stderr': function('s:NeovimAsyncOutputHandlerWakaTimeToday'),
-                \ 'on_exit': function('s:NeovimAsyncExitHandler')})
+                \ 'on_stdout': function('s:NeovimAsyncOutputHandlerToday'),
+                \ 'on_stderr': function('s:NeovimAsyncOutputHandlerToday'),
+                \ 'on_exit': function('s:NeovimAsyncExitHandlerToday')})
         else
             echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
         endif
