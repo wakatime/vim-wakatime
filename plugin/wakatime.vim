@@ -64,7 +64,7 @@ let s:VERSION = '8.0.1'
         " For backwards compatibility, rename wakatime.conf to wakatime.cfg
         if !filereadable(s:config_file)
             if filereadable(expand("$HOME/.wakatime"))
-                if has('win32')
+                if s:IsWindows()
                     exec "silent !move" expand("$HOME\\.wakatime") expand("$HOME\\.wakatime.conf")
                 else
                     exec "silent !mv" expand("$HOME/.wakatime") expand("$HOME/.wakatime.conf")
@@ -246,7 +246,7 @@ let s:VERSION = '8.0.1'
     endfunction
 
     function! s:IsWindows()
-        if has('win32') 
+        if has('win32')
             return s:true
         endif
         return s:false
