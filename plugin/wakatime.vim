@@ -246,7 +246,7 @@ let s:VERSION = '8.0.1'
     endfunction
 
     function! s:IsWindows()
-        if has('win32') || has('win64')
+        if has('win32') 
             return s:true
         endif
         return s:false
