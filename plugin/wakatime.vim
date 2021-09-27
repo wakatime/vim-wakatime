@@ -42,7 +42,7 @@ let s:VERSION = '8.0.1'
     if s:home == '$WAKATIME_HOME'
         let s:home = expand("$HOME")
     endif
-    let s:cli_location = substitute(substitute(expand("<sfile>:p:h"), '\', '/', 'g'), '/plugin$', '', '') . '/packages/wakatime/cli.py'
+    let s:cli_location = substitute(expand("<sfile>:p:h:h"), '\', '/', 'g') . '/packages/wakatime/cli.py'
     let s:config_file = s:home . '/.wakatime.cfg'
     let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
     let s:data_file = s:home . '/.wakatime.data'
@@ -64,14 +64,16 @@ let s:VERSION = '8.0.1'
         " For backwards compatibility, rename wakatime.conf to wakatime.cfg
         if !filereadable(s:config_file)
             if filereadable(expand("$HOME/.wakatime"))
-                exec "silent !mv" expand("$HOME/.wakatime") expand("$HOME/.wakatime.conf")
+                if s:IsWindows()
+                    exec "silent !move" expand("$HOME\\.wakatime") expand("$HOME\\.wakatime.conf")
+                else
+                    exec "silent !mv" expand("$HOME/.wakatime") expand("$HOME/.wakatime.conf")
+                endif
             endif
             if filereadable(expand("$HOME/.wakatime.conf"))
-                if !filereadable(s:config_file)
-                    let contents = ['[settings]'] + readfile(expand("$HOME/.wakatime.conf"), '')
-                    call writefile(contents, s:config_file)
-                    call delete(expand("$HOME/.wakatime.conf"))
-                endif
+                let contents = ['[settings]'] + readfile(expand("$HOME/.wakatime.conf"), '')
+                call writefile(contents, s:config_file)
+                call delete(expand("$HOME/.wakatime.conf"))
             endif
         endif
 
@@ -244,7 +246,7 @@ let s:VERSION = '8.0.1'
     endfunction
 
     function! s:IsWindows()
-        if has('win32') || has('win64')
+        if has('win32')
             return s:true
         endif
         return s:false

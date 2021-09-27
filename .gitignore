@@ -38,3 +38,5 @@ nosetests.xml
 # Generated Documentation
 doc/tags
 
+# for vim
+*.swp
