@@ -3,6 +3,14 @@ History
 -------
 
 
+9.0.0 (2021-11-01)
+++++++++++++++++++
+
+- Use new Go wakatime-cli.
+- Fix WakaTimeToday command on NeoVim.
+  `#97 <https://github.com/wakatime/vim-wakatime/issues/97>`_
+
+
 8.0.1 (2021-08-23)
 ++++++++++++++++++
 
