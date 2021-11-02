@@ -162,7 +162,7 @@ let s:VERSION = '9.0.0'
                 endif
                 let job = job_start(job_cmd, {
                     \ 'stoponexit': '',
-                    \ 'callback': {channel, output -> s:AsyncInstallHandler(output, cmd)}})
+                    \ 'callback': {channel, output -> s:AsyncInstallHandler(output)}})
             elseif s:nvim_async
                 if s:IsWindows()
                     let job_cmd = cmd
@@ -755,7 +755,7 @@ EOF
         endif
     endfunction
 
-    function! s:AsyncInstallHandler(output, cmd)
+    function! s:AsyncInstallHandler(output)
         if s:is_debug_on && s:StripWhitespace(a:output != '')
             echoerr '[WakaTime] ' . a:output
             call s:InstallCLI(s:false)
