@@ -153,7 +153,7 @@ let s:VERSION = '8.0.1'
         " First try install wakatime-cli in background, then using Vim's Python
         if python_bin != ""
             let install_script = s:plugin_root_folder . '/scripts/install_cli.py'
-            let cmd = [python_bin, '-W', 'ignore', install_script]
+            let cmd = [python_bin, '-W', 'ignore', install_script, s:home]
             if s:has_async
                 if s:IsWindows()
                     let job_cmd = [&shell, &shellcmdflag] + cmd
@@ -195,7 +195,7 @@ import vim
 from os.path import abspath, join
 sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
 from install_cli import main
-main()
+main(home=vim.eval('s:home'))
 EOF
         elseif has('python')
             python << EOF
@@ -204,7 +204,7 @@ import vim
 from os.path import abspath, join
 sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
 from install_cli import main
-main()
+main(home=vim.eval('s:home'))
 EOF
         else
             let url = printf('https://github.com/wakatime/wakatime-cli/releases/download/latest/wakatime-cli-%s-%s.zip', s:osname, s:architecture)
