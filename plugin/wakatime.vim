@@ -13,7 +13,7 @@ let s:VERSION = '8.0.1'
 
     " Check Vim version
     if v:version < 700
-        echoerr "This plugin requires vim >= 7."
+        echoerr "The WakaTime plugin requires vim >= 7."
         finish
     endif
 
@@ -42,7 +42,8 @@ let s:VERSION = '8.0.1'
     if s:home == '$WAKATIME_HOME'
         let s:home = expand("$HOME")
     endif
-    let s:cli_location = substitute(expand("<sfile>:p:h:h"), '\', '/', 'g') . '/packages/wakatime/cli.py'
+    let s:plugin_root_folder = substitute(expand("<sfile>:p:h:h"), '\', '/', 'g')
+    let s:plugin_root_folder = '/Users/user/git/vim-wakatime'
     let s:config_file = s:home . '/.wakatime.cfg'
     let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
     let s:data_file = s:home . '/.wakatime.data'
@@ -58,30 +59,7 @@ let s:VERSION = '8.0.1'
     let s:has_async = has('patch-7.4-2344') && exists('*job_start')
     let s:nvim_async = exists('*jobstart')
 
-
     function! s:Init()
-
-        " For backwards compatibility, rename wakatime.conf to wakatime.cfg
-        if !filereadable(s:config_file)
-            if filereadable(expand("$HOME/.wakatime"))
-                if s:IsWindows()
-                    exec "silent !move" expand("$HOME\\.wakatime") expand("$HOME\\.wakatime.conf")
-                else
-                    exec "silent !mv" expand("$HOME/.wakatime") expand("$HOME/.wakatime.conf")
-                endif
-            endif
-            if filereadable(expand("$HOME/.wakatime.conf"))
-                let contents = ['[settings]'] + readfile(expand("$HOME/.wakatime.conf"), '')
-                call writefile(contents, s:config_file)
-                call delete(expand("$HOME/.wakatime.conf"))
-            endif
-        endif
-
-        " Set default python binary location
-        if !exists("g:wakatime_PythonBinary")
-            let g:wakatime_PythonBinary = 'python'
-        endif
-
         " Set default heartbeat frequency in minutes
         if !exists("g:wakatime_HeartbeatFrequency")
             let g:wakatime_HeartbeatFrequency = 2
@@ -94,14 +72,15 @@ let s:VERSION = '8.0.1'
         endif
 
         " Get redraw setting from wakatime.cfg file
-        if s:GetIniSetting('settings', 'vi_redraw') != ''
-            if s:GetIniSetting('settings', 'vi_redraw') == 'enabled'
+        let vi_redraw = s:GetIniSetting('settings', 'vi_redraw')
+        if vi_redraw != ''
+            if vi_redraw == 'enabled'
                 let s:redraw_setting = 'enabled'
             endif
-            if s:GetIniSetting('settings', 'vi_redraw') == 'auto'
+            if vi_redraw == 'auto'
                 let s:redraw_setting = 'auto'
             endif
-            if s:GetIniSetting('settings', 'vi_redraw') == 'disabled'
+            if vi_redraw == 'disabled'
                 let s:redraw_setting = 'disabled'
             endif
         endif
@@ -109,6 +88,128 @@ let s:VERSION = '8.0.1'
         " Buffering heartbeats disabled in Windows, unless have async support
         let s:buffering_heartbeats_enabled = s:has_async || s:nvim_async || !s:IsWindows()
 
+        " Detect os and architecture
+        if s:IsWindows()
+            let s:osname = "windows"
+            if has("win64")
+                let s:architecture = "amd64"
+            else
+                let s:architecture = "386"
+            endif
+        else
+            let s:osname = tolower(s:StripWhitespace(s:Chomp(system('uname -s'))))
+            let s:architecture = s:StripWhitespace(s:Chomp(system('uname -m')))
+            if s:architecture == 'x86_64'
+                let s:architecture = "amd64"
+            elseif s:architecture == 'armv7l'
+                let s:architecture = "arm"
+            elseif s:architecture == 'aarch64_be' || s:architecture == 'aarch64' || s:architecture == 'armv8b' || s:architecture == 'armv8l'
+                let s:architecture = "arm64"
+            elseif s:architecture == 'i386' || s:architecture == 'i686'
+                let s:architecture = "386"
+            endif
+        endif
+
+        let s:autoupdate_cli = s:false
+
+        " Check vimrc config for wakatime-cli binary path
+        if exists("g:wakatime_CLIPath") && filereadable(g:wakatime_CLIPath)
+            let s:wakatime_cli = g:wakatime_CLIPath
+
+        " Legacy configuration of wakatime-cli
+        elseif exists("g:wakatime_OverrideCommandPrefix") && filereadable(g:wakatime_OverrideCommandPrefix)
+            let s:wakatime_cli = g:wakatime_OverrideCommandPrefix
+
+        " Check $PATH and ~/.wakatime/wakatime-cli-<os>-<arch>
+        else
+            let path = s:home . '/.wakatime/' . printf('wakatime-cli-%s-%s', s:osname, s:architecture)
+            if s:IsWindows()
+                let path = path . '.exe'
+            endif
+
+            " Check for wakatime-cli installed via Homebrew
+            if !filereadable(path) && filereadable('/usr/local/bin/wakatime-cli')
+                let s:wakatime_cli = '/usr/local/bin/wakatime-cli'
+
+            " Default to ~/.wakatime/wakatime-cli-<os>-<arch>
+            else
+                let s:autoupdate_cli = s:true
+                let s:wakatime_cli = path
+            endif
+        endif
+
+    endfunction
+
+    function! s:InstallCLI(use_external_python)
+        if !s:autoupdate_cli && filereadable(s:wakatime_cli)
+            return
+        endif
+
+        let python_bin = s:false
+        if a:use_external_python
+            let python_bin = s:GetPythonBinary()
+        endif
+
+        " First try install wakatime-cli in background, then using Vim's Python
+        if python_bin != ""
+            let install_script = s:plugin_root_folder . '/scripts/install_cli.py'
+            let cmd = [python_bin, '-W', 'ignore', install_script]
+            if s:has_async
+                if s:IsWindows()
+                    let job_cmd = [&shell, &shellcmdflag] + cmd
+                else
+                    let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+                endif
+                let job = job_start(job_cmd, {
+                    \ 'stoponexit': '',
+                    \ 'callback': {channel, output -> s:AsyncInstallHandler(output, cmd)}})
+            elseif s:nvim_async
+                if s:IsWindows()
+                    let job_cmd = cmd
+                else
+                    let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+                endif
+                let s:nvim_async_output = ['']
+                let job = jobstart(job_cmd, {
+                    \ 'detach': 1,
+                    \ 'on_stdout': function('s:NeovimAsyncInstallOutputHandler'),
+                    \ 'on_stderr': function('s:NeovimAsyncInstallOutputHandler'),
+                    \ 'on_exit': function('s:NeovimAsyncInstallExitHandler')})
+            elseif s:IsWindows()
+                if s:is_debug_on
+                    let stdout = system('(' . s:JoinArgs(cmd) . ')')
+                else
+                    exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+                endif
+            else
+                if s:is_debug_on
+                    let stdout = system(s:JoinArgs(cmd))
+                else
+                    let stdout = system(s:JoinArgs(cmd) . ' &')
+                endif
+            endif
+        elseif has('python3')
+            python3 << EOF
+import sys
+import vim
+from os.path import abspath, join
+sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
+from install_cli import main
+main()
+EOF
+        elseif has('python')
+            python << EOF
+import sys
+import vim
+from os.path import abspath, join
+sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
+from install_cli import main
+main()
+EOF
+        else
+            let url = printf('https://github.com/wakatime/wakatime-cli/releases/download/latest/wakatime-cli-%s-%s.zip', s:osname, s:architecture)
+            echo printf("Download wakatime-cli and extract into the ~/.wakatime/ folder:\n%s", url)
+        endif
     endfunction
 
 " }}}
@@ -223,6 +324,39 @@ let s:VERSION = '8.0.1'
         call writefile(output, s:config_file)
     endfunction
 
+    function! s:GetPythonBinary()
+        let python_bin = ""
+        if has('g:wakatime_PythonBinary')
+            let python_bin = g:wakatime_PythonBinary
+        endif
+        if !filereadable(python_bin)
+            let paths = ['python3']
+            if s:IsWindows()
+                let pyver = 39
+                while pyver >= 27
+                    let paths = paths + [printf('/Python%d/pythonw', pyver), printf('/python%d/pythonw', pyver), printf('/Python%d/python', pyver), printf('/python%d/python', pyver)]
+                    let pyver = pyver - 1
+                endwhile
+            else
+                let paths = paths + ['/usr/bin/python3', '/usr/local/bin/python3', '/usr/bin/python3.6', '/usr/local/bin/python3.6', '/usr/bin/python', '/usr/local/bin/python', '/usr/bin/python2', '/usr/local/bin/python2']
+            endif
+            let paths = paths + ['python']
+            let index = 0
+            let limit = len(paths)
+            while index < limit
+                if filereadable(paths[index])
+                    let python_bin = paths[index]
+                    let index = limit
+                endif
+                let index = index + 1
+            endwhile
+        endif
+        if s:IsWindows() && filereadable(printf('%sw', python_bin))
+            let python_bin = printf('%sw', python_bin)
+        endif
+        return python_bin
+    endfunction
+
     function! s:GetCurrentFile()
         return expand("%:p")
     endfunction
@@ -285,46 +419,6 @@ let s:VERSION = '8.0.1'
         endif
     endfunction
 
-    function! s:GetPythonBinary()
-        let python_bin = g:wakatime_PythonBinary
-        if !filereadable(python_bin)
-            let paths = ['python3']
-            if s:IsWindows()
-                let pyver = 39
-                while pyver >= 27
-                    let paths = paths + [printf('/Python%d/pythonw', pyver), printf('/python%d/pythonw', pyver), printf('/Python%d/python', pyver), printf('/python%d/python', pyver)]
-                    let pyver = pyver - 1
-                endwhile
-            else
-                let paths = paths + ['/usr/bin/python3', '/usr/local/bin/python3', '/usr/bin/python3.6', '/usr/local/bin/python3.6', '/usr/bin/python', '/usr/local/bin/python', '/usr/bin/python2', '/usr/local/bin/python2']
-            endif
-            let paths = paths + ['python']
-            let index = 0
-            let limit = len(paths)
-            while index < limit
-                if filereadable(paths[index])
-                    let python_bin = paths[index]
-                    let index = limit
-                endif
-                let index = index + 1
-            endwhile
-        endif
-        if s:IsWindows() && filereadable(printf('%sw', python_bin))
-            let python_bin = printf('%sw', python_bin)
-        endif
-        return python_bin
-    endfunction
-
-    function! s:GetCommandPrefix()
-        if exists("g:wakatime_OverrideCommandPrefix") && g:wakatime_OverrideCommandPrefix != ''
-            let prefix = [g:wakatime_OverrideCommandPrefix]
-        else
-            let python_bin = s:GetPythonBinary()
-            let prefix = [python_bin, '-W', 'ignore', s:cli_location]
-        endif
-        return prefix
-    endfunction
-
     function! s:SendHeartbeats()
         let start_time = localtime()
         let stdout = ''
@@ -342,7 +436,7 @@ let s:VERSION = '8.0.1'
             let extra_heartbeats = ''
         endif
 
-        let cmd = s:GetCommandPrefix() + ['--entity', heartbeat.entity]
+        let cmd = [s:wakatime_cli, '--entity', heartbeat.entity]
         let cmd = cmd + ['--time', heartbeat.time]
 
         let editor_name = 'vim'
@@ -403,6 +497,9 @@ let s:VERSION = '8.0.1'
                     let stdout = system('(' . s:JoinArgs(cmd) . ')')
                 endif
             else
+                if s:buffering_heartbeats_enabled
+                    echo "[WakaTime] Error: Buffering heartbeats should be disabled on Windows without async support."
+                endif
                 exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
             endif
         else
@@ -438,7 +535,7 @@ let s:VERSION = '8.0.1'
         endif
 
         if s:is_debug_on && stdout != ''
-            echoerr '[WakaTime] Heartbeat Command: ' . s:JoinArgs(cmd) . "\n[WakaTime] Error: " . stdout
+            echoerr '[WakaTime] Command: ' . s:JoinArgs(cmd) . "\n[WakaTime] Error: " . stdout
         endif
     endfunction
 
@@ -463,27 +560,6 @@ let s:VERSION = '8.0.1'
         endfor
         let s:heartbeats_buffer = []
         return '[' . join(arr, ',') . ']'
-    endfunction
-
-    function! s:AsyncHandler(output, cmd)
-        if s:is_debug_on && a:output != ''
-            echoerr '[WakaTime] Heartbeat Command: ' . s:JoinArgs(a:cmd) . "\n[WakaTime] Error: " . a:output
-        endif
-    endfunction
-
-    function! s:NeovimAsyncOutputHandler(job_id, output, event)
-        let s:nvim_async_output[-1] .= a:output[0]
-        call extend(s:nvim_async_output, a:output[1:])
-    endfunction
-
-    function! s:NeovimAsyncExitHandler(job_id, exit_code, event)
-        let output = s:StripWhitespace(join(s:nvim_async_output, "\n"))
-        if a:exit_code == 104
-            let output .= 'Invalid API Key'
-        endif
-        if (s:is_debug_on || a:exit_code == 103 || a:exit_code == 104) && (a:exit_code != 0 || output != '')
-            echoerr printf('[WakaTime] Error %d: %s', a:exit_code, output)
-        endif
     endfunction
 
     function! s:OrderTime(time_str, loop_count)
@@ -605,27 +681,8 @@ let s:VERSION = '8.0.1'
         endif
     endfunction
 
-    function! s:AsyncHandlerToday(output, cmd)
-        echo "Today: " . a:output
-    endfunction
-
-    function! s:NeovimAsyncOutputHandlerToday(job_id, output, event)
-        let s:nvim_async_output_today[-1] .= a:output[0]
-        call extend(s:nvim_async_output_today, a:output[1:])
-    endfunction
-
-    function! s:NeovimAsyncExitHandlerToday(job_id, exit_code, event)
-        let output = s:StripWhitespace(join(s:nvim_async_output_today, "\n"))
-        if a:exit_code == 104
-            let output .= 'Invalid API Key'
-        endif
-        if output != ''
-            echo "Today: " . output
-        endif
-    endfunction
-
     function! g:WakaTimeToday()
-        let cmd = s:GetCommandPrefix() + ['--today']
+        let cmd = [s:wakatime_cli, '--today']
 
         if s:has_async
             if s:IsWindows()
@@ -635,7 +692,7 @@ let s:VERSION = '8.0.1'
             endif
             let job = job_start(job_cmd, {
                 \ 'stoponexit': '',
-                \ 'callback': {channel, output -> s:AsyncHandlerToday(output, cmd)}})
+                \ 'callback': {channel, output -> s:AsyncTodayHandler(output, cmd)}})
         elseif s:nvim_async
             if s:IsWindows()
                 let job_cmd = cmd
@@ -645,9 +702,9 @@ let s:VERSION = '8.0.1'
             let s:nvim_async_output_today = ['']
             let job = jobstart(job_cmd, {
                 \ 'detach': 1,
-                \ 'on_stdout': function('s:NeovimAsyncOutputHandlerToday'),
-                \ 'on_stderr': function('s:NeovimAsyncOutputHandlerToday'),
-                \ 'on_exit': function('s:NeovimAsyncExitHandlerToday')})
+                \ 'on_stdout': function('s:NeovimAsyncTodayOutputHandler'),
+                \ 'on_stderr': function('s:NeovimAsyncTodayOutputHandler'),
+                \ 'on_exit': function('s:NeovimAsyncTodayExitHandler')})
         else
             echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
         endif
@@ -656,7 +713,73 @@ let s:VERSION = '8.0.1'
 " }}}
 
 
+" Async Handlers {{{
+
+    function! s:AsyncHandler(output, cmd)
+        if s:is_debug_on && s:StripWhitespace(a:output) != ''
+            echoerr '[WakaTime] Command: ' . s:JoinArgs(a:cmd) . "\n[WakaTime] Error: " . a:output
+        endif
+    endfunction
+
+    function! s:NeovimAsyncOutputHandler(job_id, output, event)
+        let s:nvim_async_output[-1] .= a:output[0]
+        call extend(s:nvim_async_output, a:output[1:])
+    endfunction
+
+    function! s:NeovimAsyncExitHandler(job_id, exit_code, event)
+        let output = s:StripWhitespace(join(s:nvim_async_output, "\n"))
+        if a:exit_code == 104
+            let output .= 'Invalid API Key'
+        endif
+        if (s:is_debug_on || a:exit_code == 103 || a:exit_code == 104) && (a:exit_code != 0 || output != '')
+            echoerr printf('[WakaTime] Error %d: %s', a:exit_code, output)
+        endif
+    endfunction
+
+    function! s:AsyncTodayHandler(output, cmd)
+        echo "Today: " . a:output
+    endfunction
+
+    function! s:NeovimAsyncTodayOutputHandler(job_id, output, event)
+        let s:nvim_async_output_today[-1] .= a:output[0]
+        call extend(s:nvim_async_output_today, a:output[1:])
+    endfunction
+
+    function! s:NeovimAsyncTodayExitHandler(job_id, exit_code, event)
+        let output = s:StripWhitespace(join(s:nvim_async_output_today, "\n"))
+        if a:exit_code == 104
+            let output .= 'Invalid API Key'
+        endif
+        if output != ''
+            echo "Today: " . output
+        endif
+    endfunction
+
+    function! s:AsyncInstallHandler(output, cmd)
+        if s:is_debug_on && s:StripWhitespace(a:output != '')
+            echoerr '[WakaTime] ' . a:output
+            call s:InstallCLI(s:false)
+        endif
+    endfunction
+
+    function! s:NeovimAsyncInstallOutputHandler(job_id, output, event)
+        let s:nvim_async_output[-1] .= a:output[0]
+        call extend(s:nvim_async_output, a:output[1:])
+    endfunction
+
+    function! s:NeovimAsyncInstallExitHandler(job_id, exit_code, event)
+        let output = s:StripWhitespace(join(s:nvim_async_output, "\n"))
+        if s:is_debug_on && (a:exit_code != 0 || output != '')
+            echoerr printf('[WakaTime] %d: %s', a:exit_code, output)
+            call s:InstallCLI(s:false)
+        endif
+    endfunction
+
+" }}}
+
+
 call s:Init()
+call s:InstallCLI(s:true)
 
 
 " Autocommand Events {{{
