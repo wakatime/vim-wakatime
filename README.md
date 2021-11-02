@@ -21,8 +21,6 @@
 
 3. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
 
-Note: WakaTime depends on [Python](http://www.python.org/getit/) being installed to work correctly.
-
 
 ## Screen Shots
 
@@ -41,21 +39,9 @@ Note: WakaTime depends on [Python](http://www.python.org/getit/) being installed
 * `:WakaTimeScreenRedrawDisable` - disable screen redraw
 * `:WakaTimeToday` - echo your total coding activity for Today
 
-#### Vimrc Settings:
-
-    let g:wakatime_PythonBinary = '/usr/bin/python'  " (Default: 'python')
-
-Tells the plugin to use a custom python binary.
-The default is to use `python` from your system PATH.
-
-    let g:wakatime_OverrideCommandPrefix = '/usr/bin/wakatime'  " (Default: '')
-
-Overrides the WakaTime CLI command prefix. You might need this when running
-[wakatime-cli][wakatime-cli] with a custom wrapper script or from the pip
-installed binary. Normally, the bundled [wakatime-cli][wakatime-cli] is used
-so this setting is not needed.
-
-WakaTime plugins also share a common `~/.wakatime.cfg` config file. [See common configs...][wakatime-cli-config]
+The vim-wakatime plugin automatically downloads and updates [wakatime-cli][wakatime-cli] in your `$WAKATIME_HOME/.wakatime/` folder.
+WakaTime plugins also share a common [$WAKATIME_HOME/.wakatime.cfg config file][wakatime-cli-config].
+`$WAKATIME_HOME` defaults to your `$HOME` folder.
 
 
 ## Troubleshooting
@@ -92,8 +78,8 @@ _While in vim_
 3. Run `:PlugClean`, it will detect and remove undeclared plugins.
 
 [wakatime]: https://wakatime.com/vim
-[wakatime-cli]: https://github.com/wakatime/wakatime
-[wakatime-cli-config]: https://github.com/wakatime/wakatime#configuring
+[wakatime-cli]: https://github.com/wakatime/wakatime-cli
+[wakatime-cli-config]: https://github.com/wakatime/wakatime-cli/blob/develop/USAGE.md#ini-config-file
 [wakatime-cli-help]: https://github.com/wakatime/wakatime#troubleshooting
 [how to debug]: https://wakatime.com/faq#debug-plugins
 [user agents api]: https://wakatime.com/developers#user_agents
