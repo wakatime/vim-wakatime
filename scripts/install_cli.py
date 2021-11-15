@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+import contextlib
 import json
 import os
 import platform
@@ -8,7 +9,6 @@ import re
 import ssl
 import subprocess
 import sys
-import threading
 import traceback
 from subprocess import PIPE
 from zipfile import ZipFile
@@ -26,6 +26,7 @@ except ImportError:
 
 GITHUB_RELEASES_STABLE_URL = 'https://api.github.com/repos/wakatime/wakatime-cli/releases/latest'
 GITHUB_DOWNLOAD_PREFIX = 'https://github.com/wakatime/wakatime-cli/releases/download'
+PLUGIN = 'vim'
 
 is_py2 = (sys.version_info[0] == 2)
 is_py3 = (sys.version_info[0] == 3)
@@ -44,8 +45,7 @@ def main(home=None):
 
     CONFIGS = parseConfigFile(getConfigFile())
     if not isCliLatest():
-        thread = DownloadCLI()
-        thread.start()
+        downloadCLI()
 
 
 if is_py2:
@@ -169,43 +169,39 @@ def getConfigFile(internal=None):
     return os.path.join(getHomeFolder(), '.wakatime.cfg')
 
 
-class DownloadCLI(threading.Thread):
-    """Non-blocking thread for downloading latest wakatime-cli from GitHub.
-    """
+def downloadCLI(self):
+    log('Downloading wakatime-cli...')
 
-    def run(self):
-        log('Downloading wakatime-cli...')
+    if not os.path.exists(getResourcesFolder()):
+        os.makedirs(getResourcesFolder())
 
-        if not os.path.exists(getResourcesFolder()):
-            os.makedirs(getResourcesFolder())
-
-        if isCliInstalled():
-            try:
-                os.remove(getCliLocation())
-            except:
-                log(traceback.format_exc())
-
+    if isCliInstalled():
         try:
-            url = cliDownloadUrl()
-            log('Downloading wakatime-cli from {url}'.format(url=url))
-            zip_file = os.path.join(getResourcesFolder(), 'wakatime-cli.zip')
-            download(url, zip_file)
-
-            log('Extracting wakatime-cli...')
-            with ZipFile(zip_file) as zf:
-                zf.extractall(getResourcesFolder())
-
-            if not is_win:
-                os.chmod(getCliLocation(), 509)  # 755
-
-            try:
-                os.remove(os.path.join(getResourcesFolder(), 'wakatime-cli.zip'))
-            except:
-                log(traceback.format_exc())
+            os.remove(getCliLocation())
         except:
             log(traceback.format_exc())
 
-        log('Finished extracting wakatime-cli.')
+    try:
+        url = cliDownloadUrl()
+        log('Downloading wakatime-cli from {url}'.format(url=url))
+        zip_file = os.path.join(getResourcesFolder(), 'wakatime-cli.zip')
+        download(url, zip_file)
+
+        log('Extracting wakatime-cli...')
+        with contextlib.closing(ZipFile(zip_file)) as zf:
+            zf.extractall(getResourcesFolder())
+
+        if not is_win:
+            os.chmod(getCliLocation(), 509)  # 755
+
+        try:
+            os.remove(os.path.join(getResourcesFolder(), 'wakatime-cli.zip'))
+        except:
+            log(traceback.format_exc())
+    except:
+        log(traceback.format_exc())
+
+    log('Finished extracting wakatime-cli.')
 
 
 WAKATIME_CLI_LOCATION = None
@@ -369,9 +365,10 @@ def cliDownloadUrl():
 
 
 def reportMissingPlatformSupport(osname, arch):
-    url = 'https://api.wakatime.com/api/v1/cli-missing?osname={osname}&architecture={arch}&plugin=vim'.format(
+    url = 'https://api.wakatime.com/api/v1/cli-missing?osname={osname}&architecture={arch}&plugin={plugin}'.format(
         osname=osname,
         arch=arch,
+        plugin=PLUGIN,
     )
     request(url)
 
@@ -386,7 +383,7 @@ def request(url, last_modified=None):
     else:
         opener = build_opener()
 
-    headers = [('User-Agent', 'github.com/wakatime/vim-wakatime')]
+    headers = [('User-Agent', f'github.com/wakatime/{PLUGIN}-wakatime')]
     if last_modified:
         headers.append(('If-Modified-Since', last_modified))
 
@@ -443,7 +440,7 @@ def download(url, filePath):
         }))
     else:
         opener = build_opener()
-    opener.addheaders = [('User-Agent', 'github.com/wakatime/vim-wakatime')]
+    opener.addheaders = [('User-Agent', f'github.com/wakatime/{PLUGIN}-wakatime')]
 
     install_opener(opener)
 
