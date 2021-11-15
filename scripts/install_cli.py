@@ -18,7 +18,8 @@ try:
 except ImportError:
     import configparser
 try:
-    from urllib2 import urlopen, urlretrieve, ProxyHandler, build_opener, install_opener, HTTPError
+    from urllib2 import urlopen, ProxyHandler, build_opener, install_opener, HTTPError
+    from urllib import urlretrieve
 except ImportError:
     from urllib.request import urlopen, urlretrieve, ProxyHandler, build_opener, install_opener
     from urllib.error import HTTPError
