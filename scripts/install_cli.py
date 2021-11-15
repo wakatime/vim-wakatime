@@ -383,7 +383,7 @@ def request(url, last_modified=None):
     else:
         opener = build_opener()
 
-    headers = [('User-Agent', f'github.com/wakatime/{PLUGIN}-wakatime')]
+    headers = [('User-Agent', 'github.com/wakatime/{plugin}-wakatime'.format(plugin=PLUGIN))]
     if last_modified:
         headers.append(('If-Modified-Since', last_modified))
 
@@ -440,7 +440,7 @@ def download(url, filePath):
         }))
     else:
         opener = build_opener()
-    opener.addheaders = [('User-Agent', f'github.com/wakatime/{PLUGIN}-wakatime')]
+    opener.addheaders = [('User-Agent', 'github.com/wakatime/{plugin}-wakatime'.format(plugin=PLUGIN))]
 
     install_opener(opener)
 
