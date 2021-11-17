@@ -3,6 +3,14 @@ History
 -------
 
 
+9.0.1 (2021-11-17)
+++++++++++++++++++
+
+- Fixes when installing on system with Python 2.
+- Fix wakatime-cli download url.
+  `#102 <https://github.com/wakatime/vim-wakatime/pull/102>`_
+
+
 9.0.0 (2021-11-01)
 ++++++++++++++++++
 
