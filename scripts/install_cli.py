@@ -175,7 +175,7 @@ def getConfigFile(internal=None):
     return os.path.join(getHomeFolder(), '.wakatime.cfg')
 
 
-def downloadCLI(self):
+def downloadCLI():
     log('Downloading wakatime-cli...')
 
     if not os.path.exists(getResourcesFolder()):
