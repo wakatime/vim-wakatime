@@ -406,7 +406,7 @@ EOF
             let heartbeat.entity = file
             let heartbeat.time = s:CurrentTimeStr()
             let heartbeat.is_write = a:is_write
-            if !empty(&syntax)
+            if !empty(&syntax) && &syntax != 'ON'
                 let heartbeat.language = &syntax
             else
                 if !empty(&filetype)
