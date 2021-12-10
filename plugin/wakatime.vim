@@ -807,7 +807,7 @@ EOF
 
     function! s:AsyncInstallHandler(output)
         if s:is_debug_on && s:StripWhitespace(a:output != '')
-            echoerr '[WakaTime] ' . a:output
+            echo '[WakaTime] ' . a:output
             call s:InstallCLI(s:false)
         endif
     endfunction
@@ -820,7 +820,7 @@ EOF
     function! s:NeovimAsyncInstallExitHandler(job_id, exit_code, event)
         let output = s:StripWhitespace(join(s:nvim_async_output, "\n"))
         if s:is_debug_on && (a:exit_code != 0 || output != '')
-            echoerr printf('[WakaTime] %d: %s', a:exit_code, output)
+            echo printf('[WakaTime] %d: %s', a:exit_code, output)
             call s:InstallCLI(s:false)
         endif
     endfunction
