@@ -192,7 +192,10 @@ let s:VERSION = '9.0.1'
                 endif
             endif
         elseif has('python3')
-            python3 << EOF
+            if executable(v:progname)
+                call s:InstallCLIRoundAbout()
+            else
+                python3 << EOF
 import sys
 import vim
 from os.path import abspath, join
@@ -200,8 +203,12 @@ sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
 from install_cli import main
 main(home=vim.eval('s:home'))
 EOF
+            endif
         elseif has('python')
-            python << EOF
+            if executable(v:progname)
+                call s:InstallCLIRoundAbout()
+            else
+                python << EOF
 import sys
 import vim
 from os.path import abspath, join
@@ -209,9 +216,42 @@ sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
 from install_cli import main
 main(home=vim.eval('s:home'))
 EOF
+            endif
         else
             let url = printf('https://github.com/wakatime/wakatime-cli/releases/latest/download/wakatime-cli-%s-%s.zip', s:osname, s:architecture)
             echo printf("Download wakatime-cli and extract into the ~/.wakatime/ folder:\n%s", url)
+        endif
+    endfunction
+
+    function! s:InstallCLIRoundAbout()
+        let install_script = s:plugin_root_folder . '/scripts/install.vim'
+        let cmd = [v:progname, '-u', 'NONE', '-c', 'source ' . install_script, '+qall']
+        if s:has_async
+            if s:IsWindows()
+                let job_cmd = [&shell, &shellcmdflag] + cmd
+            else
+                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            endif
+            let job = job_start(job_cmd, {'stoponexit': ''})
+        elseif s:nvim_async
+            if s:IsWindows()
+                let job_cmd = cmd
+            else
+                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            endif
+            let job = jobstart(job_cmd, {'detach': 1})
+        elseif s:IsWindows()
+            if s:is_debug_on
+                let stdout = system('(' . s:JoinArgs(cmd) . ')')
+            else
+                exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+            endif
+        else
+            if s:is_debug_on
+                let stdout = system(s:JoinArgs(cmd))
+            else
+                let stdout = system(s:JoinArgs(cmd) . ' &')
+            endif
         endif
     endfunction
 
@@ -332,7 +372,14 @@ EOF
         if has('g:wakatime_PythonBinary')
             let python_bin = g:wakatime_PythonBinary
         endif
-        if !filereadable(python_bin)
+        if !filereadable(python_bin) && !executable(python_bin)
+            if executable('python3')
+                let python_bin = 'python3'
+            elseif executable('python')
+                let python_bin = 'python'
+            endif
+        endif
+        if !filereadable(python_bin) && !executable(python_bin)
             let paths = ['python3']
             if s:IsWindows()
                 let pyver = 39
@@ -354,7 +401,7 @@ EOF
                 let index = index + 1
             endwhile
         endif
-        if s:IsWindows() && filereadable(printf('%sw', python_bin))
+        if s:IsWindows() && (filereadable(printf('%sw', python_bin)) || executable(printf('%sw', python_bin)))
             let python_bin = printf('%sw', python_bin)
         endif
         return python_bin
