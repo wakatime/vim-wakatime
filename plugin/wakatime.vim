@@ -217,7 +217,7 @@ from install_cli import main
 main(home=vim.eval('s:home'))
 EOF
             endif
-        else
+        elseif !filereadable(s:wakatime_cli)
             let url = printf('https://github.com/wakatime/wakatime-cli/releases/latest/download/wakatime-cli-%s-%s.zip', s:osname, s:architecture)
             echo printf("Download wakatime-cli and extract into the ~/.wakatime/ folder:\n%s", url)
         endif
