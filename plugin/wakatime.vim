@@ -191,11 +191,10 @@ let s:VERSION = '9.0.1'
                     let stdout = system(s:JoinArgs(cmd) . ' &')
                 endif
             endif
+        elseif executable(v:progname) && (has('python3') || has('python'))
+            call s:InstallCLIRoundAbout()
         elseif has('python3')
-            if executable(v:progname)
-                call s:InstallCLIRoundAbout()
-            else
-                python3 << EOF
+            python3 << EOF
 import sys
 import vim
 from os.path import abspath, join
@@ -203,12 +202,8 @@ sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
 from install_cli import main
 main(home=vim.eval('s:home'))
 EOF
-            endif
         elseif has('python')
-            if executable(v:progname)
-                call s:InstallCLIRoundAbout()
-            else
-                python << EOF
+            python << EOF
 import sys
 import vim
 from os.path import abspath, join
@@ -216,7 +211,6 @@ sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
 from install_cli import main
 main(home=vim.eval('s:home'))
 EOF
-            endif
         elseif !filereadable(s:wakatime_cli)
             let url = printf('https://github.com/wakatime/wakatime-cli/releases/latest/download/wakatime-cli-%s-%s.zip', s:osname, s:architecture)
             echo printf("Download wakatime-cli and extract into the ~/.wakatime/ folder:\n%s", url)
@@ -224,8 +218,13 @@ EOF
     endfunction
 
     function! s:InstallCLIRoundAbout()
-        let install_script = s:plugin_root_folder . '/scripts/install.vim'
-        let cmd = [v:progname, '-u', 'NONE', '-c', 'source ' . install_script, '+qall']
+        if has('python3')
+            let py = 'python3'
+        else
+            let py = 'python'
+        endif
+        let code = py . " import sys, vim;from os.path import abspath, join;sys.path.insert(0, abspath(join('" . s:plugin_root_folder . "', 'scripts')));from install_cli import main;main(home='" . s:home . "');"
+        let cmd = [v:progname, '-u', 'NONE', '-c', code, '+qall']
         if s:has_async
             if s:IsWindows()
                 let job_cmd = [&shell, &shellcmdflag] + cmd
