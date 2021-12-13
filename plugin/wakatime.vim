@@ -191,7 +191,7 @@ let s:VERSION = '9.0.1'
                     let stdout = system(s:JoinArgs(cmd) . ' &')
                 endif
             endif
-        elseif executable(v:progname) && (has('python3') || has('python'))
+        elseif !empty(v:progname) && executable(v:progname) && (has('python3') || has('python'))
             call s:InstallCLIRoundAbout()
         elseif has('python3')
             python3 << EOF
@@ -371,14 +371,14 @@ EOF
         if has('g:wakatime_PythonBinary')
             let python_bin = g:wakatime_PythonBinary
         endif
-        if !filereadable(python_bin) && !executable(python_bin)
+        if !empty(python_bin) && !filereadable(python_bin) && !executable(python_bin)
             if executable('python3')
                 let python_bin = 'python3'
             elseif executable('python')
                 let python_bin = 'python'
             endif
         endif
-        if !filereadable(python_bin) && !executable(python_bin)
+        if !empty(python_bin) && !filereadable(python_bin) && !executable(python_bin)
             let paths = ['python3']
             if s:IsWindows()
                 let pyver = 39
@@ -400,7 +400,7 @@ EOF
                 let index = index + 1
             endwhile
         endif
-        if s:IsWindows() && (filereadable(printf('%sw', python_bin)) || executable(printf('%sw', python_bin)))
+        if s:IsWindows() && !empty(python_bin) && (filereadable(printf('%sw', python_bin)) || executable(printf('%sw', python_bin)))
             let python_bin = printf('%sw', python_bin)
         endif
         return python_bin
