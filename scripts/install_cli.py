@@ -49,6 +49,11 @@ def main(home=None):
     if not isCliLatest():
         downloadCLI()
 
+    try:
+        os.symlink(getCliLocation(), os.path.join(getResourcesFolder(), 'wakatime-cli'))
+    except:
+        pass
+
 
 if is_py2:
     import codecs
