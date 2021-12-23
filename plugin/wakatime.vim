@@ -154,7 +154,7 @@ let s:VERSION = '9.0.1'
         endif
 
         " First try install wakatime-cli in background, then using Vim's Python
-        if python_bin != ""
+        if !empty(python_bin) && python_bin != s:false
             let install_script = s:plugin_root_folder . '/scripts/install_cli.py'
             let cmd = [python_bin, '-W', 'ignore', install_script, s:home]
             if s:has_async
