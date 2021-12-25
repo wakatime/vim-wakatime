@@ -135,7 +135,7 @@ let s:VERSION = '9.0.1'
                 let s:wakatime_cli = 'wakatime'
 
             " Check for wakatime-cli installed via Homebrew
-            if !filereadable(path) && filereadable('/usr/local/bin/wakatime-cli')
+            elseif !filereadable(path) && filereadable('/usr/local/bin/wakatime-cli')
                 let s:wakatime_cli = '/usr/local/bin/wakatime-cli'
 
             " Default to ~/.wakatime/wakatime-cli-<os>-<arch>
