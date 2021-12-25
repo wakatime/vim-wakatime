@@ -148,13 +148,13 @@ let s:VERSION = '9.0.1'
             return
         endif
 
-        let python_bin = s:false
+        let python_bin = ''
         if a:use_external_python
             let python_bin = s:GetPythonBinary()
         endif
 
         " First try install wakatime-cli in background, then using Vim's Python
-        if !empty(python_bin) && python_bin != s:false
+        if !empty(python_bin)
             let install_script = s:plugin_root_folder . '/scripts/install_cli.py'
             let cmd = [python_bin, '-W', 'ignore', install_script, s:home]
             if s:has_async
@@ -371,36 +371,35 @@ EOF
         if has('g:wakatime_PythonBinary')
             let python_bin = g:wakatime_PythonBinary
         endif
-        if !empty(python_bin) && !filereadable(python_bin) && !executable(python_bin)
+        if empty(python_bin) || !filereadable(python_bin) || !executable(python_bin)
             if executable('python3')
                 let python_bin = 'python3'
             elseif executable('python')
                 let python_bin = 'python'
-            endif
-        endif
-        if !empty(python_bin) && !filereadable(python_bin) && !executable(python_bin)
-            let paths = ['python3']
-            if s:IsWindows()
-                let pyver = 39
-                while pyver >= 27
-                    let paths = paths + [printf('/Python%d/pythonw', pyver), printf('/python%d/pythonw', pyver), printf('/Python%d/python', pyver), printf('/python%d/python', pyver)]
-                    let pyver = pyver - 1
-                endwhile
             else
-                let paths = paths + ['/usr/bin/python3', '/usr/local/bin/python3', '/usr/bin/python3.6', '/usr/local/bin/python3.6', '/usr/bin/python', '/usr/local/bin/python', '/usr/bin/python2', '/usr/local/bin/python2']
-            endif
-            let paths = paths + ['python']
-            let index = 0
-            let limit = len(paths)
-            while index < limit
-                if filereadable(paths[index])
-                    let python_bin = paths[index]
-                    let index = limit
+                let paths = ['python3']
+                if s:IsWindows()
+                    let pyver = 39
+                    while pyver >= 27
+                        let paths = paths + [printf('/Python%d/pythonw', pyver), printf('/python%d/pythonw', pyver), printf('/Python%d/python', pyver), printf('/python%d/python', pyver)]
+                        let pyver = pyver - 1
+                    endwhile
+                else
+                    let paths = paths + ['/usr/bin/python3', '/usr/local/bin/python3', '/usr/bin/python3.6', '/usr/local/bin/python3.6', '/usr/bin/python', '/usr/local/bin/python', '/usr/bin/python2', '/usr/local/bin/python2']
                 endif
-                let index = index + 1
-            endwhile
+                let paths = paths + ['python']
+                let index = 0
+                let limit = len(paths)
+                while index < limit
+                    if filereadable(paths[index])
+                        let python_bin = paths[index]
+                        let index = limit
+                    endif
+                    let index = index + 1
+                endwhile
+            endif
         endif
-        if s:IsWindows() && !empty(python_bin) && (filereadable(printf('%sw', python_bin)) || executable(printf('%sw', python_bin)))
+        if !empty(python_bin) && s:IsWindows() && (filereadable(printf('%sw', python_bin)) || executable(printf('%sw', python_bin)))
             let python_bin = printf('%sw', python_bin)
         endif
         return python_bin
