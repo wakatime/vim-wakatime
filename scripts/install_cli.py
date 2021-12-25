@@ -26,13 +26,20 @@ except ImportError:
     from urllib.error import HTTPError
 
 
+def getOsName():
+    os = platform.system().lower()
+    if os.startswith('cygwin') or os.startswith('mingw') or os.startswith('msys'):
+        return 'windows'
+    return os
+
+
 GITHUB_RELEASES_STABLE_URL = 'https://api.github.com/repos/wakatime/wakatime-cli/releases/latest'
 GITHUB_DOWNLOAD_PREFIX = 'https://github.com/wakatime/wakatime-cli/releases/download'
 PLUGIN = 'vim'
 
 is_py2 = (sys.version_info[0] == 2)
 is_py3 = (sys.version_info[0] == 3)
-is_win = platform.system() == 'Windows'
+is_win = getOsName() == 'windows'
 
 HOME_FOLDER = None
 CONFIGS = None
@@ -49,10 +56,13 @@ def main(home=None):
     if not isCliLatest():
         downloadCLI()
 
-    try:
-        os.symlink(getCliLocation(), os.path.join(getResourcesFolder(), 'wakatime-cli'))
-    except:
-        pass
+    cli = os.path.join(getResourcesFolder(), 'wakatime-cli')
+    if not os.path.exists(cli):
+        try:
+            os.symlink(getCliLocation(), cli)
+        except:
+            # May not have permission on Windows
+            pass
 
 
 if is_py2:
@@ -223,7 +233,7 @@ def getCliLocation():
 
     if not WAKATIME_CLI_LOCATION:
         binary = 'wakatime-cli-{osname}-{arch}{ext}'.format(
-            osname=platform.system().lower(),
+            osname=getOsName(),
             arch=architecture(),
             ext='.exe' if is_win else '',
         )
@@ -337,7 +347,7 @@ def extractVersion(text):
 
 
 def cliDownloadUrl():
-    osname = platform.system().lower()
+    osname = getOsName()
     arch = architecture()
 
     validCombinations = [
