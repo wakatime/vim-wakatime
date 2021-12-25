@@ -144,7 +144,7 @@ let s:VERSION = '9.0.1'
     endfunction
 
     function! s:InstallCLI(use_external_python)
-        if !s:autoupdate_cli && executable(s:wakatime_cli)
+        if !s:autoupdate_cli && !empty(s:wakatime_cli) && executable(s:wakatime_cli)
             return
         endif
 

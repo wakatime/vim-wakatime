@@ -61,7 +61,6 @@ def main(home=None):
         try:
             os.symlink(getCliLocation(), cli)
         except:
-            # May not have permission on Windows
             pass
 
 
