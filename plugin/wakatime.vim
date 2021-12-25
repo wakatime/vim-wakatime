@@ -126,13 +126,13 @@ let s:VERSION = '9.0.1'
                 let path = path . '.exe'
             endif
 
-            " Check for wakatime-cli installed via Homebrew
-            if !filereadable(path) && filereadable('/usr/local/bin/wakatime-cli')
-                let s:wakatime_cli = '/usr/local/bin/wakatime-cli'
+            " Check for wakatime-cli
+            if !filereadable(path) && executable('wakatime-cli')
+                let s:wakatime_cli = 'wakatime-cli'
 
-            " Check for wakatime binary in /usr/bin
-            elseif !filereadable(path) && filereadable('/usr/bin/wakatime')
-                let s:wakatime_cli = '/usr/bin/wakatime'
+            " Check for wakatime
+            elseif !filereadable(path) && executable('wakatime')
+                let s:wakatime_cli = 'wakatime'
 
             " Default to ~/.wakatime/wakatime-cli-<os>-<arch>
             else
@@ -144,7 +144,7 @@ let s:VERSION = '9.0.1'
     endfunction
 
     function! s:InstallCLI(use_external_python)
-        if !s:autoupdate_cli && filereadable(s:wakatime_cli)
+        if !s:autoupdate_cli && executable(s:wakatime_cli)
             return
         endif
 
