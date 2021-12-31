@@ -168,7 +168,7 @@ let s:VERSION = '9.0.1'
             let install_script = s:plugin_root_folder . '/scripts/install_cli.py'
             let cmd = [python_bin, '-W', 'ignore', install_script, s:home]
             if s:has_async
-                if s:IsWindows()
+                if s:IsWindows() && &shell =~ 'cmd'
                     let job_cmd = [&shell, &shellcmdflag] + cmd
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -239,7 +239,7 @@ EOF
         let code = py . " import sys, vim;from os.path import abspath, join;sys.path.insert(0, abspath(join('" . s:plugin_root_folder . "', 'scripts')));from install_cli import main;main(home='" . s:home . "');"
         let cmd = [v:progname, '-u', 'NONE', '-c', code, '+qall']
         if s:has_async
-            if s:IsWindows()
+            if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -527,7 +527,7 @@ EOF
         endif
 
         if s:has_async
-            if s:IsWindows()
+            if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -753,7 +753,7 @@ EOF
         let cmd = [s:wakatime_cli, '--today']
 
         if s:has_async
-            if s:IsWindows()
+            if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -808,7 +808,7 @@ EOF
     endfunction
 
     function! s:AsyncTodayHandler(output, cmd)
-        echo "Today: " . a:output
+        echom "Today: " . a:output
     endfunction
 
     function! s:NeovimAsyncTodayOutputHandler(job_id, output, event)
