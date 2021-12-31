@@ -183,11 +183,14 @@ let s:VERSION = '9.0.1'
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
                 endif
                 let s:nvim_async_output = ['']
-                let job = jobstart(job_cmd, {
-                    \ 'detach': 1,
+                let job_opts = {
                     \ 'on_stdout': function('s:NeovimAsyncInstallOutputHandler'),
                     \ 'on_stderr': function('s:NeovimAsyncInstallOutputHandler'),
-                    \ 'on_exit': function('s:NeovimAsyncInstallExitHandler')})
+                    \ 'on_exit': function('s:NeovimAsyncInstallExitHandler')}
+                if s:osname != 'windows'
+                    let job_opts['detach'] = 1
+                endif
+                let job = jobstart(job_cmd, job_opts)
             elseif s:IsWindows()
                 if s:is_debug_on
                     let stdout = system('(' . s:JoinArgs(cmd) . ')')
@@ -248,7 +251,11 @@ EOF
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
-            let job = jobstart(job_cmd, {'detach': 1})
+            let job_opts = {}
+            if s:osname != 'windows'
+                let job_opts['detach'] = 1
+            endif
+            let job = jobstart(job_cmd, job_opts)
         elseif s:IsWindows()
             if s:is_debug_on
                 let stdout = system('(' . s:JoinArgs(cmd) . ')')
@@ -539,11 +546,14 @@ EOF
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
             let s:nvim_async_output = ['']
-            let job = jobstart(job_cmd, {
-                \ 'detach': 1,
+            let job_opts = {
                 \ 'on_stdout': function('s:NeovimAsyncOutputHandler'),
                 \ 'on_stderr': function('s:NeovimAsyncOutputHandler'),
-                \ 'on_exit': function('s:NeovimAsyncExitHandler')})
+                \ 'on_exit': function('s:NeovimAsyncExitHandler')}
+            if s:osname != 'windows'
+                let job_opts['detach'] = 1
+            endif
+            let job = jobstart(job_cmd, job_opts)
             if extra_heartbeats != ''
                 call jobsend(job, extra_heartbeats . "\n")
             endif
@@ -757,12 +767,15 @@ EOF
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
-            let s:nvim_async_output_today = ['']
-            let job = jobstart(job_cmd, {
-                \ 'detach': 1,
+            let job_opts = {
                 \ 'on_stdout': function('s:NeovimAsyncTodayOutputHandler'),
                 \ 'on_stderr': function('s:NeovimAsyncTodayOutputHandler'),
-                \ 'on_exit': function('s:NeovimAsyncTodayExitHandler')})
+                \ 'on_exit': function('s:NeovimAsyncTodayExitHandler')}
+            if s:osname != 'windows'
+                let job_opts['detach'] = 1
+            endif
+            let s:nvim_async_output_today = ['']
+            let job = jobstart(job_cmd, job_opts)
         else
             echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
         endif
