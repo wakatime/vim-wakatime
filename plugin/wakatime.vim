@@ -97,6 +97,9 @@ let s:VERSION = '9.0.1'
             endif
         else
             let s:osname = tolower(s:StripWhitespace(s:Chomp(system('uname -s'))))
+            if s:osname =~ '^cygwin' || s:osname =~ '^mingw' || s:osname =~ '^msys'
+                let s:osname = 'windows'
+            endif
             let s:architecture = s:StripWhitespace(s:Chomp(system('uname -m')))
             if s:architecture == 'x86_64'
                 let s:architecture = "amd64"
