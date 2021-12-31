@@ -42,6 +42,9 @@ let s:VERSION = '9.0.1'
     if s:home == '$WAKATIME_HOME'
         let s:home = expand("$HOME")
     endif
+    if has('win32')
+        let s:home = substitute(s:home, '\', '/', 'g')
+    endif
     let s:plugin_root_folder = substitute(expand("<sfile>:p:h:h"), '\', '/', 'g')
     let s:config_file = s:home . '/.wakatime.cfg'
     let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
