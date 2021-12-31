@@ -90,7 +90,7 @@ let s:VERSION = '9.0.1'
         " Detect os and architecture
         if s:IsWindows()
             let s:osname = "windows"
-            if has("win64")
+            if has("win64") || isdirectory(expand('$WINDIR') . '\SysWOW64')
                 let s:architecture = "amd64"
             else
                 let s:architecture = "386"
