@@ -38,8 +38,10 @@ let s:VERSION = '9.0.1'
     endif
 
     " Script Globals
-    let s:home = expand("$WAKATIME_HOME")
-    if s:home == '$WAKATIME_HOME'
+    let s:home = ''
+    if exists('$WAKATIME_HOME')
+        let s:home = expand('$WAKATIME_HOME')
+    else
         let s:home = expand("$HOME")
     endif
     if has('win32')
