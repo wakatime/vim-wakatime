@@ -38,9 +38,14 @@ let s:VERSION = '9.0.1'
     endif
 
     " Script Globals
-    let s:home = expand("$WAKATIME_HOME")
-    if s:home == '$WAKATIME_HOME'
+    let s:home = ''
+    if exists('$WAKATIME_HOME')
+        let s:home = expand('$WAKATIME_HOME')
+    else
         let s:home = expand("$HOME")
+    endif
+    if has('win32')
+        let s:home = substitute(s:home, '\', '/', 'g')
     endif
     let s:plugin_root_folder = substitute(expand("<sfile>:p:h:h"), '\', '/', 'g')
     let s:config_file = s:home . '/.wakatime.cfg'
@@ -90,13 +95,16 @@ let s:VERSION = '9.0.1'
         " Detect os and architecture
         if s:IsWindows()
             let s:osname = "windows"
-            if has("win64")
+            if has("win64") || isdirectory(expand('$WINDIR') . '\SysWOW64')
                 let s:architecture = "amd64"
             else
                 let s:architecture = "386"
             endif
         else
             let s:osname = tolower(s:StripWhitespace(s:Chomp(system('uname -s'))))
+            if s:osname =~ '^cygwin' || s:osname =~ '^mingw' || s:osname =~ '^msys'
+                let s:osname = 'windows'
+            endif
             let s:architecture = s:StripWhitespace(s:Chomp(system('uname -m')))
             if s:architecture == 'x86_64'
                 let s:architecture = "amd64"
@@ -162,7 +170,7 @@ let s:VERSION = '9.0.1'
             let install_script = s:plugin_root_folder . '/scripts/install_cli.py'
             let cmd = [python_bin, '-W', 'ignore', install_script, s:home]
             if s:has_async
-                if s:IsWindows()
+                if s:IsWindows() && &shell =~ 'cmd'
                     let job_cmd = [&shell, &shellcmdflag] + cmd
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -177,11 +185,14 @@ let s:VERSION = '9.0.1'
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
                 endif
                 let s:nvim_async_output = ['']
-                let job = jobstart(job_cmd, {
-                    \ 'detach': 1,
+                let job_opts = {
                     \ 'on_stdout': function('s:NeovimAsyncInstallOutputHandler'),
                     \ 'on_stderr': function('s:NeovimAsyncInstallOutputHandler'),
-                    \ 'on_exit': function('s:NeovimAsyncInstallExitHandler')})
+                    \ 'on_exit': function('s:NeovimAsyncInstallExitHandler')}
+                if s:osname != 'windows'
+                    let job_opts['detach'] = 1
+                endif
+                let job = jobstart(job_cmd, job_opts)
             elseif s:IsWindows()
                 if s:is_debug_on
                     let stdout = system('(' . s:JoinArgs(cmd) . ')')
@@ -230,7 +241,7 @@ EOF
         let code = py . " import sys, vim;from os.path import abspath, join;sys.path.insert(0, abspath(join('" . s:plugin_root_folder . "', 'scripts')));from install_cli import main;main(home='" . s:home . "');"
         let cmd = [v:progname, '-u', 'NONE', '-c', code, '+qall']
         if s:has_async
-            if s:IsWindows()
+            if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -242,7 +253,11 @@ EOF
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
-            let job = jobstart(job_cmd, {'detach': 1})
+            let job_opts = {}
+            if s:osname != 'windows'
+                let job_opts['detach'] = 1
+            endif
+            let job = jobstart(job_cmd, job_opts)
         elseif s:IsWindows()
             if s:is_debug_on
                 let stdout = system('(' . s:JoinArgs(cmd) . ')')
@@ -514,7 +529,7 @@ EOF
         endif
 
         if s:has_async
-            if s:IsWindows()
+            if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -533,11 +548,14 @@ EOF
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
             let s:nvim_async_output = ['']
-            let job = jobstart(job_cmd, {
-                \ 'detach': 1,
+            let job_opts = {
                 \ 'on_stdout': function('s:NeovimAsyncOutputHandler'),
                 \ 'on_stderr': function('s:NeovimAsyncOutputHandler'),
-                \ 'on_exit': function('s:NeovimAsyncExitHandler')})
+                \ 'on_exit': function('s:NeovimAsyncExitHandler')}
+            if s:osname != 'windows'
+                let job_opts['detach'] = 1
+            endif
+            let job = jobstart(job_cmd, job_opts)
             if extra_heartbeats != ''
                 call jobsend(job, extra_heartbeats . "\n")
             endif
@@ -737,7 +755,7 @@ EOF
         let cmd = [s:wakatime_cli, '--today']
 
         if s:has_async
-            if s:IsWindows()
+            if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -751,12 +769,15 @@ EOF
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
-            let s:nvim_async_output_today = ['']
-            let job = jobstart(job_cmd, {
-                \ 'detach': 1,
+            let job_opts = {
                 \ 'on_stdout': function('s:NeovimAsyncTodayOutputHandler'),
                 \ 'on_stderr': function('s:NeovimAsyncTodayOutputHandler'),
-                \ 'on_exit': function('s:NeovimAsyncTodayExitHandler')})
+                \ 'on_exit': function('s:NeovimAsyncTodayExitHandler')}
+            if s:osname != 'windows'
+                let job_opts['detach'] = 1
+            endif
+            let s:nvim_async_output_today = ['']
+            let job = jobstart(job_cmd, job_opts)
         else
             echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
         endif
