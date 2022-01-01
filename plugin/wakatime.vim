@@ -810,7 +810,7 @@ EOF
     endfunction
 
     function! s:AsyncTodayHandler(output, cmd)
-        echom "Today: " . a:output
+        echo "Today: " . a:output
     endfunction
 
     function! s:NeovimAsyncTodayOutputHandler(job_id, output, event)
