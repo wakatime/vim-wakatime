@@ -44,9 +44,7 @@ let s:VERSION = '9.0.1'
     else
         let s:home = expand("$HOME")
     endif
-    if has('win32')
-        let s:home = substitute(s:home, '\', '/', 'g')
-    endif
+    let s:home = substitute(s:home, '\', '/', 'g')
     let s:plugin_root_folder = substitute(expand("<sfile>:p:h:h"), '\', '/', 'g')
     let s:config_file = s:home . '/.wakatime.cfg'
     let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
@@ -95,10 +93,10 @@ let s:VERSION = '9.0.1'
         " Detect os and architecture
         if s:IsWindows()
             let s:osname = "windows"
-            if has("win64") || isdirectory(expand('$WINDIR') . '\SysWOW64')
-                let s:architecture = "amd64"
+            if has('win64') || exists('$WINDIR') && isdirectory(expand('$WINDIR') . '\SysWOW64')
+                let s:architecture = 'amd64'
             else
-                let s:architecture = "386"
+                let s:architecture = '386'
             endif
         else
             let s:osname = tolower(s:StripWhitespace(s:Chomp(system('uname -s'))))
