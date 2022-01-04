@@ -90,31 +90,7 @@ let s:VERSION = '9.0.1'
         " Buffering heartbeats disabled in Windows, unless have async support
         let s:buffering_heartbeats_enabled = s:has_async || s:nvim_async || !s:IsWindows()
 
-        " Detect os and architecture
-        if s:IsWindows()
-            let s:osname = "windows"
-            if has('win64') || exists('$WINDIR') && isdirectory(expand('$WINDIR') . '\SysWOW64')
-                let s:architecture = 'amd64'
-            else
-                let s:architecture = '386'
-            endif
-        else
-            let s:osname = tolower(s:StripWhitespace(s:Chomp(system('uname -s'))))
-            if s:osname =~ '^cygwin' || s:osname =~ '^mingw' || s:osname =~ '^msys'
-                let s:osname = 'windows'
-            endif
-            let s:architecture = s:StripWhitespace(s:Chomp(system('uname -m')))
-            if s:architecture == 'x86_64'
-                let s:architecture = "amd64"
-            elseif s:architecture == 'armv7l'
-                let s:architecture = "arm"
-            elseif s:architecture == 'aarch64_be' || s:architecture == 'aarch64' || s:architecture == 'armv8b' || s:architecture == 'armv8l'
-                let s:architecture = "arm64"
-            elseif s:architecture == 'i386' || s:architecture == 'i686'
-                let s:architecture = "386"
-            endif
-        endif
-
+        " Turn on autoupdate only when using default ~/.wakatime/wakatime-cli
         let s:autoupdate_cli = s:false
 
         " Check vimrc config for wakatime-cli binary path
@@ -125,12 +101,9 @@ let s:VERSION = '9.0.1'
         elseif exists("g:wakatime_OverrideCommandPrefix") && filereadable(g:wakatime_OverrideCommandPrefix)
             let s:wakatime_cli = g:wakatime_OverrideCommandPrefix
 
-        " Check $PATH and ~/.wakatime/wakatime-cli-<os>-<arch>
+        " Check $PATH and ~/.wakatime/wakatime-cli symlink
         else
-            let path = s:home . '/.wakatime/' . printf('wakatime-cli-%s-%s', s:osname, s:architecture)
-            if s:IsWindows()
-                let path = path . '.exe'
-            endif
+            let path = s:home . '/.wakatime/wakatime-cli'
 
             " Check for wakatime-cli
             if !filereadable(path) && executable('wakatime-cli')
@@ -144,7 +117,7 @@ let s:VERSION = '9.0.1'
             elseif !filereadable(path) && filereadable('/usr/local/bin/wakatime-cli')
                 let s:wakatime_cli = '/usr/local/bin/wakatime-cli'
 
-            " Default to ~/.wakatime/wakatime-cli-<os>-<arch>
+            " Default to ~/.wakatime/wakatime-cli
             else
                 let s:autoupdate_cli = s:true
                 let s:wakatime_cli = path
@@ -187,7 +160,7 @@ let s:VERSION = '9.0.1'
                     \ 'on_stdout': function('s:NeovimAsyncInstallOutputHandler'),
                     \ 'on_stderr': function('s:NeovimAsyncInstallOutputHandler'),
                     \ 'on_exit': function('s:NeovimAsyncInstallExitHandler')}
-                if s:osname != 'windows'
+                if !s:IsWindows()
                     let job_opts['detach'] = 1
                 endif
                 let job = jobstart(job_cmd, job_opts)
@@ -225,7 +198,7 @@ from install_cli import main
 main(home=vim.eval('s:home'))
 EOF
         elseif !filereadable(s:wakatime_cli)
-            let url = printf('https://github.com/wakatime/wakatime-cli/releases/latest/download/wakatime-cli-%s-%s.zip', s:osname, s:architecture)
+            let url = 'https://github.com/wakatime/wakatime-cli/releases'
             echo printf("Download wakatime-cli and extract into the ~/.wakatime/ folder:\n%s", url)
         endif
     endfunction
@@ -252,7 +225,7 @@ EOF
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
             let job_opts = {}
-            if s:osname != 'windows'
+            if !s:IsWindows()
                 let job_opts['detach'] = 1
             endif
             let job = jobstart(job_cmd, job_opts)
@@ -550,7 +523,7 @@ EOF
                 \ 'on_stdout': function('s:NeovimAsyncOutputHandler'),
                 \ 'on_stderr': function('s:NeovimAsyncOutputHandler'),
                 \ 'on_exit': function('s:NeovimAsyncExitHandler')}
-            if s:osname != 'windows'
+            if !s:IsWindows()
                 let job_opts['detach'] = 1
             endif
             let job = jobstart(job_cmd, job_opts)
@@ -771,7 +744,7 @@ EOF
                 \ 'on_stdout': function('s:NeovimAsyncTodayOutputHandler'),
                 \ 'on_stderr': function('s:NeovimAsyncTodayOutputHandler'),
                 \ 'on_exit': function('s:NeovimAsyncTodayExitHandler')}
-            if s:osname != 'windows'
+            if !s:IsWindows()
                 let job_opts['detach'] = 1
             endif
             let s:nvim_async_output_today = ['']

@@ -56,10 +56,10 @@ def main(home=None):
     if not isCliLatest():
         downloadCLI()
 
-    cli = os.path.join(getResourcesFolder(), 'wakatime-cli')
-    if not os.path.exists(cli):
+    link = os.path.join(getResourcesFolder(), 'wakatime-cli')
+    if not os.path.exists(link):
         try:
-            os.symlink(getCliLocation(), cli)
+            os.symlink(getCliLocation(), link)
         except:
             pass
 
