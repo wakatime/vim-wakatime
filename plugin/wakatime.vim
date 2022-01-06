@@ -90,14 +90,6 @@ let s:VERSION = '9.0.1'
         " Buffering heartbeats disabled in Windows, unless have async support
         let s:buffering_heartbeats_enabled = s:has_async || s:nvim_async || !s:IsWindows()
 
-        " Fix for MSYS2 https://github.com/wakatime/vim-wakatime/issues/122
-        if s:IsWindows()
-            let result = matchlist(s:plugin_root_folder, '^/\([a-zA-Z]\)/.\+/\([a-zA-Z]\):/.\+')
-            if len(result) > 1 && toupper(result[1]) == toupper(result[2])
-                let s:plugin_root_folder = substitute(s:plugin_root_folder, '^/\([a-zA-Z]\)/.\+/\([a-zA-Z]\):/', '/\2/', '')
-            endif
-        endif
-
         " Turn on autoupdate only when using default ~/.wakatime/wakatime-cli
         let s:autoupdate_cli = s:false
 
