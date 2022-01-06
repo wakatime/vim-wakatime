@@ -145,9 +145,9 @@ let s:VERSION = '9.0.1'
             let cmd = [python_bin, '-W', 'ignore', install_script, s:home]
             if s:has_async
                 if s:IsWindows() && &shell =~ 'cmd'
-                    let job_cmd = [&shell, &shellcmdflag] + cmd
+                    let job_cmd = split(&shell) + split(&shellcmdflag) + cmd
                 else
-                    let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+                    let job_cmd = split(&shell) + split(&shellcmdflag) + [s:JoinArgs(cmd)]
                 endif
                 let job = job_start(job_cmd, {
                     \ 'stoponexit': '',
@@ -156,7 +156,7 @@ let s:VERSION = '9.0.1'
                 if s:IsWindows() && &shell =~ 'cmd'
                     let job_cmd = cmd
                 else
-                    let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+                    let job_cmd = split(&shell) + split(&shellcmdflag) + [s:JoinArgs(cmd)]
                 endif
                 let s:nvim_async_output = ['']
                 let job_opts = {
@@ -216,16 +216,20 @@ EOF
         let cmd = [v:progname, '-u', 'NONE', '-c', code, '+qall']
         if s:has_async
             if s:IsWindows() && &shell =~ 'cmd'
-                let job_cmd = [&shell, &shellcmdflag] + cmd
+                let job_cmd = split(&shell) + split(&shellcmdflag) + cmd
             else
-                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+                let job_cmd = split(&shell) + split(&shellcmdflag) + [s:JoinArgs(cmd)]
             endif
             let job = job_start(job_cmd, {'stoponexit': ''})
         elseif s:nvim_async
             if s:IsWindows()
                 let job_cmd = cmd
             else
-                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            endif
+            if s:IsWindows() && &shell =~ 'cmd'
+                let job_cmd = cmd
+            else
+                let job_cmd = split(&shell) + split(&shellcmdflag) + [s:JoinArgs(cmd)]
             endif
             let job_opts = {}
             if !s:IsWindows()
@@ -506,7 +510,7 @@ EOF
             if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
             else
-                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+                let job_cmd = split(&shell) + split(&shellcmdflag) + [s:JoinArgs(cmd)]
             endif
             let job = job_start(job_cmd, {
                 \ 'stoponexit': '',
@@ -516,10 +520,10 @@ EOF
                 call ch_sendraw(channel, extra_heartbeats . "\n")
             endif
         elseif s:nvim_async
-            if s:IsWindows()
+            if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = cmd
             else
-                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+                let job_cmd = split(&shell) + split(&shellcmdflag) + [s:JoinArgs(cmd)]
             endif
             let s:nvim_async_output = ['']
             let job_opts = {
@@ -732,16 +736,16 @@ EOF
             if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
             else
-                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+                let job_cmd = split(&shell) + split(&shellcmdflag) + [s:JoinArgs(cmd)]
             endif
             let job = job_start(job_cmd, {
                 \ 'stoponexit': '',
                 \ 'callback': {channel, output -> s:AsyncTodayHandler(output, cmd)}})
         elseif s:nvim_async
-            if s:IsWindows()
+            if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = cmd
             else
-                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+                let job_cmd = split(&shell) + split(&shellcmdflag) + [s:JoinArgs(cmd)]
             endif
             let job_opts = {
                 \ 'on_stdout': function('s:NeovimAsyncTodayOutputHandler'),
