@@ -142,6 +142,10 @@ let s:VERSION = '9.0.1'
         " First try install wakatime-cli in background, then using Vim's Python
         if !empty(python_bin)
             let install_script = s:plugin_root_folder . '/scripts/install_cli.py'
+            if s:IsWindows() && s:Chomp(system(s:JoinArgs([python_bin, '-VV'])) !~ 'MSC')
+                " MSYS2
+                let install_script = '/' . substitute(install_script, ':', '', '')
+            endif
             let cmd = [python_bin, '-W', 'ignore', install_script, s:home]
             if s:has_async
                 if s:IsWindows() && &shell =~ 'cmd'
@@ -154,11 +158,7 @@ let s:VERSION = '9.0.1'
                     \ 'callback': {channel, output -> s:AsyncInstallHandler(output)}})
             elseif s:nvim_async
                 if s:IsWindows()
-                    if &shell =~ 'cmd'
-                        let job_cmd = cmd
-                    else
-                        let job_cmd = [&shell, '-c', s:JoinArgs(cmd)]
-                    endif
+                    let job_cmd = cmd
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
                 endif
