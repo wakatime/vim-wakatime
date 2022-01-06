@@ -154,11 +154,7 @@ let s:VERSION = '9.0.1'
                     \ 'callback': {channel, output -> s:AsyncInstallHandler(output)}})
             elseif s:nvim_async
                 if s:IsWindows()
-                    if &shell =~ 'cmd'
-                        let job_cmd = cmd
-                    else
-                        let job_cmd = [&shell, '-c', s:JoinArgs(cmd)]
-                    endif
+                    let job_cmd = cmd
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
                 endif
