@@ -121,6 +121,9 @@ let s:VERSION = '9.0.1'
             else
                 let s:autoupdate_cli = s:true
                 let s:wakatime_cli = path
+                if s:IsWindows()
+                    let s:wakatime_cli = s:wakatime_cli . '.exe'
+                endif
             endif
         endif
 
