@@ -6,6 +6,7 @@ import json
 import os
 import platform
 import re
+import shutil
 import ssl
 import subprocess
 import sys
@@ -56,12 +57,7 @@ def main(home=None):
     if not isCliLatest():
         downloadCLI()
 
-    link = os.path.join(getResourcesFolder(), 'wakatime-cli')
-    if not os.path.exists(link):
-        try:
-            os.symlink(getCliLocation(), link)
-        except:
-            pass
+    createSymlink()
 
 
 if is_py2:
@@ -120,7 +116,7 @@ class Popen(subprocess.Popen):
 
     def __init__(self, *args, **kwargs):
         startupinfo = kwargs.get('startupinfo')
-        if is_win or True:
+        if is_win:
             try:
                 startupinfo = startupinfo or subprocess.STARTUPINFO()
                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -471,6 +467,26 @@ def download(url, filePath):
             ssl._create_default_https_context = ssl._create_unverified_context
             urlretrieve(url, filePath)
         raise
+
+
+def createSymlink():
+    link = os.path.join(getResourcesFolder(), 'wakatime-cli')
+    if is_win:
+        if os.path.exists(link):
+            try:
+                os.remove(link)
+            except:
+                log(traceback.format_exc())
+        try:
+            shutil.copy2(getCliLocation(), link)
+        except:
+            log(traceback.format_exc())
+    else:
+        if not os.path.exists(link):
+            try:
+                os.symlink(getCliLocation(), link)
+            except:
+                pass
 
 
 if __name__ == '__main__':
