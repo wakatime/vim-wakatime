@@ -161,12 +161,10 @@ let s:VERSION = '9.0.1'
                     \ 'stoponexit': '',
                     \ 'callback': {channel, output -> s:AsyncInstallHandler(output)}})
             elseif s:nvim_async
-                if s:IsWindows()
-                    if s:IsMSYS()
-                        let job_cmd = s:def_win_shell + cmd
-                    else
-                        let job_cmd = cmd
-                    endif
+                if s:IsMSYS()
+                    let job_cmd = s:def_win_shell + cmd
+                elseif s:IsWindows()
+                    let job_cmd = cmd
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
                 endif
@@ -236,12 +234,10 @@ EOF
             endif
             let job = job_start(job_cmd, {'stoponexit': ''})
         elseif s:nvim_async
-            if s:IsWindows()
-                if s:IsMSYS()
-                    let job_cmd = s:def_win_shell + cmd
-                else
-                    let job_cmd = cmd
-                endif
+            if s:IsMSYS()
+                let job_cmd = s:def_win_shell + cmd
+            elseif s:IsWindows()
+                let job_cmd = cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -540,12 +536,10 @@ EOF
                 call ch_sendraw(channel, extra_heartbeats . "\n")
             endif
         elseif s:nvim_async
-            if s:IsWindows()
-                if s:IsMSYS()
-                    let job_cmd = s:def_win_shell + cmd
-                else
-                    let job_cmd = cmd
-                endif
+            if s:IsMSYS()
+                let job_cmd = s:def_win_shell + cmd
+            elseif s:IsWindows()
+                let job_cmd = cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -768,12 +762,10 @@ EOF
                 \ 'stoponexit': '',
                 \ 'callback': {channel, output -> s:AsyncTodayHandler(output, cmd)}})
         elseif s:nvim_async
-            if s:IsWindows()
-                if s:IsMSYS()
-                    let job_cmd = s:def_win_shell + cmd
-                else
-                    let job_cmd = cmd
-                endif
+            if s:IsMSYS()
+                let job_cmd = s:def_win_shell + cmd
+            elseif s:IsWindows()
+                let job_cmd = cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
