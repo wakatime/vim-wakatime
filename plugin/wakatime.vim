@@ -60,12 +60,7 @@ let s:VERSION = '9.0.1'
     let s:last_sent = localtime()
     let s:has_async = has('patch-7.4-2344') && exists('*job_start')
     let s:nvim_async = exists('*jobstart')
-
-    " Override shell
-    if has('win32')
-        let [s:shell, s:shellcmdflag] = [&shell, &shellcmdflag]
-        let [&shell, &shellcmdflag] = ['cmd.exe', '/s /c']
-    endif
+    let s:win_cmd = ['cmd.exe', '/c']
 
     function! s:Init()
         " Set default heartbeat frequency in minutes
@@ -154,8 +149,8 @@ let s:VERSION = '9.0.1'
             endif
             let cmd = [python_bin, '-W', 'ignore', install_script, s:home]
             if s:has_async
-                if s:IsWindows() && &shell =~ 'cmd'
-                    let job_cmd = [&shell, &shellcmdflag] + cmd
+                if s:IsWindows()
+                    let job_cmd = s:win_cmd + cmd
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
                 endif
@@ -164,7 +159,7 @@ let s:VERSION = '9.0.1'
                     \ 'callback': {channel, output -> s:AsyncInstallHandler(output)}})
             elseif s:nvim_async
                 if s:IsWindows()
-                    let job_cmd = cmd
+                    let job_cmd = s:win_cmd + cmd
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
                 endif
@@ -225,15 +220,15 @@ EOF
         let code = py . " import sys, vim;from os.path import abspath, join;sys.path.insert(0, abspath(join('" . s:plugin_root_folder . "', 'scripts')));from install_cli import main;main(home='" . s:home . "');"
         let cmd = [v:progname, '-u', 'NONE', '-c', code, '+qall']
         if s:has_async
-            if s:IsWindows() && &shell =~ 'cmd'
-                let job_cmd = [&shell, &shellcmdflag] + cmd
+            if s:IsWindows()
+                let job_cmd = s:win_cmd + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
             let job = job_start(job_cmd, {'stoponexit': ''})
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                let job_cmd = s:win_cmd + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -513,8 +508,8 @@ EOF
         endif
 
         if s:has_async
-            if s:IsWindows() && &shell =~ 'cmd'
-                let job_cmd = [&shell, &shellcmdflag] + cmd
+            if s:IsWindows()
+                let job_cmd = s:win_cmd + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -527,7 +522,7 @@ EOF
             endif
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                let job_cmd = s:win_cmd + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -739,8 +734,8 @@ EOF
         let cmd = [s:wakatime_cli, '--today']
 
         if s:has_async
-            if s:IsWindows() && &shell =~ 'cmd'
-                let job_cmd = [&shell, &shellcmdflag] + cmd
+            if s:IsWindows()
+                let job_cmd = s:win_cmd + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -749,7 +744,7 @@ EOF
                 \ 'callback': {channel, output -> s:AsyncTodayHandler(output, cmd)}})
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                let job_cmd = s:win_cmd + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -763,7 +758,14 @@ EOF
             let s:nvim_async_output_today = ['']
             let job = jobstart(job_cmd, job_opts)
         else
+            if s:IsWindows()
+                let [_shell, _shellcmdflag] = [&shell, &shellcmdflag]
+                let [&shell, &shellcmdflag] = s:win_cmd
+            endif
             echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
+            if s:IsWindows()
+                let [&shell, &shellcmdflag] = [_shell, _shellcmdflag]
+            endif
         endif
     endfunction
 
@@ -873,7 +875,3 @@ endif
 
 " Restore cpoptions
 let &cpo = s:old_cpo
-
-if has('win32')
-    let [&shell, &shellcmdflag] = [s:shell, s:shellcmdflag]
-endif
