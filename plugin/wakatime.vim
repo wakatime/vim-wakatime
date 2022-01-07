@@ -92,7 +92,7 @@ let s:VERSION = '9.0.1'
 
         " Fix for MSYS2 https://github.com/wakatime/vim-wakatime/issues/122
         if s:IsWindows() && &shell =~ '/msys'
-            let s:plugin_root_folder = substitute(s:plugin_root_folder, '^/\?\([a-zA-Z]\):/', '/\2/', '')
+            let s:plugin_root_folder = substitute(s:plugin_root_folder, '^/\?\([a-zA-Z]\):/', '/\1/', '')
         endif
 
         " Turn on autoupdate only when using default ~/.wakatime/wakatime-cli
