@@ -142,6 +142,13 @@ let s:VERSION = '9.0.1'
         " First try install wakatime-cli in background, then using Vim's Python
         if !empty(python_bin)
             let install_script = s:plugin_root_folder . '/scripts/install_cli.py'
+
+            " Fix for Python installed with pacman on msys2 https://github.com/wakatime/vim-wakatime/issues/122
+            " Turns Windows path into Unix-like path
+            if s:IsWindows() && exepath(python_bin) =~ '[/\\]s\?bin[/\\]'
+                let install_script = substitute(install_script, '^/\?\([a-zA-Z]\):/', '/\1/', '')
+            endif
+
             let cmd = [python_bin, '-W', 'ignore', install_script, s:home]
             if s:has_async
                 if !s:IsWindows()
