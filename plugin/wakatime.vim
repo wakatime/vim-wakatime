@@ -60,9 +60,11 @@ let s:VERSION = '9.0.1'
     let s:last_sent = localtime()
     let s:has_async = has('patch-7.4-2344') && exists('*job_start')
     let s:nvim_async = exists('*jobstart')
+
+    " Override shell
     if has('win32')
-        let &shell = 'cmd.exe'
-        let &shellcmdflag = '/s /c'
+        let [s:shell, s:shellcmdflag] = [&shell, &shellcmdflag]
+        let [&shell, &shellcmdflag] = ['cmd.exe', '/s /c']
     endif
 
     function! s:Init()
@@ -871,3 +873,7 @@ endif
 
 " Restore cpoptions
 let &cpo = s:old_cpo
+
+if has('win32')
+    let [&shell, &shellcmdflag] = [s:shell, s:shellcmdflag]
+endif
