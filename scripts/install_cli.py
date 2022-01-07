@@ -57,8 +57,6 @@ def main(home=None):
     if not isCliLatest():
         downloadCLI()
 
-    createSymlink()
-
 
 if is_py2:
     import codecs
@@ -216,6 +214,8 @@ def downloadCLI():
             log(traceback.format_exc())
     except:
         log(traceback.format_exc())
+
+    createSymlink()
 
     log('Finished extracting wakatime-cli.')
 
@@ -469,31 +469,27 @@ def download(url, filePath):
         raise
 
 
+def is_symlink(path):
+    try:
+        return os.is_symlink(path)
+    except:
+        return False
+
+
 def createSymlink():
+    link = os.path.join(getResourcesFolder(), 'wakatime-cli')
     if is_win:
-        link = os.path.join(getResourcesFolder(), 'wakatime-cli.exe')
-        exists = os.path.exists(link)
-        if exists and not os.path.islink(link):
-            try:
-                os.remove(link)
-                exists = False
-            except:
-                log(traceback.format_exc())
-        if not exists:
-            try:
-                os.symlink(getCliLocation(), link)
-            except:
-                try:
-                    shutil.copy2(getCliLocation(), link)
-                except:
-                    log(traceback.format_exc())
-    else:
-        link = os.path.join(getResourcesFolder(), 'wakatime-cli')
-        if not os.path.exists(link):
-            try:
-                os.symlink(getCliLocation(), link)
-            except:
-                pass
+        link = link + '.exe'
+    elif os.path.exists(link) and is_symlink(link):
+        return  # don't re-create symlink on Unix-like platforms
+
+    try:
+        os.symlink(getCliLocation(), link)
+    except:
+        try:
+            shutil.copy2(getCliLocation(), link)
+        except:
+            log(traceback.format_exc())
 
 
 if __name__ == '__main__':
