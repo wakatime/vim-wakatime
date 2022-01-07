@@ -60,7 +60,6 @@ let s:VERSION = '9.0.1'
     let s:last_sent = localtime()
     let s:has_async = has('patch-7.4-2344') && exists('*job_start')
     let s:nvim_async = exists('*jobstart')
-    let s:def_win_shell = ['cmd.exe', '/s /c']
 
     function! s:Init()
         " Set default heartbeat frequency in minutes
@@ -90,11 +89,6 @@ let s:VERSION = '9.0.1'
 
         " Buffering heartbeats disabled in Windows, unless have async support
         let s:buffering_heartbeats_enabled = s:has_async || s:nvim_async || !s:IsWindows()
-
-        " Fix for MSYS2 https://github.com/wakatime/vim-wakatime/issues/122
-        if s:IsMSYS()
-            let s:plugin_root_folder = substitute(s:plugin_root_folder, '^/\?\([a-zA-Z]\):/', '/\1/', '')
-        endif
 
         " Turn on autoupdate only when using default ~/.wakatime/wakatime-cli
         let s:autoupdate_cli = s:false
@@ -150,20 +144,18 @@ let s:VERSION = '9.0.1'
             let install_script = s:plugin_root_folder . '/scripts/install_cli.py'
             let cmd = [python_bin, '-W', 'ignore', install_script, s:home]
             if s:has_async
-                if s:IsWindows() && &shell =~ 'cmd'
-                    let job_cmd = [&shell, &shellcmdflag] + cmd
-                elseif s:IsMSYS()
-                    let job_cmd = s:def_win_shell + cmd
-                else
+                if !s:IsWindows()
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+                elseif &shell =~ 'sh\(\.exe\)\?$'
+                    let job_cmd = [&shell, '-c', s:JoinArgs(cmd)]
+                else
+                    let job_cmd = [&shell, &shellcmdflag] + cmd
                 endif
                 let job = job_start(job_cmd, {
                     \ 'stoponexit': '',
                     \ 'callback': {channel, output -> s:AsyncInstallHandler(output)}})
             elseif s:nvim_async
-                if s:IsMSYS()
-                    let job_cmd = s:def_win_shell + cmd
-                elseif s:IsWindows()
+                if s:IsWindows()
                     let job_cmd = cmd
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -225,18 +217,16 @@ EOF
         let code = py . " import sys, vim;from os.path import abspath, join;sys.path.insert(0, abspath(join('" . s:plugin_root_folder . "', 'scripts')));from install_cli import main;main(home='" . s:home . "');"
         let cmd = [v:progname, '-u', 'NONE', '-c', code, '+qall']
         if s:has_async
-            if s:IsWindows() && &shell =~ 'cmd'
-                let job_cmd = [&shell, &shellcmdflag] + cmd
-            elseif s:IsMSYS()
-                let job_cmd = s:def_win_shell + cmd
-            else
+            if !s:IsWindows()
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            elseif &shell =~ 'sh\(\.exe\)\?$'
+                let job_cmd = [&shell, '-c', s:JoinArgs(cmd)]
+            else
+                let job_cmd = [&shell, &shellcmdflag] + cmd
             endif
             let job = job_start(job_cmd, {'stoponexit': ''})
         elseif s:nvim_async
-            if s:IsMSYS()
-                let job_cmd = s:def_win_shell + cmd
-            elseif s:IsWindows()
+            if s:IsWindows()
                 let job_cmd = cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -441,10 +431,6 @@ EOF
         return s:false
     endfunction
 
-    function! s:IsMSYS()
-        return s:IsWindows() && &shell =~ '/msys'
-    endfunction
-
     function! s:CurrentTimeStr()
         if s:has_reltime
             return split(reltimestr(reltime()))[0]
@@ -521,12 +507,12 @@ EOF
         endif
 
         if s:has_async
-            if s:IsWindows() && &shell =~ 'cmd'
-                let job_cmd = [&shell, &shellcmdflag] + cmd
-            elseif s:IsMSYS()
-                let job_cmd = s:def_win_shell + cmd
-            else
+            if !s:IsWindows()
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            elseif &shell =~ 'sh\(\.exe\)\?$'
+                let job_cmd = [&shell, '-c', s:JoinArgs(cmd)]
+            else
+                let job_cmd = [&shell, &shellcmdflag] + cmd
             endif
             let job = job_start(job_cmd, {
                 \ 'stoponexit': '',
@@ -536,9 +522,7 @@ EOF
                 call ch_sendraw(channel, extra_heartbeats . "\n")
             endif
         elseif s:nvim_async
-            if s:IsMSYS()
-                let job_cmd = s:def_win_shell + cmd
-            elseif s:IsWindows()
+            if s:IsWindows()
                 let job_cmd = cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
@@ -751,20 +735,18 @@ EOF
         let cmd = [s:wakatime_cli, '--today']
 
         if s:has_async
-            if s:IsWindows() && &shell =~ 'cmd'
-                let job_cmd = [&shell, &shellcmdflag] + cmd
-            elseif s:IsMSYS()
-                let job_cmd = s:def_win_shell + cmd
-            else
+            if !s:IsWindows()
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            elseif &shell =~ 'sh\(\.exe\)\?$'
+                let job_cmd = [&shell, '-c', s:JoinArgs(cmd)]
+            else
+                let job_cmd = [&shell, &shellcmdflag] + cmd
             endif
             let job = job_start(job_cmd, {
                 \ 'stoponexit': '',
                 \ 'callback': {channel, output -> s:AsyncTodayHandler(output, cmd)}})
         elseif s:nvim_async
-            if s:IsMSYS()
-                let job_cmd = s:def_win_shell + cmd
-            elseif s:IsWindows()
+            if s:IsWindows()
                 let job_cmd = cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
