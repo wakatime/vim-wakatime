@@ -469,25 +469,27 @@ def download(url, filePath):
         raise
 
 
+def is_symlink(path):
+    try:
+        return os.is_symlink(path)
+    except:
+        return False
+
+
 def createSymlink():
+    link = os.path.join(getResourcesFolder(), 'wakatime-cli')
     if is_win:
-        link = os.path.join(getResourcesFolder(), 'wakatime-cli.exe')
-        if os.path.exists(link):
-            try:
-                os.remove(link)
-            except:
-                log(traceback.format_exc())
+        link = link + '.exe'
+    elif os.path.exists(link) and is_symlink(link):
+        return  # don't re-create symlink on Unix-like platforms
+
+    try:
+        os.symlink(getCliLocation(), link)
+    except:
         try:
             shutil.copy2(getCliLocation(), link)
         except:
             log(traceback.format_exc())
-    else:
-        link = os.path.join(getResourcesFolder(), 'wakatime-cli')
-        if not os.path.exists(link):
-            try:
-                os.symlink(getCliLocation(), link)
-            except:
-                pass
 
 
 if __name__ == '__main__':
