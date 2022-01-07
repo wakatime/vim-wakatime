@@ -60,6 +60,10 @@ let s:VERSION = '9.0.1'
     let s:last_sent = localtime()
     let s:has_async = has('patch-7.4-2344') && exists('*job_start')
     let s:nvim_async = exists('*jobstart')
+    if has('win32')
+        let &shell = 'cmd.exe'
+        let &shellcmdflag = '/s /c'
+    endif
 
     function! s:Init()
         " Set default heartbeat frequency in minutes
