@@ -146,7 +146,7 @@ let s:VERSION = '9.0.1'
         " First try install wakatime-cli in background, then using Vim's Python
         if !empty(python_bin)
             let install_script = s:plugin_root_folder . '/scripts/install_cli.py'
-            if s:IsWindows() && s:Chomp(system(s:JoinArgs([python_bin, '-VV'])) !~ 'MSC')
+            if s:IsWindows() && s:Chomp(system(s:JoinArgs([python_bin]) . ' -VV')) !~ 'MSC'
                 " MSYS2
                 let install_script = '/' . substitute(install_script, ':', '', '')
             endif
