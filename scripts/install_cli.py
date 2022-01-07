@@ -57,8 +57,6 @@ def main(home=None):
     if not isCliLatest():
         downloadCLI()
 
-    createSymlink()
-
 
 if is_py2:
     import codecs
@@ -216,6 +214,8 @@ def downloadCLI():
             log(traceback.format_exc())
     except:
         log(traceback.format_exc())
+
+    createSymlink()
 
     log('Finished extracting wakatime-cli.')
 
