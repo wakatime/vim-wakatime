@@ -60,6 +60,7 @@ let s:VERSION = '9.0.1'
     let s:last_sent = localtime()
     let s:has_async = has('patch-7.4-2344') && exists('*job_start')
     let s:nvim_async = exists('*jobstart')
+    let s:def_win_shell = ['cmd.exe', '/s /c']
 
     function! s:Init()
         " Set default heartbeat frequency in minutes
@@ -91,7 +92,7 @@ let s:VERSION = '9.0.1'
         let s:buffering_heartbeats_enabled = s:has_async || s:nvim_async || !s:IsWindows()
 
         " Fix for MSYS2 https://github.com/wakatime/vim-wakatime/issues/122
-        if s:IsWindows() && &shell =~ '/msys'
+        if s:IsMSYS()
             let s:plugin_root_folder = substitute(s:plugin_root_folder, '^/\?\([a-zA-Z]\):/', '/\1/', '')
         endif
 
@@ -151,6 +152,8 @@ let s:VERSION = '9.0.1'
             if s:has_async
                 if s:IsWindows() && &shell =~ 'cmd'
                     let job_cmd = [&shell, &shellcmdflag] + cmd
+                elseif s:IsMSYS()
+                    let job_cmd = s:def_win_shell + cmd
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
                 endif
@@ -159,7 +162,11 @@ let s:VERSION = '9.0.1'
                     \ 'callback': {channel, output -> s:AsyncInstallHandler(output)}})
             elseif s:nvim_async
                 if s:IsWindows()
-                    let job_cmd = cmd
+                    if s:IsMSYS()
+                        let job_cmd = s:def_win_shell + cmd
+                    else
+                        let job_cmd = cmd
+                    endif
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
                 endif
@@ -222,13 +229,19 @@ EOF
         if s:has_async
             if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
+            elseif s:IsMSYS()
+                let job_cmd = s:def_win_shell + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
             let job = job_start(job_cmd, {'stoponexit': ''})
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                if s:IsMSYS()
+                    let job_cmd = s:def_win_shell + cmd
+                else
+                    let job_cmd = cmd
+                endif
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -432,6 +445,10 @@ EOF
         return s:false
     endfunction
 
+    function! s:IsMSYS()
+        return s:IsWindows() && &shell =~ '/msys'
+    endfunction
+
     function! s:CurrentTimeStr()
         if s:has_reltime
             return split(reltimestr(reltime()))[0]
@@ -510,6 +527,8 @@ EOF
         if s:has_async
             if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
+            elseif s:IsMSYS()
+                let job_cmd = s:def_win_shell + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -522,7 +541,11 @@ EOF
             endif
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                if s:IsMSYS()
+                    let job_cmd = s:def_win_shell + cmd
+                else
+                    let job_cmd = cmd
+                endif
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -736,6 +759,8 @@ EOF
         if s:has_async
             if s:IsWindows() && &shell =~ 'cmd'
                 let job_cmd = [&shell, &shellcmdflag] + cmd
+            elseif s:IsMSYS()
+                let job_cmd = s:def_win_shell + cmd
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -744,7 +769,11 @@ EOF
                 \ 'callback': {channel, output -> s:AsyncTodayHandler(output, cmd)}})
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                if s:IsMSYS()
+                    let job_cmd = s:def_win_shell + cmd
+                else
+                    let job_cmd = cmd
+                endif
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
