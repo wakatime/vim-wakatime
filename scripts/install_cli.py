@@ -488,6 +488,8 @@ def createSymlink():
     except:
         try:
             shutil.copy2(getCliLocation(), link)
+            if not is_win:
+                os.chmod(link, 509)  # 755
         except:
             log(traceback.format_exc())
 
