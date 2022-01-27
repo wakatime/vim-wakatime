@@ -483,6 +483,11 @@ def createSymlink():
     elif os.path.exists(link) and is_symlink(link):
         return  # don't re-create symlink on Unix-like platforms
 
+    if os.path.isdir(link):
+        shutil.rmtree(link)
+    elif os.path.isfile(link):
+        os.remove(link)
+
     try:
         os.symlink(getCliLocation(), link)
     except:
