@@ -17,9 +17,11 @@ let s:VERSION = '9.0.1'
         finish
     endif
 
-    " Use constants for truthy check to improve readability
+    " Use constants to improve readability
     let s:true = 1
     let s:false = 0
+    let s:exit_code_config_parse_error = 103
+    let s:exit_code_api_key_error = 104
 
     " Only load plugin once
     if exists("g:loaded_wakatime")
@@ -790,10 +792,10 @@ EOF
 
     function! s:NeovimAsyncExitHandler(job_id, exit_code, event)
         let output = s:StripWhitespace(join(s:nvim_async_output, "\n"))
-        if a:exit_code == 104
+        if a:exit_code == s:exit_code_api_key_error
             let output .= 'Invalid API Key'
         endif
-        if (s:is_debug_on || a:exit_code == 103 || a:exit_code == 104) && (a:exit_code != 0 || output != '')
+        if (s:is_debug_on || a:exit_code == s:exit_code_config_parse_error || a:exit_code == s:exit_code_api_key_error) && output != ''
             echoerr printf('[WakaTime] Error %d: %s', a:exit_code, output)
         endif
     endfunction
@@ -809,7 +811,7 @@ EOF
 
     function! s:NeovimAsyncTodayExitHandler(job_id, exit_code, event)
         let output = s:StripWhitespace(join(s:nvim_async_output_today, "\n"))
-        if a:exit_code == 104
+        if a:exit_code == s:exit_code_api_key_error
             let output .= 'Invalid API Key'
         endif
         if output != ''
