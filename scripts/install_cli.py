@@ -186,6 +186,9 @@ def getConfigFile(internal=None):
 def downloadCLI():
     log('Downloading wakatime-cli...')
 
+    if os.path.isdir(os.path.join(getResourcesFolder(), 'wakatime-cli')):
+        shutil.rmtree(os.path.join(getResourcesFolder(), 'wakatime-cli'))
+
     if not os.path.exists(getResourcesFolder()):
         os.makedirs(getResourcesFolder())
 
