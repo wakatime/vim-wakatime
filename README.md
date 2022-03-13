@@ -60,6 +60,7 @@ With Debug Mode enabled, the plugin sends data synchronously so disable it when 
 The [How to Debug Plugins][how to debug] guide shows how to check when coding activity was last received from Vim use the [User Agents API][user agents api].
 For more general troubleshooting info, see the [wakatime-cli Troubleshooting Section][wakatime-cli-help].
 
+It is also worth noting that if the [Go CLI](https://github.com/wakatime/wakatime-cli) isn't present, it will fall back to the [Legacy Python CLI](https://github.com/wakatime/legacy-python-cli) if it's available, without warning. If you get an error that appears to be from the Python CLI, consider moving over to the Go CLI to relieve said errors.
 
 ## Uninstalling
 
