@@ -156,9 +156,9 @@ def log(message, *args, **kwargs):
     elif len(kwargs) > 0:
         msg = message.format(**kwargs)
     try:
-        print('[WakaTime] {msg}'.format(msg=msg))
+        print('[WakaTime Install] {msg}'.format(msg=msg))
     except UnicodeDecodeError:
-        print(u('[WakaTime] {msg}').format(msg=u(msg)))
+        print(u('[WakaTime Install] {msg}').format(msg=u(msg)))
 
 
 def getHomeFolder():

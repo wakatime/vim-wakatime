@@ -50,12 +50,12 @@ let s:VERSION = '9.0.1'
     let s:plugin_root_folder = substitute(expand("<sfile>:p:h:h"), '\', '/', 'g')
     let s:config_file = s:home . '/.wakatime.cfg'
     let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
-    let s:data_file = s:home . '/.wakatime/wakatime.vim_tmp_state'
+    let s:shared_state_file = s:home . '/.wakatime/vim_shared_state'
     let s:has_reltime = has('reltime') && localtime() - 1 < split(split(reltimestr(reltime()))[0], '\.')[0]
     let s:config_file_already_setup = s:false
     let s:debug_mode_already_setup = s:false
     let s:is_debug_on = s:false
-    let s:local_cache_expire = 10  " seconds between reading s:data_file
+    let s:local_cache_expire = 10  " seconds between reading s:shared_state_file
     let s:last_heartbeat = {'last_activity_at': 0, 'last_heartbeat_at': 0, 'file': ''}
     let s:heartbeats_buffer = []
     let s:send_buffer_seconds = 30  " seconds between sending buffered heartbeats
@@ -636,10 +636,10 @@ EOF
 
     function! s:GetLastHeartbeat()
         if !s:last_heartbeat.last_activity_at || localtime() - s:last_heartbeat.last_activity_at > s:local_cache_expire
-            if !filereadable(s:data_file)
+            if !filereadable(s:shared_state_file)
                 return {'last_activity_at': 0, 'last_heartbeat_at': 0, 'file': ''}
             endif
-            let last = readfile(s:data_file, '', 3)
+            let last = readfile(s:shared_state_file, '', 3)
             if len(last) == 3
                 let s:last_heartbeat.last_heartbeat_at = last[1]
                 let s:last_heartbeat.file = last[2]
@@ -658,7 +658,7 @@ EOF
 
     function! s:SetLastHeartbeat(last_activity_at, last_heartbeat_at, file)
         call s:SetLastHeartbeatInMemory(a:last_activity_at, a:last_heartbeat_at, a:file)
-        call writefile([s:n2s(a:last_activity_at), s:n2s(a:last_heartbeat_at), a:file], s:data_file)
+        call writefile([s:n2s(a:last_activity_at), s:n2s(a:last_heartbeat_at), a:file], s:shared_state_file)
     endfunction
 
     function! s:EnoughTimePassed(now, last)
