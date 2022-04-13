@@ -42,9 +42,9 @@ let s:VERSION = '9.0.1'
     " Script Globals
     let s:home = ''
     if exists('$WAKATIME_HOME')
-        let s:home = expand('$WAKATIME_HOME')
+        let s:home = expand(expand('$WAKATIME_HOME'))
     else
-        let s:home = expand("$HOME")
+        let s:home = expand(expand("$HOME"))
     endif
     let s:home = substitute(s:home, '\', '/', 'g')
     let s:plugin_root_folder = substitute(expand("<sfile>:p:h:h"), '\', '/', 'g')
