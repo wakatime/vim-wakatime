@@ -109,11 +109,11 @@ let s:VERSION = '9.0.1'
             let path = s:home . '/.wakatime/wakatime-cli'
 
             " Check for wakatime-cli
-            if !filereadable(path) && executable('wakatime-cli')
+            if !filereadable(path) && s:Executable('wakatime-cli')
                 let s:wakatime_cli = 'wakatime-cli'
 
             " Check for wakatime
-            elseif !filereadable(path) && executable('wakatime')
+            elseif !filereadable(path) && s:Executable('wakatime')
                 let s:wakatime_cli = 'wakatime'
 
             " Check for wakatime-cli installed via Homebrew
@@ -133,7 +133,7 @@ let s:VERSION = '9.0.1'
     endfunction
 
     function! s:InstallCLI(use_external_python)
-        if !s:autoupdate_cli && !empty(s:wakatime_cli) && executable(s:wakatime_cli)
+        if !s:autoupdate_cli && s:Executable(s:wakatime_cli)
             return
         endif
 
@@ -192,7 +192,7 @@ let s:VERSION = '9.0.1'
                     let stdout = system(s:JoinArgs(cmd) . ' &')
                 endif
             endif
-        elseif !empty(v:progname) && executable(v:progname) && (has('python3') || has('python'))
+        elseif s:Executable(v:progname) && (has('python3') || has('python'))
             call s:InstallCLIRoundAbout()
         elseif has('python3')
             python3 << EOF
@@ -378,10 +378,10 @@ EOF
         if has('g:wakatime_PythonBinary')
             let python_bin = g:wakatime_PythonBinary
         endif
-        if empty(python_bin) || !filereadable(python_bin) || !executable(python_bin)
-            if executable('python3')
+        if !s:Executable(python_bin) || !filereadable(python_bin)
+            if s:Executable('python3')
                 let python_bin = 'python3'
-            elseif executable('python')
+            elseif s:Executable('python')
                 let python_bin = 'python'
             else
                 let paths = ['python3']
@@ -406,7 +406,7 @@ EOF
                 endwhile
             endif
         endif
-        if !empty(python_bin) && s:IsWindows() && (filereadable(printf('%sw', python_bin)) || executable(printf('%sw', python_bin)))
+        if s:IsWindows() && (filereadable(printf('%sw', python_bin)) || s:Executable(printf('%sw', python_bin)))
             let python_bin = printf('%sw', python_bin)
         endif
         return python_bin
@@ -774,6 +774,13 @@ EOF
         else
             echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
         endif
+    endfunction
+
+    function! s:Executable(path)
+        if !empty(a:path) && executable(a:path)
+            return s:true
+        endif
+        return s:false
     endfunction
 
 " }}}
