@@ -50,7 +50,8 @@ let s:VERSION = '9.0.1'
     let s:plugin_root_folder = substitute(expand("<sfile>:p:h:h"), '\', '/', 'g')
     let s:config_file = s:home . '/.wakatime.cfg'
     let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
-    let s:shared_state_file = s:home . '/.wakatime/vim_shared_state'
+    let s:shared_state_parent_dir = s:home . '/.wakatime'
+    let s:shared_state_file = s:shared_state_parent_dir . '/vim_shared_state'
     let s:has_reltime = has('reltime') && localtime() - 1 < split(split(reltimestr(reltime()))[0], '\.')[0]
     let s:config_file_already_setup = s:false
     let s:debug_mode_already_setup = s:false
@@ -658,6 +659,7 @@ EOF
 
     function! s:SetLastHeartbeat(last_activity_at, last_heartbeat_at, file)
         call s:SetLastHeartbeatInMemory(a:last_activity_at, a:last_heartbeat_at, a:file)
+        call mkdir(s:shared_state_parent_dir, "p", "0o700")
         call writefile([s:n2s(a:last_activity_at), s:n2s(a:last_heartbeat_at), a:file], s:shared_state_file)
     endfunction
 
