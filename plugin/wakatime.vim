@@ -659,7 +659,9 @@ EOF
 
     function! s:SetLastHeartbeat(last_activity_at, last_heartbeat_at, file)
         call s:SetLastHeartbeatInMemory(a:last_activity_at, a:last_heartbeat_at, a:file)
-        call mkdir(s:shared_state_parent_dir, "p", "0o700")
+        if !isdirectory(s:shared_state_parent_dir)
+            call mkdir(s:shared_state_parent_dir, "p", "0o700")
+        endif
         call writefile([s:n2s(a:last_activity_at), s:n2s(a:last_heartbeat_at), a:file], s:shared_state_file)
     endfunction
 
