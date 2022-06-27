@@ -129,7 +129,7 @@ def parseConfigFile(configFile, forcepy3=None):
     at ~/.wakatime.cfg.
     """
 
-    kwargs = {} if is_py2 or forcepy3 else {'strict': False}
+    kwargs = {} if is_py2 and not forcepy3 else {'strict': False}
     configs = ConfigParser(**kwargs)
     try:
         with open(configFile, 'r', encoding='utf-8') as fh:
