@@ -123,13 +123,13 @@ class Popen(subprocess.Popen):
         super(Popen, self).__init__(*args, **kwargs)
 
 
-def parseConfigFile(configFile):
+def parseConfigFile(configFile, forcepy3=None):
     """Returns a configparser.SafeConfigParser instance with configs
     read from the config file. Default location of the config file is
     at ~/.wakatime.cfg.
     """
 
-    kwargs = {} if is_py2 else {'strict': False}
+    kwargs = {} if is_py2 or forcepy3 else {'strict': False}
     configs = ConfigParser(**kwargs)
     try:
         with open(configFile, 'r', encoding='utf-8') as fh:
@@ -321,12 +321,21 @@ def getLatestCliVersion():
 
         if configs:
             last_modified = headers.get('Last-Modified')
-            if not configs.has_section('internal'):
-                configs.add_section('internal')
-            configs.set('internal', 'cli_version', ver)
-            configs.set('internal', 'cli_version_last_modified', last_modified)
-            with open(getConfigFile(True), 'w', encoding='utf-8') as fh:
-                configs.write(fh)
+            try:
+                if not configs.has_section('internal'):
+                    configs.add_section('internal')
+                configs.set('internal', 'cli_version', ver)
+                configs.set('internal', 'cli_version_last_modified', last_modified)
+                with open(getConfigFile(True), 'w', encoding='utf-8') as fh:
+                    configs.write(fh)
+            except TypeError:
+                configs = parseConfigFile(getConfigFile(True), forcepy3=True)
+                if not configs.has_section('internal'):
+                    configs.add_section('internal')
+                configs.set('internal', 'cli_version', ver)
+                configs.set('internal', 'cli_version_last_modified', last_modified)
+                with open(getConfigFile(True), 'w', encoding='utf-8') as fh:
+                    configs.write(fh)
 
         LATEST_CLI_VERSION = ver
         return ver
