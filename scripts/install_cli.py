@@ -323,8 +323,8 @@ def getLatestCliVersion():
             last_modified = headers.get('Last-Modified')
             if not configs.has_section('internal'):
                 configs.add_section('internal')
-            configs.set('internal', 'cli_version', u(ver))
-            configs.set('internal', 'cli_version_last_modified', u(last_modified))
+            configs.set('internal', 'cli_version', str(u(ver)))
+            configs.set('internal', 'cli_version_last_modified', str(u(last_modified)))
             with open(getConfigFile(True), 'w', encoding='utf-8') as fh:
                 configs.write(fh)
 
