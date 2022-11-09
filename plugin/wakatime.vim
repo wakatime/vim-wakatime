@@ -192,9 +192,9 @@ let s:VERSION = '9.0.1'
                     let stdout = system(s:JoinArgs(cmd) . ' &')
                 endif
             endif
-        elseif s:Executable(v:progname) && (has('python3') || has('python'))
+        elseif s:Executable(v:progname) && (has('python3') || has('python') || has('python3_dynamic') || has('python_dynamic'))
             call s:InstallCLIRoundAbout()
-        elseif has('python3')
+        elseif has('python3') || has('python3_dynamic')
             python3 << EOF
 import sys
 import vim
@@ -203,7 +203,7 @@ sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
 from install_cli import main
 main(home=vim.eval('s:home'))
 EOF
-        elseif has('python')
+        elseif has('python') || has('python_dynamic')
             python << EOF
 import sys
 import vim
@@ -219,7 +219,7 @@ EOF
     endfunction
 
     function! s:InstallCLIRoundAbout()
-        if has('python3')
+        if has('python3') || has('python3_dynamic')
             let py = 'python3'
         else
             let py = 'python'
