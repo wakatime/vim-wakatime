@@ -78,7 +78,7 @@ let s:VERSION = '9.0.1'
 
         " Get redraw setting from wakatime.cfg file
         let vi_redraw = s:GetIniSetting('settings', 'vi_redraw')
-        if vi_redraw != ''
+        if !empty(vi_redraw)
             if vi_redraw == 'enabled'
                 let s:redraw_setting = 'enabled'
             endif
@@ -284,16 +284,14 @@ EOF
 
             " Make sure config file has api_key
             let found_api_key = s:false
-            if s:GetIniSetting('settings', 'api_key') != '' || s:GetIniSetting('settings', 'apikey') != ''
+            if !empty(s:GetIniSetting('settings', 'api_key')) || !empty(s:GetIniSetting('settings', 'apikey'))
                 let found_api_key = s:true
             endif
 
             if !found_api_key
                 let vault_cmd = s:GetIniSetting('settings', 'api_key_vault_cmd')
-                if !empty(vault_cmd)
-                    if s:Chomp(system(vault_cmd)) != ''
-                        let found_api_key = s:true
-                    endif
+                if !empty(vault_cmd) && !empty(s:Chomp(system(vault_cmd)))
+                    let found_api_key = s:true
                 endif
             endif
 
@@ -325,7 +323,7 @@ EOF
         let currentSection = ''
         for line in lines
             let line = s:StripWhitespace(line)
-            if matchstr(line, '^\[') != '' && matchstr(line, '\]$') != ''
+            if !empty(matchstr(line, '^\[')) && !empty(matchstr(line, '\]$'))
                 let currentSection = substitute(line, '^\[\(.\{-}\)\]$', '\1', '')
             else
                 if currentSection == a:section
@@ -348,7 +346,7 @@ EOF
             let currentSection = ''
             for line in lines
                 let entry = s:StripWhitespace(line)
-                if matchstr(entry, '^\[') != '' && matchstr(entry, '\]$') != ''
+                if !empty(matchstr(entry, '^\[')) && !empty(matchstr(entry, '\]$'))
                     if currentSection == a:section && !keyFound
                         let output = output + [join([a:key, a:val], '=')]
                         let keyFound = s:true
@@ -460,10 +458,10 @@ EOF
 
     function! s:AppendHeartbeat(file, now, is_write, last)
         let file = a:file
-        if file == ''
+        if empty(file)
             let file = a:last.file
         endif
-        if file != ''
+        if !empty(file)
             let heartbeat = {}
             let heartbeat.entity = file
             let heartbeat.time = s:CurrentTimeStr()
@@ -516,7 +514,7 @@ EOF
         if has_key(heartbeat, 'language')
             let cmd = cmd + ['--alternate-language', heartbeat.language]
         endif
-        if extra_heartbeats != ''
+        if !empty(extra_heartbeats)
             let cmd = cmd + ['--extra-heartbeats']
         endif
 
@@ -537,7 +535,7 @@ EOF
             let job = job_start(job_cmd, {
                 \ 'stoponexit': '',
                 \ 'callback': {channel, output -> s:AsyncHandler(output, cmd)}})
-            if extra_heartbeats != ''
+            if !empty(extra_heartbeats)
                 let channel = job_getchannel(job)
                 call ch_sendraw(channel, extra_heartbeats . "\n")
             endif
@@ -556,12 +554,12 @@ EOF
                 let job_opts['detach'] = 1
             endif
             let job = jobstart(job_cmd, job_opts)
-            if extra_heartbeats != ''
+            if !empty(extra_heartbeats)
                 call jobsend(job, extra_heartbeats . "\n")
             endif
         elseif s:IsWindows()
             if s:is_debug_on
-                if extra_heartbeats != ''
+                if !empty(extra_heartbeats)
                     let stdout = system('(' . s:JoinArgs(cmd) . ')', extra_heartbeats)
                 else
                     let stdout = system('(' . s:JoinArgs(cmd) . ')')
@@ -574,13 +572,13 @@ EOF
             endif
         else
             if s:is_debug_on
-                if extra_heartbeats != ''
+                if !empty(extra_heartbeats)
                     let stdout = system(s:JoinArgs(cmd), extra_heartbeats)
                 else
                     let stdout = system(s:JoinArgs(cmd))
                 endif
             else
-                if extra_heartbeats != ''
+                if !empty(extra_heartbeats)
                     let stdout = system(s:JoinArgs(cmd) . ' &', extra_heartbeats)
                 else
                     let stdout = system(s:JoinArgs(cmd) . ' &')
@@ -604,7 +602,7 @@ EOF
             endif
         endif
 
-        if s:is_debug_on && stdout != ''
+        if s:is_debug_on && !empty(stdout)
             echoerr '[WakaTime] Command: ' . s:JoinArgs(cmd) . "\n[WakaTime] Error: " . stdout
         endif
     endfunction
@@ -686,7 +684,7 @@ EOF
     function! s:PromptForApiKey()
         let api_key = s:false
         let api_key = s:GetIniSetting('settings', 'api_key')
-        if api_key == ''
+        if empty(api_key)
             let api_key = s:GetIniSetting('settings', 'apikey')
         endif
 
@@ -801,7 +799,7 @@ EOF
 " Async Handlers {{{
 
     function! s:AsyncHandler(output, cmd)
-        if s:is_debug_on && s:StripWhitespace(a:output) != ''
+        if s:is_debug_on && !empty(s:StripWhitespace(a:output))
             echoerr '[WakaTime] Command: ' . s:JoinArgs(a:cmd) . "\n[WakaTime] Error: " . a:output
         endif
     endfunction
@@ -816,7 +814,7 @@ EOF
         if a:exit_code == s:exit_code_api_key_error
             let output .= 'Invalid API Key'
         endif
-        if (s:is_debug_on || a:exit_code == s:exit_code_config_parse_error || a:exit_code == s:exit_code_api_key_error) && output != ''
+        if (s:is_debug_on || a:exit_code == s:exit_code_config_parse_error || a:exit_code == s:exit_code_api_key_error) && !empty(output)
             echoerr printf('[WakaTime] Error %d: %s', a:exit_code, output)
         endif
     endfunction
@@ -835,13 +833,13 @@ EOF
         if a:exit_code == s:exit_code_api_key_error
             let output .= 'Invalid API Key'
         endif
-        if output != ''
+        if !empty(output)
             echo "Today: " . output
         endif
     endfunction
 
     function! s:AsyncInstallHandler(output)
-        if s:is_debug_on && s:StripWhitespace(a:output != '')
+        if s:is_debug_on && !empty(s:StripWhitespace(a:output))
             echo '[WakaTime] ' . a:output
             call s:InstallCLI(s:false)
         endif
@@ -854,7 +852,7 @@ EOF
 
     function! s:NeovimAsyncInstallExitHandler(job_id, exit_code, event)
         let output = s:StripWhitespace(join(s:nvim_async_output, "\n"))
-        if s:is_debug_on && (a:exit_code != 0 || output != '')
+        if s:is_debug_on && (a:exit_code != 0 || !empty(output))
             echo printf('[WakaTime] %d: %s', a:exit_code, output)
             call s:InstallCLI(s:false)
         endif
