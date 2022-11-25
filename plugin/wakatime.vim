@@ -287,6 +287,16 @@ EOF
             if s:GetIniSetting('settings', 'api_key') != '' || s:GetIniSetting('settings', 'apikey') != ''
                 let found_api_key = s:true
             endif
+
+            if !found_api_key
+                let vault_cmd = s:GetIniSetting('settings', 'api_key_vault_cmd')
+                if !empty(vault_cmd)
+                    if s:Chomp(system(vault_cmd)) != ''
+                        let found_api_key = s:true
+                    endif
+                endif
+            endif
+
             if !found_api_key
                 call s:PromptForApiKey()
                 echo "[WakaTime] Setup complete! Visit https://wakatime.com to view your coding activity."
