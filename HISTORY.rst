@@ -3,6 +3,53 @@ History
 -------
 
 
+10.0.0 (2022-11-28)
+++++++++++++++++++
+
+- New WakaTimeCliVersion and WakaTimeCliLocation commands.
+  `da7483c <https://github.com/wakatime/vim-wakatime/commit/da7483c7481eb4dd6e59b4b3b996fa66e28232a8>`_
+- Support reading api-key from vault command.
+  `#150 <https://github.com/wakatime/vim-wakatime/pull/150>`_
+- Safe executable helper that doesn't error on empty command string.
+  `be38799 <https://github.com/wakatime/vim-wakatime/commit/be387996de65d0bddbf926a360f0d2a196c8856c>`_
+- Create parent directory for shared state file if missing.
+  `#138 <https://github.com/wakatime/vim-wakatime/pull/138>`_
+- Expand env vars twice to make sure any nested ones are also evaluated.
+  `9cf2f19 <https://github.com/wakatime/vim-wakatime/commit/9cf2f1910d5cd7f25657176fe60b1745a310f1b3>`_
+- Move vim temp files into .wakatime shared folder.
+  `f808057 <https://github.com/wakatime/vim-wakatime/commit/f80805703164593f42374e37cafadf39186d9a6f>`_
+- Clean up legacy wakatime-cli directory if exists.
+  `#131 <https://github.com/wakatime/vim-wakatime/pull/131>`_
+- Copy wakatime-cli if creating symlink fails.
+  `#124 <https://github.com/wakatime/vim-wakatime/pull/124>`_
+- Fix python on Windows in msys2.
+  `#123 <https://github.com/wakatime/vim-wakatime/issues/123>`_
+- Copy wakatime-cli instead of symlink on Windows, and use exe extension.
+  `#122 <https://github.com/wakatime/vim-wakatime/issues/122>`_
+- Use wakatime-cli symlink to avoid slow platform detection in vim script.
+  `7a6d776 <https://github.com/wakatime/vim-wakatime/commit/7a6d776a6a36d432cad3ef1e7c926f6d777e57bc>`_
+- Fix some Windows bugs.
+  `#120 <https://github.com/wakatime/vim-wakatime/issues/120>`_
+- Fix finding location of wakatime-cli on Windows.
+  `#117 <https://github.com/wakatime/vim-wakatime/issues/117>`_
+- Create symlink to wakatime-cli platform version for convenience.
+  `0ce3da4 <https://github.com/wakatime/vim-wakatime/commit/0ce3da4345cabe455e4a141718d2d74736607968>`_
+- Prevent trying to execute empty string command.
+  `#115 <https://github.com/wakatime/vim-wakatime/issues/115>`_
+- Run python code without vim file to avoid spaces in file path.
+  `137b19b <https://github.com/wakatime/vim-wakatime/commit/137b19b8284ec603255516976d304d5adc2c924d>`_
+- Suppress download wakatime-cli message when already installed.
+  `#114 <https://github.com/wakatime/vim-wakatime/issues/114>`_
+- Stop echoing debug output as error.
+  `e8d148e <https://github.com/wakatime/vim-wakatime/commit/e8d148eaad0b382302dbdf082ef9d82c81e21a9a>`_
+- Fix slow startup on Windows when Python not installed on machine.
+  `0e9d48c <https://github.com/wakatime/vim-wakatime/commit/0e9d48c2ba0e959517e54ff8a9c7958b24b14933>`_
+- Prevent sending ON as language.
+  `02405f1 <https://github.com/wakatime/vim-wakatime/commit/02405f1b4077a0bcc99b8111de967582f45ec776>`_
+- Vim language should be alternate not primary.
+  `103e852 <https://github.com/wakatime/vim-wakatime/commit/103e852325242b2527331b85c565be3debb0e516>`_
+
+
 9.0.1 (2021-11-17)
 ++++++++++++++++++
 
