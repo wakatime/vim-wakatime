@@ -752,8 +752,9 @@ EOF
         endif
     endfunction
 
-    function! g:WakaTimeToday()
+    function! g:WakaTimeToday(callback)
         let cmd = [s:wakatime_cli, '--today']
+        let s:async_callback_today = a:callback
 
         if s:has_async
             if !s:IsWindows()
@@ -782,16 +783,17 @@ EOF
             let s:nvim_async_output_today = ['']
             let job = jobstart(job_cmd, job_opts)
         else
-            echo "Today: " .  s:Chomp(system(s:JoinArgs(cmd)))
+            call a:callback(s:Chomp(system(s:JoinArgs(cmd))))
         endif
     endfunction
 
-    function! g:WakaTimeCliLocation()
-        echo s:wakatime_cli
+    function! g:WakaTimeCliLocation(callback)
+        call a:callback(s:wakatime_cli)
     endfunction
 
-    function! g:WakaTimeCliVersion()
+    function! g:WakaTimeCliVersion(callback)
         let cmd = [s:wakatime_cli, '--version']
+        let s:async_callback_version = a:callback
 
         if s:has_async
             if !s:IsWindows()
@@ -803,7 +805,7 @@ EOF
             endif
             let job = job_start(job_cmd, {
                 \ 'stoponexit': '',
-                \ 'callback': {channel, output -> s:AsyncGenericHandler(output, cmd)}})
+                \ 'callback': {channel, output -> s:AsyncVersionHandler(output, cmd)}})
         elseif s:nvim_async
             if s:IsWindows()
                 let job_cmd = cmd
@@ -811,17 +813,25 @@ EOF
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
             let job_opts = {
-                \ 'on_stdout': function('s:NeovimAsyncGenericOutputHandler'),
-                \ 'on_stderr': function('s:NeovimAsyncGenericOutputHandler'),
-                \ 'on_exit': function('s:NeovimAsyncGenericExitHandler')}
+                \ 'on_stdout': function('s:NeovimAsyncVersionOutputHandler'),
+                \ 'on_stderr': function('s:NeovimAsyncVersionOutputHandler'),
+                \ 'on_exit': function('s:NeovimAsyncVersionExitHandler')}
             if !s:IsWindows()
                 let job_opts['detach'] = 1
             endif
-            let s:nvim_async_output_generic = ['']
+            let s:nvim_async_output_version = ['']
             let job = jobstart(job_cmd, job_opts)
         else
-            echo s:Chomp(system(s:JoinArgs(cmd)))
+            call a:callback(s:Chomp(system(s:JoinArgs(cmd))))
         endif
+    endfunction
+
+    function! s:Print(msg)
+        echo a:msg
+    endfunction
+
+    function! s:PrintToday(msg)
+        echo "Today: " . a:msg
     endfunction
 
     function! s:Executable(path)
@@ -858,7 +868,7 @@ EOF
     endfunction
 
     function! s:AsyncTodayHandler(output, cmd)
-        echo "Today: " . a:output
+        call s:async_callback_today(a:output)
     endfunction
 
     function! s:NeovimAsyncTodayOutputHandler(job_id, output, event)
@@ -871,28 +881,24 @@ EOF
         if a:exit_code == s:exit_code_api_key_error
             let output .= 'Invalid API Key'
         endif
-        if !empty(output)
-            echo "Today: " . output
-        endif
+        call s:async_callback_today(output)
     endfunction
 
-    function! s:AsyncGenericHandler(output, cmd)
-        echo a:output
+    function! s:AsyncVersionHandler(output, cmd)
+        call s:async_callback_version(a:output)
     endfunction
 
-    function! s:NeovimAsyncGenericHandler(job_id, output, event)
-        let s:nvim_async_output_generic[-1] .= a:output[0]
-        call extend(s:nvim_async_output_generic, a:output[1:])
+    function! s:NeovimAsyncVersionHandler(job_id, output, event)
+        let s:nvim_async_output_version[-1] .= a:output[0]
+        call extend(s:nvim_async_output_version, a:output[1:])
     endfunction
 
-    function! s:NeovimAsyncGenericExitHandler(job_id, exit_code, event)
-        let output = s:StripWhitespace(join(s:nvim_async_output_generic, "\n"))
+    function! s:NeovimAsyncVersionExitHandler(job_id, exit_code, event)
+        let output = s:StripWhitespace(join(s:nvim_async_output_version, "\n"))
         if a:exit_code == s:exit_code_api_key_error
             let output .= 'Invalid API Key'
         endif
-        if !empty(output)
-            echo output
-        endif
+        call s:async_callback_version(output)
     endfunction
 
     function! s:AsyncInstallHandler(output)
@@ -944,9 +950,9 @@ call s:InstallCLI(s:true)
     :command -nargs=0 WakaTimeScreenRedrawDisable call s:DisableScreenRedraw()
     :command -nargs=0 WakaTimeScreenRedrawEnable call s:EnableScreenRedraw()
     :command -nargs=0 WakaTimeScreenRedrawEnableAuto call s:EnableScreenRedrawAuto()
-    :command -nargs=0 WakaTimeToday call g:WakaTimeToday()
-    :command -nargs=0 WakaTimeCliLocation call g:WakaTimeCliLocation()
-    :command -nargs=0 WakaTimeCliVersion call g:WakaTimeCliVersion()
+    :command -nargs=0 WakaTimeToday call g:WakaTimeToday(function('s:Print'))
+    :command -nargs=0 WakaTimeCliLocation call g:WakaTimeCliLocation(function('s:Print'))
+    :command -nargs=0 WakaTimeCliVersion call g:WakaTimeCliVersion(function('s:Print'))
 
 " }}}
 
