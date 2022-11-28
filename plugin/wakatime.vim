@@ -786,6 +786,44 @@ EOF
         endif
     endfunction
 
+    function! g:WakaTimeCliLocation()
+        echo s:wakatime_cli
+    endfunction
+
+    function! g:WakaTimeCliVersion()
+        let cmd = [s:wakatime_cli, '--version']
+
+        if s:has_async
+            if !s:IsWindows()
+                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            elseif &shell =~ 'sh\(\.exe\)\?$'
+                let job_cmd = [&shell, '-c', s:JoinArgs(cmd)]
+            else
+                let job_cmd = [&shell, &shellcmdflag] + cmd
+            endif
+            let job = job_start(job_cmd, {
+                \ 'stoponexit': '',
+                \ 'callback': {channel, output -> s:AsyncGenericHandler(output, cmd)}})
+        elseif s:nvim_async
+            if s:IsWindows()
+                let job_cmd = cmd
+            else
+                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            endif
+            let job_opts = {
+                \ 'on_stdout': function('s:NeovimAsyncGenericOutputHandler'),
+                \ 'on_stderr': function('s:NeovimAsyncGenericOutputHandler'),
+                \ 'on_exit': function('s:NeovimAsyncGenericExitHandler')}
+            if !s:IsWindows()
+                let job_opts['detach'] = 1
+            endif
+            let s:nvim_async_output_generic = ['']
+            let job = jobstart(job_cmd, job_opts)
+        else
+            echo s:Chomp(system(s:JoinArgs(cmd)))
+        endif
+    endfunction
+
     function! s:Executable(path)
         if !empty(a:path) && executable(a:path)
             return s:true
@@ -835,6 +873,25 @@ EOF
         endif
         if !empty(output)
             echo "Today: " . output
+        endif
+    endfunction
+
+    function! s:AsyncGenericHandler(output, cmd)
+        echo a:output
+    endfunction
+
+    function! s:NeovimAsyncGenericHandler(job_id, output, event)
+        let s:nvim_async_output_generic[-1] .= a:output[0]
+        call extend(s:nvim_async_output_generic, a:output[1:])
+    endfunction
+
+    function! s:NeovimAsyncGenericExitHandler(job_id, exit_code, event)
+        let output = s:StripWhitespace(join(s:nvim_async_output_generic, "\n"))
+        if a:exit_code == s:exit_code_api_key_error
+            let output .= 'Invalid API Key'
+        endif
+        if !empty(output)
+            echo output
         endif
     endfunction
 
@@ -888,6 +945,8 @@ call s:InstallCLI(s:true)
     :command -nargs=0 WakaTimeScreenRedrawEnable call s:EnableScreenRedraw()
     :command -nargs=0 WakaTimeScreenRedrawEnableAuto call s:EnableScreenRedrawAuto()
     :command -nargs=0 WakaTimeToday call g:WakaTimeToday()
+    :command -nargs=0 WakaTimeCliLocation call g:WakaTimeCliLocation()
+    :command -nargs=0 WakaTimeCliVersion call g:WakaTimeCliVersion()
 
 " }}}
 
