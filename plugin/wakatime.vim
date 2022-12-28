@@ -223,7 +223,7 @@ EOF
                 let cmd = 'Invoke-WebRequest -Uri ' . url . ' -OutFile ' . shellescape(zipfile)
                 call system(['powershell.exe', '-noprofile', '-command'] + [cmd])
 
-                let cmd = 'Add-Type -AssemblyName [System.IO](http://System.IO).Compression.FileSystem; [[System.IO](http://System.IO).Compression.ZipFile]::ExtractToDirectory(' . shellescape(zipfile) . ', ' . shellescape(s:home . '/.wakatime') . ')'
+                let cmd = 'Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory(' . shellescape(zipfile) . ', ' . shellescape(s:home . '/.wakatime') . ')'
                 call system(['powershell.exe', '-noprofile', '-command'] + [cmd])
 
                 let cmd = 'Rename-Item -Path ' . shellescape(s:home . '/.wakatime/wakatime-cli-windows-amd64.exe') . ' -NewName ' . shellescape(s:home . '/.wakatime/wakatime-cli.exe')
