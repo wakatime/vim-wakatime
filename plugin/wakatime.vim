@@ -213,8 +213,21 @@ from install_cli import main
 main(home=vim.eval('s:home'))
 EOF
         elseif !filereadable(s:wakatime_cli)
-            let url = 'https://github.com/wakatime/wakatime-cli/releases'
-            echo printf("Download wakatime-cli and extract into the ~/.wakatime/ folder:\n%s", url)
+
+            " use Powershell to install wakatime-cli
+            if s:IsWindows()
+                let url = "https://github.com/wakatime/wakatime-cli/releases/download/v1.60.1/wakatime-cli-windows-amd64.zip"
+                let zipfile = "~/.wakatime/wakatime-cli.zip"
+                let cmd = ['Invoke-WebRequest', '-Uri', url, '-OutFile', zipfile]
+                exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+                let cmd = ['Expand-Archive', zipfile, '-DestinationPath', '~/.wakatime/']
+                exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+
+            " last resort, ask to manually download wakatime-cli
+            else
+                let url = 'https://github.com/wakatime/wakatime-cli/releases'
+                echo printf("Download wakatime-cli and extract into the ~/.wakatime/ folder:\n%s", url)
+            endif
         endif
     endfunction
 
