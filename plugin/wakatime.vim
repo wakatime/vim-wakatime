@@ -214,7 +214,8 @@ main(home=vim.eval('s:home'))
 EOF
         elseif !filereadable(s:wakatime_cli)
 
-            " use Powershell to install wakatime-cli
+            " use Powershell to install wakatime-cli because NeoVim doesn't
+            " come installed with Python bundled (https://github.com/wakatime/vim-wakatime/issues/147)
             if s:IsWindows()
                 echo "Downloading wakatime-cli to ~/.wakatime/... this may take a while but only needs to be done once..."
 
