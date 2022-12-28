@@ -212,6 +212,15 @@ sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
 from install_cli import main
 main(home=vim.eval('s:home'))
 EOF
+        elseif has('pythonx')
+            pyx << EOF
+import sys
+import vim
+from os.path import abspath, join
+sys.path.insert(0, abspath(join(vim.eval('s:plugin_root_folder'), 'scripts')))
+from install_cli import main
+main(home=vim.eval('s:home'))
+EOF
         elseif !filereadable(s:wakatime_cli)
             let url = 'https://github.com/wakatime/wakatime-cli/releases'
             echo printf("Download wakatime-cli and extract into the ~/.wakatime/ folder:\n%s", url)
