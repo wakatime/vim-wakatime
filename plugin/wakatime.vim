@@ -220,7 +220,7 @@ EOF
                 echo "Downloading wakatime-cli to ~/.wakatime/... this may take a while but only needs to be done once..."
 
                 let cmd = 'if ((Get-WmiObject win32_operatingsystem | select osarchitecture).osarchitecture -eq "64-bit") { Write "amd64" } else { Write "386" }'
-                let arch = s:StripWhitespace(system(['powershell.exe', '-noprofile', '-command'] + [cmd]))
+                let arch = s:Chomp(system(['powershell.exe', '-noprofile', '-command'] + [cmd]))
 
                 let url = "https://github.com/wakatime/wakatime-cli/releases/download/v1.60.1/wakatime-cli-windows-" . arch . ".zip"
                 let zipfile = s:home . "/.wakatime/wakatime-cli.zip"
