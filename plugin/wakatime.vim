@@ -216,12 +216,20 @@ EOF
 
             " use Powershell to install wakatime-cli
             if s:IsWindows()
+                echo "Downloading wakatime-cli to ~/.wakatime/... this may take a while but only needs to be done once..."
                 let url = "https://github.com/wakatime/wakatime-cli/releases/download/v1.60.1/wakatime-cli-windows-amd64.zip"
-                let zipfile = "~/.wakatime/wakatime-cli.zip"
-                let cmd = ['Invoke-WebRequest', '-Uri', url, '-OutFile', zipfile]
-                exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
-                let cmd = ['Expand-Archive', zipfile, '-DestinationPath', '~/.wakatime/']
-                exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+                let zipfile = s:home . "/.wakatime/wakatime-cli.zip"
+
+                let cmd = 'Invoke-WebRequest -Uri ' . url . ' -OutFile ' . shellescape(zipfile)
+                call system(['powershell.exe', '-noprofile', '-command'] + [cmd])
+
+                let cmd = 'Add-Type -AssemblyName [System.IO](http://System.IO).Compression.FileSystem; [[System.IO](http://System.IO).Compression.ZipFile]::ExtractToDirectory(' . shellescape(zipfile) . ', ' . shellescape(s:home . '/.wakatime') . ')'
+                call system(['powershell.exe', '-noprofile', '-command'] + [cmd])
+
+                let cmd = 'Rename-Item -Path ' . shellescape(s:home . '/.wakatime/wakatime-cli-windows-amd64.exe') . ' -NewName ' . shellescape(s:home . '/.wakatime/wakatime-cli.exe')
+                call system(['powershell.exe', '-noprofile', '-command'] + [cmd])
+
+                call delete(fnameescape(zipfile))
 
             " last resort, ask to manually download wakatime-cli
             else
