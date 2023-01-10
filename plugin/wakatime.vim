@@ -55,6 +55,7 @@ let s:VERSION = '10.0.0'
     let s:has_reltime = has('reltime') && localtime() - 1 < split(split(reltimestr(reltime()))[0], '\.')[0]
     let s:config_file_already_setup = s:false
     let s:debug_mode_already_setup = s:false
+    let s:cli_already_setup = s:false
     let s:is_debug_on = s:false
     let s:local_cache_expire = 10  " seconds between reading s:shared_state_file
     let s:last_heartbeat = {'last_activity_at': 0, 'last_heartbeat_at': 0, 'file': ''}
@@ -181,15 +182,27 @@ let s:VERSION = '10.0.0'
                 let job = jobstart(job_cmd, job_opts)
             elseif s:IsWindows()
                 if s:is_debug_on
-                    let stdout = system('(' . s:JoinArgs(cmd) . ')')
+                    let stdout = s:StripWhitespace(system('(' . s:JoinArgs(cmd) . ')'))
+                    if !empty(stdout)
+                        echo printf('[WakaTime] error installing wakatime-cli: %s', stdout)
+                        call s:InstallCLI(s:false)
+                    endif
                 else
                     exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
                 endif
             else
                 if s:is_debug_on
-                    let stdout = system(s:JoinArgs(cmd))
+                    let stdout = s:StripWhitespace(system(s:JoinArgs(cmd)))
+                    if !empty(stdout)
+                        echo printf('[WakaTime] error installing wakatime-cli: %s', stdout)
+                        call s:InstallCLI(s:false)
+                    endif
                 else
-                    let stdout = system(s:JoinArgs(cmd) . ' &')
+                    let stdout = s:StripWhitespace(system(s:JoinArgs(cmd) . ' &'))
+                    if !empty(stdout)
+                        echo printf('[WakaTime] error installing wakatime-cli: %s', stdout)
+                        call s:InstallCLI(s:false)
+                    endif
                 endif
             endif
         elseif s:Executable(v:progname) && (has('python3') || has('python') || has('python3_dynamic') || has('python_dynamic'))
@@ -329,6 +342,13 @@ EOF
             endif
 
             let s:config_file_already_setup = s:true
+        endif
+    endfunction
+
+    function! s:SetupCLI()
+        if !s:cli_already_setup
+            let s:cli_already_setup = s:true
+            call s:InstallCLI(s:true)
         endif
     endfunction
 
@@ -748,6 +768,7 @@ EOF
     function! s:InitAndHandleActivity(is_write)
         call s:SetupDebugMode()
         call s:SetupConfigFile()
+        call s:SetupCLI()
         call s:HandleActivity(a:is_write)
     endfunction
 
@@ -953,7 +974,6 @@ EOF
 
 
 call s:Init()
-call s:InstallCLI(s:true)
 
 
 " Autocommand Events {{{
