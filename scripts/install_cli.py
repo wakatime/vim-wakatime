@@ -141,7 +141,7 @@ def parseConfigFile(configFile):
                 return configs
             except ConfigParserError:
                 print(traceback.format_exc())
-                return None
+                return configs
     except IOError:
         return configs
 
