@@ -980,7 +980,7 @@ call s:Init()
 
     augroup Wakatime
         autocmd BufEnter,VimEnter * call s:InitAndHandleActivity(s:false)
-        autocmd CursorMoved,CursorMovedI * call s:HandleActivity(s:false)
+        autocmd CursorHold,CursorHoldI * call s:HandleActivity(s:false)
         autocmd BufWritePost * call s:HandleActivity(s:true)
         if exists('##QuitPre')
             autocmd QuitPre * call s:SendHeartbeats()
