@@ -184,7 +184,7 @@ let s:VERSION = '10.0.0'
                 if s:is_debug_on
                     let stdout = s:StripWhitespace(system('(' . s:JoinArgs(cmd) . ')'))
                     if !empty(stdout)
-                        echo printf('[WakaTime] error installing wakatime-cli: %s', stdout)
+                        echo printf('[WakaTime] error installing wakatime-cli for Windows: %s\nWill retry using Vim built-in Python.', stdout)
                         call s:InstallCLI(s:false)
                     endif
                 else
@@ -194,13 +194,12 @@ let s:VERSION = '10.0.0'
                 if s:is_debug_on
                     let stdout = s:StripWhitespace(system(s:JoinArgs(cmd)))
                     if !empty(stdout)
-                        echo printf('[WakaTime] error installing wakatime-cli: %s', stdout)
+                        echo printf('[WakaTime] error installing wakatime-cli: %s\nWill retry using Vim built-in Python.', stdout)
                         call s:InstallCLI(s:false)
                     endif
                 else
                     let stdout = s:StripWhitespace(system(s:JoinArgs(cmd) . ' &'))
                     if !empty(stdout)
-                        echo printf('[WakaTime] error installing wakatime-cli: %s', stdout)
                         call s:InstallCLI(s:false)
                     endif
                 endif
