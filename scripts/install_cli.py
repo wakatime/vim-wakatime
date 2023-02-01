@@ -268,6 +268,9 @@ def isCliLatest():
     if not localVer:
         log('Local wakatime-cli version not found.')
         return False
+    if localVer == "<local-build>":
+        log('Local wakatime-cli version is <local-build>, skip updating.')
+        return True
 
     log('Current wakatime-cli version is %s' % localVer)
     log('Checking for updates to wakatime-cli...')
@@ -340,6 +343,8 @@ def extractVersion(text):
     match = pattern.search(text)
     if match:
         return 'v{ver}'.format(ver=match.group(1))
+    if text and text.strip() == "<local-build>":
+        return "<local-build>"
     return None
 
 
