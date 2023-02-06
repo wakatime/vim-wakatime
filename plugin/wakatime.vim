@@ -835,6 +835,45 @@ EOF
         endif
     endfunction
 
+    function! g:WakaTimeFileExpert(callback)
+        let file = s:GetCurrentFile()
+        if empty(file)
+            let file = s:GetLastHeartbeat().file
+        endif
+        let cmd = [s:wakatime_cli, '--file-experts', '--entity', file]
+        let s:async_callback_file_expert = a:callback
+
+        if s:has_async
+            if !s:IsWindows()
+                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            elseif &shell =~ 'sh\(\.exe\)\?$'
+                let job_cmd = [&shell, '-c', s:JoinArgs(cmd)]
+            else
+                let job_cmd = [&shell, &shellcmdflag] + cmd
+            endif
+            let job = job_start(job_cmd, {
+                \ 'stoponexit': '',
+                \ 'callback': {channel, output -> s:AsyncFileExpertHandler(output, cmd)}})
+        elseif s:nvim_async
+            if s:IsWindows()
+                let job_cmd = cmd
+            else
+                let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
+            endif
+            let job_opts = {
+                \ 'on_stdout': function('s:NeovimAsyncFileExpertOutputHandler'),
+                \ 'on_stderr': function('s:NeovimAsyncFileExpertOutputHandler'),
+                \ 'on_exit': function('s:NeovimAsyncFileExpertExitHandler')}
+            if !s:IsWindows()
+                let job_opts['detach'] = 1
+            endif
+            let s:nvim_async_output_file_expert = ['']
+            let job = jobstart(job_cmd, job_opts)
+        else
+            call a:callback(s:Chomp(system(s:JoinArgs(cmd))))
+        endif
+    endfunction
+
     function! g:WakaTimeCliLocation(callback)
         call a:callback(s:wakatime_cli)
     endfunction
@@ -880,6 +919,14 @@ EOF
 
     function! s:PrintToday(msg)
         echo "Today: " . a:msg
+    endfunction
+
+    function! s:PrintFileExpert(msg)
+        let output = a:msg
+        if empty(output)
+            let output = 'No data on this file.'
+        endif
+        echo output
     endfunction
 
     function! s:Executable(path)
@@ -929,7 +976,24 @@ EOF
         if a:exit_code == s:exit_code_api_key_error
             let output .= 'Invalid API Key'
         endif
-        call s:async_callback_today(output)
+        call s:async_callback_file_expert(output)
+    endfunction
+
+    function! s:AsyncFileExpertHandler(output, cmd)
+        call s:async_callback_file_expert(a:output)
+    endfunction
+
+    function! s:NeovimAsyncFileExpertOutputHandler(job_id, output, event)
+        let s:nvim_async_output_file_expert[-1] .= a:output[0]
+        call extend(s:nvim_async_output_file_expert, a:output[1:])
+    endfunction
+
+    function! s:NeovimAsyncFileExpertExitHandler(job_id, exit_code, event)
+        let output = s:StripWhitespace(join(s:nvim_async_output_file_expert, "\n"))
+        if a:exit_code == s:exit_code_api_key_error
+            let output .= 'Invalid API Key'
+        endif
+        call s:async_callback_file_expert(output)
     endfunction
 
     function! s:AsyncVersionHandler(output, cmd)
@@ -998,6 +1062,7 @@ call s:Init()
     :command -nargs=0 WakaTimeScreenRedrawEnable call s:EnableScreenRedraw()
     :command -nargs=0 WakaTimeScreenRedrawEnableAuto call s:EnableScreenRedrawAuto()
     :command -nargs=0 WakaTimeToday call g:WakaTimeToday(function('s:Print'))
+    :command -nargs=0 WakaTimeFileExpert call g:WakaTimeFileExpert(function('s:PrintFileExpert'))
     :command -nargs=0 WakaTimeCliLocation call g:WakaTimeCliLocation(function('s:Print'))
     :command -nargs=0 WakaTimeCliVersion call g:WakaTimeCliVersion(function('s:Print'))
 
