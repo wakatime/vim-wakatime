@@ -976,7 +976,7 @@ EOF
         if a:exit_code == s:exit_code_api_key_error
             let output .= 'Invalid API Key'
         endif
-        call s:async_callback_file_expert(output)
+        call s:async_callback_today(output)
     endfunction
 
     function! s:AsyncFileExpertHandler(output, cmd)
