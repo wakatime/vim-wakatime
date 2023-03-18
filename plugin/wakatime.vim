@@ -802,7 +802,11 @@ EOF
 
     function! g:WakaTimeToday(callback)
         let cmd = [s:wakatime_cli, '--today']
+
         let s:async_callback_today = a:callback
+        if empty(a:callback)
+            let s:async_callback_today = function('s:Print')
+        endif
 
         if s:has_async
             if !s:IsWindows()
@@ -831,7 +835,7 @@ EOF
             let s:nvim_async_output_today = ['']
             let job = jobstart(job_cmd, job_opts)
         else
-            call a:callback(s:Chomp(system(s:JoinArgs(cmd))))
+            call s:async_callback_today(s:Chomp(system(s:JoinArgs(cmd))))
         endif
     endfunction
 
@@ -841,7 +845,11 @@ EOF
             let file = s:GetLastHeartbeat().file
         endif
         let cmd = [s:wakatime_cli, '--file-experts', '--entity', file]
+
         let s:async_callback_file_expert = a:callback
+        if empty(a:callback)
+            let s:async_callback_file_expert = function('s:PrintFileExpert')
+        endif
 
         if s:has_async
             if !s:IsWindows()
@@ -870,17 +878,25 @@ EOF
             let s:nvim_async_output_file_expert = ['']
             let job = jobstart(job_cmd, job_opts)
         else
-            call a:callback(s:Chomp(system(s:JoinArgs(cmd))))
+            call s:async_callback_file_expert(s:Chomp(system(s:JoinArgs(cmd))))
         endif
     endfunction
 
     function! g:WakaTimeCliLocation(callback)
-        call a:callback(s:wakatime_cli)
+        let s:cb = a:callback
+        if empty(a:callback)
+            let s:cb = function('s:Print')
+        endif
+        call s:cb(s:wakatime_cli)
     endfunction
 
     function! g:WakaTimeCliVersion(callback)
         let cmd = [s:wakatime_cli, '--version']
+
         let s:async_callback_version = a:callback
+        if empty(a:callback)
+            let s:async_callback_version = function('s:Print')
+        endif
 
         if s:has_async
             if !s:IsWindows()
@@ -909,7 +925,7 @@ EOF
             let s:nvim_async_output_version = ['']
             let job = jobstart(job_cmd, job_opts)
         else
-            call a:callback(s:Chomp(system(s:JoinArgs(cmd))))
+            call s:async_callback_version(s:Chomp(system(s:JoinArgs(cmd))))
         endif
     endfunction
 
