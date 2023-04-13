@@ -188,7 +188,7 @@ def getResourcesFolder():
 
 def getConfigFile(internal=None):
     if internal:
-        return os.path.join(getResourcesFolder(), '.wakatime-internal.cfg')
+        return os.path.join(getResourcesFolder(), 'wakatime-internal.cfg')
     return os.path.join(getHomeFolder(), '.wakatime.cfg')
 
 
