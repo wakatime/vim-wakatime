@@ -178,7 +178,14 @@ def getResourcesFolder():
 
 def getConfigFile(internal=None):
     if internal:
-        return os.path.join(getHomeFolder(), '.wakatime-internal.cfg')
+        if os.path.exists(os.path.join(getHomeFolder(), '.wakatime-internal.cfg')):
+            try:
+                os.remove(os.path.join(getHomeFolder(), '.wakatime-internal.cfg'))
+            except:
+                log(traceback.format_exc())
+        if not os.path.exists(getResourcesFolder()):
+            os.makedirs(getResourcesFolder())
+        return os.path.join(getResourcesFolder(), '.wakatime-internal.cfg')
     return os.path.join(getHomeFolder(), '.wakatime.cfg')
 
 
