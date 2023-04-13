@@ -53,6 +53,16 @@ def main(home=None):
         HOME_FOLDER = home
 
     CONFIGS = parseConfigFile(getConfigFile())
+
+    if os.path.exists(os.path.join(getHomeFolder(), '.wakatime-internal.cfg')):
+        try:
+            os.remove(os.path.join(getHomeFolder(), '.wakatime-internal.cfg'))
+        except:
+            log(traceback.format_exc())
+
+    if not os.path.exists(getResourcesFolder()):
+        os.makedirs(getResourcesFolder())
+
     if not isCliLatest():
         downloadCLI()
 
@@ -178,13 +188,6 @@ def getResourcesFolder():
 
 def getConfigFile(internal=None):
     if internal:
-        if os.path.exists(os.path.join(getHomeFolder(), '.wakatime-internal.cfg')):
-            try:
-                os.remove(os.path.join(getHomeFolder(), '.wakatime-internal.cfg'))
-            except:
-                log(traceback.format_exc())
-        if not os.path.exists(getResourcesFolder()):
-            os.makedirs(getResourcesFolder())
         return os.path.join(getResourcesFolder(), '.wakatime-internal.cfg')
     return os.path.join(getHomeFolder(), '.wakatime.cfg')
 
@@ -194,9 +197,6 @@ def downloadCLI():
 
     if os.path.isdir(os.path.join(getResourcesFolder(), 'wakatime-cli')):
         shutil.rmtree(os.path.join(getResourcesFolder(), 'wakatime-cli'))
-
-    if not os.path.exists(getResourcesFolder()):
-        os.makedirs(getResourcesFolder())
 
     try:
         url = cliDownloadUrl()
