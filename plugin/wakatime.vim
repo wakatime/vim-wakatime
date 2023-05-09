@@ -1016,7 +1016,7 @@ EOF
         call s:async_callback_version(a:output)
     endfunction
 
-    function! s:NeovimAsyncVersionHandler(job_id, output, event)
+    function! s:NeovimAsyncVersionOutputHandler(job_id, output, event)
         let s:nvim_async_output_version[-1] .= a:output[0]
         call extend(s:nvim_async_output_version, a:output[1:])
     endfunction
