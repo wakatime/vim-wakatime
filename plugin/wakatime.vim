@@ -231,7 +231,7 @@ EOF
             if s:IsWindows()
                 echo "Downloading wakatime-cli to ~/.wakatime/... this may take a while but only needs to be done once..."
 
-                let cmd = 'if ((Get-WmiObject win32_operatingsystem | select osarchitecture).osarchitecture -eq "64-bit") { Write "amd64" } else { Write "386" }'
+                let cmd = 'if ((Get-WmiObject win32_operatingsystem | select osarchitecture).osarchitecture -like "64*") { Write "amd64" } else { Write "386" }'
                 let arch = s:Chomp(system(['powershell.exe', '-noprofile', '-command'] + [cmd]))
 
                 let url = "https://github.com/wakatime/wakatime-cli/releases/latest/download/wakatime-cli-windows-" . arch . ".zip"
