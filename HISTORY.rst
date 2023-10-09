@@ -3,6 +3,21 @@ History
 -------
 
 
+11.0.0 (2023-11-09)
+++++++++++++++++++
+
+`Changes <https://github.com/wakatime/vim-wakatime/compare/10.0.0...11.0.0>`_
+
+- Use pyx when available to install wakatime-cli on NeoVim.
+- Download wakatime-cli with Powershell when no Python available.
+- Fix WakaTimeCliVersion command in NeoVim.
+  `#160 <https://github.com/wakatime/vim-wakatime/issues/160>`_
+- Detect 64bit vs 32bit correctly on all Windows.
+  `#166 <https://github.com/wakatime/vim-wakatime/issues/166>`_
+- Support for Android.
+  `#168 <https://github.com/wakatime/vim-wakatime/pull/168>`_
+
+
 10.0.0 (2022-11-28)
 ++++++++++++++++++
 
