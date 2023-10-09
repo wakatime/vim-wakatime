@@ -27,10 +27,12 @@ except ImportError:
 
 
 def getOsName():
-    os = platform.system().lower()
-    if os.startswith('cygwin') or os.startswith('mingw') or os.startswith('msys'):
+    osName = platform.system().lower()
+    if osName.startswith('cygwin') or osName.startswith('mingw') or osName.startswith('msys'):
         return 'windows'
-    return os
+    if platform.system() == 'Linux' and 'ANDROID_DATA' in os.environ:
+        return 'android'
+    return osName
 
 
 GITHUB_RELEASES_STABLE_URL = 'https://api.github.com/repos/wakatime/wakatime-cli/releases/latest'
@@ -360,6 +362,8 @@ def cliDownloadUrl():
     arch = architecture()
 
     validCombinations = [
+      'android-arm',
+      'android-arm64',
       'darwin-amd64',
       'darwin-arm64',
       'freebsd-386',
