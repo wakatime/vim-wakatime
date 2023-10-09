@@ -30,7 +30,7 @@ def getOsName():
     osName = platform.system().lower()
     if osName.startswith('cygwin') or osName.startswith('mingw') or osName.startswith('msys'):
         return 'windows'
-    if platform.system() == 'Linux' and 'ANDROID_DATA' in os.environ:
+    if osName == 'linux' and 'ANDROID_DATA' in os.environ:
         return 'android'
     return osName
 
