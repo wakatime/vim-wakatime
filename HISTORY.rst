@@ -3,7 +3,7 @@ History
 -------
 
 
-11.0.0 (2023-11-09)
+11.0.0 (2023-10-09)
 ++++++++++++++++++
 
 `Changes <https://github.com/wakatime/vim-wakatime/compare/10.0.0...11.0.0>`_
