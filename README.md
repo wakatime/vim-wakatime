@@ -16,7 +16,7 @@
 
    Or with [Vim-plug](https://github.com/junegunn/vim-plug):  add `Plug 'wakatime/vim-wakatime'` to .vimrc file. While in vim reload .vimrc with `:so ~/.vimrc` or restart vim, enter
     `:PlugInstall`
-    
+
    Or with [Packer](https://github.com/wbthomason/packer.nvim): add `use 'wakatime/vim-wakatime'` to your plugins file.
 
 2. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`.
@@ -50,11 +50,11 @@ WakaTime plugins also share a common [$WAKATIME_HOME/.wakatime.cfg config file][
 
 Run `:WakaTimeDebugEnable` in Vim then run this Terminal command:
 
-`tail -f ~/.wakatime.log`
+`tail -f ~/.wakatime/wakatime.log`
 
-Enabling Debug Mode writes Vim Script errors to your Vim Status Bar and tells [wakatime-cli][wakatime-cli] to write verbose logs to `$WAKATIME_HOME/.wakatime.log`.
+Enabling Debug Mode writes Vim Script errors to your Vim Status Bar and tells [wakatime-cli][wakatime-cli] to write verbose logs to `$WAKATIME_HOME/.wakatime/wakatime.log`.
 
-Debug mode can make it hard to find the real error because of all the extra logging, so also try disabling Debug Mode while tailing `~/.wakatime.log` and editing files in Vim.
+Debug mode can make it hard to find the real error because of all the extra logging, so also try disabling Debug Mode while tailing `~/.wakatime/wakatime.log` and editing files in Vim.
 With Debug Mode enabled, the plugin sends data synchronously so disable it when finished debugging with `:WakaTimeDebugDisable`.
 
 The [How to Debug Plugins][how to debug] guide shows how to check when coding activity was last received from Vim use the [User Agents API][user agents api].
