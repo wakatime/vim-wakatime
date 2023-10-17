@@ -62,7 +62,8 @@ let s:VERSION = '11.0.0'
     let s:heartbeats_buffer = []
     let s:send_buffer_seconds = 30  " seconds between sending buffered heartbeats
     let s:last_sent = localtime()
-    let s:has_async = has('patch-7.4-2344') && exists('*job_start')
+    let s:has_async_patch = has('patch-7.4-2344') || v:version >= 800
+    let s:has_async = s:has_async_patch && exists('*job_start')
     let s:nvim_async = exists('*jobstart')
 
     function! s:Init()
@@ -183,8 +184,8 @@ let s:VERSION = '11.0.0'
             elseif s:IsWindows()
                 if s:is_debug_on
                     let stdout = s:StripWhitespace(system('(' . s:JoinArgs(cmd) . ')'))
-                    if !empty(stdout)
-                        echo printf('[WakaTime] error installing wakatime-cli for Windows: %s\nWill retry using Vim built-in Python.', stdout)
+                    if !empty(stdout) && !stridx(stdout, 'wakatime-cli is up to date')
+                        echo printf("[WakaTime] error installing wakatime-cli for Windows:\n%s\n[WakaTime] Will retry using Vim built-in Python.", stdout)
                         call s:InstallCLI(s:false)
                     endif
                 else
@@ -193,13 +194,13 @@ let s:VERSION = '11.0.0'
             else
                 if s:is_debug_on
                     let stdout = s:StripWhitespace(system(s:JoinArgs(cmd)))
-                    if !empty(stdout)
-                        echo printf('[WakaTime] error installing wakatime-cli: %s\nWill retry using Vim built-in Python.', stdout)
+                    if !empty(stdout) && !stridx(stdout, 'wakatime-cli is up to date')
+                        echo printf("[WakaTime] error installing wakatime-cli:\n%s\n[WakaTime] Will retry using Vim built-in Python.", stdout)
                         call s:InstallCLI(s:false)
                     endif
                 else
                     let stdout = s:StripWhitespace(system(s:JoinArgs(cmd) . ' &'))
-                    if !empty(stdout)
+                    if !empty(stdout) && !stridx(stdout, 'wakatime-cli is up to date')
                         call s:InstallCLI(s:false)
                     endif
                 endif
