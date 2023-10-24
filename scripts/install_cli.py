@@ -535,10 +535,8 @@ def is_symlink(path):
 
 
 def createSymlink():
-    link = os.path.join(getResourcesFolder(), 'wakatime-cli')
-    if is_win:
-        link = link + '.exe'
-    elif os.path.exists(link) and is_symlink(link):
+    link = getSymlinkLocation()
+    if os.path.exists(link) and is_symlink(link):
         return  # don't re-create symlink on Unix-like platforms
 
     if os.path.isdir(link):
