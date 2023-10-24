@@ -211,6 +211,11 @@ def downloadCLI():
                 os.remove(getCliLocation())
             except:
                 log(traceback.format_exc())
+        if isCliLinked():
+            try:
+                os.remove(getSymlinkLocation())
+            except:
+                log(traceback.format_exc())
 
         log('Extracting wakatime-cli...')
         with contextlib.closing(ZipFile(zip_file)) as zf:
@@ -248,6 +253,13 @@ def getCliLocation():
     return WAKATIME_CLI_LOCATION
 
 
+def getSymlinkLocation():
+    binary = 'wakatime-cli{ext}'.format(
+        ext='.exe' if is_win else '',
+    )
+    return os.path.join(getResourcesFolder(), binary)
+
+
 def architecture():
     arch = platform.machine() or platform.processor()
     if arch == 'armv7l':
@@ -263,8 +275,12 @@ def isCliInstalled():
     return os.path.exists(getCliLocation())
 
 
+def isCliLinked():
+    return os.path.exists(getSymlinkLocation())
+
+
 def isCliLatest():
-    if not isCliInstalled():
+    if not isCliInstalled() or not isCliLinked():
         return False
 
     args = [getCliLocation(), '--version']
@@ -532,13 +548,29 @@ def createSymlink():
 
     try:
         os.symlink(getCliLocation(), link)
+        if not isCliLinked():
+            raise Exception('Link not created.')
     except:
+        log(traceback.format_exc())
+        log('Unable to create symlink, will copy instead.')
         try:
             shutil.copy2(getCliLocation(), link)
+            if not isCliLinked():
+                raise Exception('File not copied.')
             if not is_win:
                 os.chmod(link, 509)  # 755
         except:
             log(traceback.format_exc())
+            log('Unable to use copy2, will use copyfile.')
+            try:
+                shutil.copyfile(getCliLocation(), link)
+                if not isCliLinked():
+                    raise Exception('File not copied.')
+                if not is_win:
+                    os.chmod(link, 509)  # 755
+            except:
+                log(traceback.format_exc())
+                log('Unable to install wakatime-cli.')
 
 
 class SSLCertVerificationDisabled(object):
