@@ -3,6 +3,15 @@ History
 -------
 
 
+11.1.0 (2023-11-02)
+++++++++++++++++++
+
+`Changes <https://github.com/wakatime/vim-wakatime/compare/11.0.0...11.1.0>`_
+
+- Fix async detection on Vim 8 and newer.
+- Rate limit checking for wakatime-cli updates, to avoid GitHub API quota.
+
+
 11.0.0 (2023-10-09)
 ++++++++++++++++++
 
