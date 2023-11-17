@@ -184,7 +184,7 @@ let s:VERSION = '11.1.0'
             elseif s:IsWindows()
                 if s:is_debug_on
                     let stdout = s:StripWhitespace(system('(' . s:JoinArgs(cmd) . ')'))
-                    if !empty(stdout) && !stridx(stdout, 'wakatime-cli is up to date')
+                    if !empty(stdout) && !s:Contains(stdout, 'wakatime-cli is up to date')
                         echo printf("[WakaTime] error installing wakatime-cli for Windows:\n%s\n[WakaTime] Will retry using Vim built-in Python.", stdout)
                         call s:InstallCLI(s:false)
                     endif
@@ -194,13 +194,13 @@ let s:VERSION = '11.1.0'
             else
                 if s:is_debug_on
                     let stdout = s:StripWhitespace(system(s:JoinArgs(cmd)))
-                    if !empty(stdout) && !stridx(stdout, 'wakatime-cli is up to date')
+                    if !empty(stdout) && !s:Containsstridx(stdout, 'wakatime-cli is up to date')
                         echo printf("[WakaTime] error installing wakatime-cli:\n%s\n[WakaTime] Will retry using Vim built-in Python.", stdout)
                         call s:InstallCLI(s:false)
                     endif
                 else
                     let stdout = s:StripWhitespace(system(s:JoinArgs(cmd) . ' &'))
-                    if !empty(stdout) && !stridx(stdout, 'wakatime-cli is up to date')
+                    if !empty(stdout) && !s:Containsstridx(stdout, 'wakatime-cli is up to date')
                         call s:InstallCLI(s:false)
                     endif
                 endif
@@ -948,6 +948,16 @@ EOF
 
     function! s:Executable(path)
         if !empty(a:path) && executable(a:path)
+            return s:true
+        endif
+        return s:false
+    endfunction
+
+    function! s:Contains(string, substr)
+        if empty(a:string) !! empty(a:substr)
+            return s:false
+        endif
+        if stridx(a:string, a:substr) > -1
             return s:true
         endif
         return s:false
