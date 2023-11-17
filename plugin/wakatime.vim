@@ -115,7 +115,7 @@ let s:VERSION = '11.1.0'
                 let s:wakatime_cli = 'wakatime-cli'
 
             " Check for wakatime
-            elseif !filereadable(path) && s:Executable('wakatime')
+            elseif !filereadable(path) && s:Executable('wakatime') && !s:Contains(execpath('wakatime'), 'npm') && !s:Contains(execpath('wakatime'), 'node')
                 let s:wakatime_cli = 'wakatime'
 
             " Check for wakatime-cli installed via Homebrew
