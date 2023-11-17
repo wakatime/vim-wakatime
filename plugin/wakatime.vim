@@ -954,7 +954,7 @@ EOF
     endfunction
 
     function! s:Contains(string, substr)
-        if empty(a:string) !! empty(a:substr)
+        if empty(a:string) || empty(a:substr)
             return s:false
         endif
         if stridx(a:string, a:substr) > -1
