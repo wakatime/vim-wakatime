@@ -3,6 +3,15 @@ History
 -------
 
 
+11.1.1 (2023-11-17)
+++++++++++++++++++
+
+`Changes <https://github.com/wakatime/vim-wakatime/compare/11.1.0...11.1.1>`_
+
+- Prevent using incompatible third party node wakatime-cli.
+  `#171 <https://github.com/wakatime/vim-wakatime/issues/171>`_
+
+
 11.1.0 (2023-11-02)
 ++++++++++++++++++
 
