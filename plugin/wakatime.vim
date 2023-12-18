@@ -554,7 +554,7 @@ EOF
         if has('nvim')
             let editor_name = 'neovim'
         endif
-        let cmd = cmd + ['--plugin', printf('%s/%s vim-wakatime/%s', editor_name, s:n2s(v:version), s:VERSION)]
+        let cmd = cmd + ['--plugin', printf('vim/%s %s-wakatime/%s', s:n2s(v:version), editor_name, s:VERSION)]
 
         if heartbeat.is_write
             let cmd = cmd + ['--write']
