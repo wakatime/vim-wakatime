@@ -12,14 +12,16 @@
 
 1. With [Vundle](https://github.com/gmarik/vundle): `echo "Plugin 'wakatime/vim-wakatime'" >> ~/.vimrc && vim +PluginInstall`
 
-   Or with [Pathogen](https://github.com/tpope/vim-pathogen): `cd ~/.vim/bundle && git clone git://github.com/wakatime/vim-wakatime.git`
+   Or with [Pathogen](https://github.com/tpope/vim-pathogen): `cd ~/.vim/bundle && git clone https://github.com/wakatime/vim-wakatime.git`
 
    Or with [Vim-plug](https://github.com/junegunn/vim-plug):  add `Plug 'wakatime/vim-wakatime'` to .vimrc file. While in vim reload .vimrc with `:so ~/.vimrc` or restart vim, enter
     `:PlugInstall`
 
    Or with [Packer](https://github.com/wbthomason/packer.nvim): add `use 'wakatime/vim-wakatime'` to your plugins file.
 
-   Or with [Lazy](https://github.com/folke/lazy.nvim.git): add to your plugins file.
+   Or with [Vim 8+](https://www.vim.org/): `mkdir -p ~/.vim/pack/plugins/start && ~/.vim/pack/plugins/start && git clone https://github.com/wakatime/vim-wakatime.git`
+
+   Or with [Lazy.nvim](https://github.com/folke/lazy.nvim.git): add to your plugins file.
    ```lua
    {
         "wakatime/vim-wakatime",
@@ -30,9 +32,11 @@
     }
    ```
 
-2. Enter your [api key](https://wakatime.com/settings#apikey), then press `enter`.
+3. Restart Vim.
 
-3. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
+4. If this is the first WakaTime plugin on your machine, enter your [API Key](https://wakatime.com/settings#apikey), then press `enter`.
+
+5. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
 
 
 ## Screen Shots
