@@ -34,7 +34,7 @@
 
 3. Restart Vim.
 
-4. If this is the first WakaTime plugin on your machine, enter your [API Key](https://wakatime.com/settings#apikey), then press `enter`.
+4. If this is the first WakaTime plugin on your machine, enter your [API Key](https://wakatime.com/api-key), then press `enter`.
 
 5. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
 
