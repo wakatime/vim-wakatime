@@ -44,51 +44,7 @@
 ![Project Overview](https://wakatime.com/static/img/ScreenShots/Screen-Shot-2016-03-21.png)
 
 
-## Configuring
-
-### Here is a more detailed Lazy configuration.
-First add wakatime to your plugins.
-```lua
-    {
-        "wakatime/vim-wakatime",
-        lazy=false,
-        setup = function ()
-            vim.cmd([[packadd wakatime/vim-wakatime]])
-        end
-    }
-```
-
-#### Setting Up Wakatime CLI
-Follow these steps to set up the Wakatime CLI manually for optimal integration:
-
-1. Clone the Wakatime CLI repository:
-
-```sh
-git clone git@github.com:wakatime/wakatime-cli.git ~/wakatime-cli
-# or
-git clone https://github.com/wakatime/wakatime-cli.git ~/wakatime-cli
-```
-
-2. Build the Wakatime CLI using Go or install the binary [here](http://github.com/shadmeoli/nvim_wakatime_setup).
-
-```sh
-cd ~/wakatime-cli
-go build
-mv wakatime-cli ~/.wakatime/wakatime-cli
-```
-
-Ensure the generated binary is moved to the `.wakatime` folder.
-
-If the folder doesn't exist, run Neovim to install the plugin with Mason which will create the .wakatime folder at root, then quit Neovim or alternatively create the `.wakatime` folder manually and re-run the build process.
-
-```sh
-mkdir ~/.wakatime
-cd ~/wakatime-cli
-go build
-mv wakatime-cli ~/.wakatime/wakatime-cli
-```
-
-#### Commands:
+## Commands
 
 * `:WakaTimeApiKey` - change the api key saved in your `~/.wakatime.cfg`
 * `:WakaTimeDebugEnable` - enable debug mode (may slow down Vim so disable when finished debugging)
