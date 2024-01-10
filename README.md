@@ -17,14 +17,26 @@
    Or with [Vim-plug](https://github.com/junegunn/vim-plug):  add `Plug 'wakatime/vim-wakatime'` to .vimrc file. While in vim reload .vimrc with `:so ~/.vimrc` or restart vim, enter
     `:PlugInstall`
 
-   Or with [Packer](https://github.com/wbthomason/packer.nvim): add `use 'wakatime/vim-wakatime'` to your plugins file.  
+   Or with [Packer](https://github.com/wbthomason/packer.nvim): add `use 'wakatime/vim-wakatime'` to your plugins file.
+
    Or with [Vim 8+](https://www.vim.org/): `mkdir -p ~/.vim/pack/plugins/start && ~/.vim/pack/plugins/start && git clone https://github.com/wakatime/vim-wakatime.git`
 
-   Then start `vim`. You should be prompted to enter your WakaTime [API Key](https://wakatime.com/settings#apikey).
+   Or with [Lazy.nvim](https://github.com/folke/lazy.nvim.git): add to your plugins file.
+   ```lua
+   {
+        "wakatime/vim-wakatime",
+        lazy=false,
+        setup = function ()
+            vim.cmd([[packadd wakatime/vim-wakatime]])
+        end
+    }
+   ```
 
-2. Enter your [API Key](https://wakatime.com/settings#apikey), then press `enter`.
+3. Restart Vim.
 
-3. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
+4. If this is the first WakaTime plugin on your machine, enter your [API Key](https://wakatime.com/settings#apikey), then press `enter`.
+
+5. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
 
 
 ## Screen Shots
@@ -32,9 +44,7 @@
 ![Project Overview](https://wakatime.com/static/img/ScreenShots/Screen-Shot-2016-03-21.png)
 
 
-## Configuring
-
-#### Commands:
+## Commands
 
 * `:WakaTimeApiKey` - change the api key saved in your `~/.wakatime.cfg`
 * `:WakaTimeDebugEnable` - enable debug mode (may slow down Vim so disable when finished debugging)
