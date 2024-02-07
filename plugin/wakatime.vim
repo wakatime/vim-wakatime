@@ -168,7 +168,7 @@ let s:VERSION = '11.1.1'
                     \ 'callback': {channel, output -> s:AsyncInstallHandler(output)}})
             elseif s:nvim_async
                 if s:IsWindows()
-                    let job_cmd = cmd
+                    let job_cmd = s:JoinArgs(cmd)
                 else
                     let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
                 endif
@@ -278,7 +278,7 @@ EOF
             let job = job_start(job_cmd, {'stoponexit': ''})
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                let job_cmd = s:JoinArgs(cmd)
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -589,7 +589,7 @@ EOF
             endif
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                let job_cmd = s:JoinArgs(cmd)
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -822,7 +822,7 @@ EOF
                 \ 'callback': {channel, output -> s:AsyncTodayHandler(output, cmd)}})
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                let job_cmd = s:JoinArgs(cmd)
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -865,7 +865,7 @@ EOF
                 \ 'callback': {channel, output -> s:AsyncFileExpertHandler(output, cmd)}})
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                let job_cmd = s:JoinArgs(cmd)
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
@@ -912,7 +912,7 @@ EOF
                 \ 'callback': {channel, output -> s:AsyncVersionHandler(output, cmd)}})
         elseif s:nvim_async
             if s:IsWindows()
-                let job_cmd = cmd
+                let job_cmd = s:JoinArgs(cmd)
             else
                 let job_cmd = [&shell, &shellcmdflag, s:JoinArgs(cmd)]
             endif
