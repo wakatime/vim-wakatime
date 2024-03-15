@@ -23,13 +23,7 @@
 
    Or with [Lazy.nvim](https://github.com/folke/lazy.nvim.git): add to your plugins file.
    ```lua
-   {
-        "wakatime/vim-wakatime",
-        lazy=false,
-        setup = function ()
-            vim.cmd([[packadd wakatime/vim-wakatime]])
-        end
-    }
+   { 'wakatime/vim-wakatime', lazy = false }
    ```
 
 3. Restart Vim.
