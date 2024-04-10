@@ -337,7 +337,7 @@ EOF
             endif
 
             if !found_api_key
-                echoerr '[WakaTime] Missing api key. Type the Vim command :WakaTimeApiKey to complete the setup. Find your api key at https://wakatime.com/api-key'
+                echoerr '[WakaTime] Type the Vim command :WakaTimeApiKey to enter your WakaTime API Key. Find yours at https://wakatime.com/api-key'
             endif
 
             let s:config_file_already_setup = s:true
