@@ -28,9 +28,11 @@
 
 3. Restart Vim.
 
-4. If this is the first WakaTime plugin on your machine, enter your [API Key](https://wakatime.com/api-key), then press `enter`.
+4. If this is the first WakaTime plugin on your machine, type `:WakaTimeApiKey` inside Vim.
 
-5. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
+5. Enter your [API Key](https://wakatime.com/api-key), then press `enter`.
+
+6. Use Vim and your coding activity will be displayed on your [WakaTime dashboard](https://wakatime.com).
 
 
 ## Screen Shots
@@ -40,7 +42,7 @@
 
 ## Commands
 
-* `:WakaTimeApiKey` - change the api key saved in your `~/.wakatime.cfg`
+* `:WakaTimeApiKey` - set or change the api key saved in your `~/.wakatime.cfg`
 * `:WakaTimeDebugEnable` - enable debug mode (may slow down Vim so disable when finished debugging)
 * `:WakaTimeDebugDisable` - disable debug mode
 * `:WakaTimeScreenRedrawEnable` - enable screen redraw to prevent artifacts (only for Vim < 8.0)
