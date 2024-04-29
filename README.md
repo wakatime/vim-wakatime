@@ -19,7 +19,7 @@
 
    Or with [Packer](https://github.com/wbthomason/packer.nvim): add `use 'wakatime/vim-wakatime'` to your plugins file.
 
-   Or with [Vim 8+](https://www.vim.org/): `mkdir -p ~/.vim/pack/plugins/start && ~/.vim/pack/plugins/start && git clone https://github.com/wakatime/vim-wakatime.git`
+   Or with [Vim 8+](https://www.vim.org/): `mkdir -p ~/.vim/pack/plugins/start && cd ~/.vim/pack/plugins/start && git clone https://github.com/wakatime/vim-wakatime.git`
 
    Or with [Lazy.nvim](https://github.com/folke/lazy.nvim.git): add to your plugins file.
    ```lua
