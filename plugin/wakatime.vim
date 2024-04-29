@@ -337,8 +337,7 @@ EOF
             endif
 
             if !found_api_key
-                call s:PromptForApiKey()
-                echo "[WakaTime] Setup complete! Visit https://wakatime.com to view your coding activity."
+                echoerr '[WakaTime] Type the Vim command :WakaTimeApiKey to enter your WakaTime API Key. Find yours at https://wakatime.com/api-key'
             endif
 
             let s:config_file_already_setup = s:true
