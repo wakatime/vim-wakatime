@@ -520,6 +520,9 @@ EOF
                     let heartbeat.language = &filetype
                 endif
             endif
+            let cursor = getpos(".")
+            let heartbeat.lineno = cursor[1]
+            let heartbeat.cursorpos = cursor[2]
             let s:heartbeats_buffer = s:heartbeats_buffer + [heartbeat]
             call s:SetLastHeartbeat(a:now, a:now, file)
 
@@ -548,6 +551,8 @@ EOF
 
         let cmd = [s:wakatime_cli, '--entity', heartbeat.entity]
         let cmd = cmd + ['--time', heartbeat.time]
+        let cmd = cmd + ['--lineno', heartbeat.lineno]
+        let cmd = cmd + ['--cursorpos', heartbeat.cursorpos]
 
         let editor_name = 'vim'
         if has('nvim')
