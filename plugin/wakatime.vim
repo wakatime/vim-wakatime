@@ -523,6 +523,7 @@ EOF
             let cursor = getpos(".")
             let heartbeat.lineno = cursor[1]
             let heartbeat.cursorpos = cursor[2]
+            let heartbeat.lines = line("$")
             let s:heartbeats_buffer = s:heartbeats_buffer + [heartbeat]
             call s:SetLastHeartbeat(a:now, a:now, file)
 
@@ -553,6 +554,7 @@ EOF
         let cmd = cmd + ['--time', heartbeat.time]
         let cmd = cmd + ['--lineno', heartbeat.lineno]
         let cmd = cmd + ['--cursorpos', heartbeat.cursorpos]
+        let cmd = cmd + ['--lines-in-file', heartbeat.lines]
 
         let editor_name = 'vim'
         if has('nvim')
@@ -666,6 +668,7 @@ EOF
             let heartbeat_str = '{"entity": "' . s:JsonEscape(heartbeat.entity) . '", '
             let heartbeat_str = heartbeat_str . '"lineno": ' . s:n2s(heartbeat.lineno) . ', '
             let heartbeat_str = heartbeat_str . '"cursorpos": ' . s:n2s(heartbeat.cursorpos) . ', '
+            let heartbeat_str = heartbeat_str . '"lines": ' . s:n2s(heartbeat.lines) . ', '
             let heartbeat_str = heartbeat_str . '"timestamp": ' . s:OrderTime(heartbeat.time, loop_count) . ', '
             let heartbeat_str = heartbeat_str . '"is_write": '
             if heartbeat.is_write
