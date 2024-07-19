@@ -664,6 +664,8 @@ EOF
         let loop_count = 1
         for heartbeat in s:heartbeats_buffer
             let heartbeat_str = '{"entity": "' . s:JsonEscape(heartbeat.entity) . '", '
+            let heartbeat_str = heartbeat_str . '"lineno": ' . s:n2s(heartbeat.lineno) . ', '
+            let heartbeat_str = heartbeat_str . '"cursorpos": ' . s:n2s(heartbeat.cursorpos) . ', '
             let heartbeat_str = heartbeat_str . '"timestamp": ' . s:OrderTime(heartbeat.time, loop_count) . ', '
             let heartbeat_str = heartbeat_str . '"is_write": '
             if heartbeat.is_write
@@ -714,6 +716,7 @@ EOF
     endfunction
 
     function! s:n2s(number)
+        " Converts an integer or float number to a string
         return substitute(printf('%d', a:number), ',', '.', '')
     endfunction
 
