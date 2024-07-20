@@ -337,10 +337,10 @@ EOF
             endif
 
             if !found_api_key
-                echoerr '[WakaTime] Type the Vim command :WakaTimeApiKey to enter your WakaTime API Key. Find yours at https://wakatime.com/api-key'
+                echomsg '[WakaTime] Type the Vim command :WakaTimeApiKey to enter your WakaTime API Key. Find yours at https://wakatime.com/api-key'
+            else
+                let s:config_file_already_setup = s:true
             endif
-
-            let s:config_file_already_setup = s:true
         endif
     endfunction
 
@@ -740,7 +740,6 @@ EOF
     endfunction
 
     function! s:PromptForApiKey()
-        let api_key = s:false
         let api_key = s:GetIniSetting('settings', 'api_key')
         if empty(api_key)
             let api_key = s:GetIniSetting('settings', 'apikey')
@@ -748,6 +747,9 @@ EOF
 
         let api_key = inputsecret("[WakaTime] Enter your wakatime.com api key: ", api_key)
         call s:SetIniSetting('settings', 'api_key', api_key)
+        if !empty(api_key)
+            let s:config_file_already_setup = s:true
+        endif
     endfunction
 
     function! s:EnableDebugMode()
@@ -783,6 +785,9 @@ EOF
     endfunction
 
     function! s:HandleActivity(is_write)
+        if !s:config_file_already_setup
+            return
+        endif
         let file = s:GetCurrentFile()
         if !empty(file) && file !~ "-MiniBufExplorer-" && file !~ "--NO NAME--" && file !~ "^term:"
             let last = s:GetLastHeartbeat()
