@@ -3,6 +3,17 @@ History
 -------
 
 
+11.2.0 (2024-09-17)
+++++++++++++++++++
+
+`Changes <https://github.com/wakatime/vim-wakatime/compare/11.1.1...11.2.0>`_
+
+- Fix plugin editor name.
+- Track lineno and cursorpos.
+- Disable plugin when missing api key.
+  `#187 <https://github.com/wakatime/vim-wakatime/issues/187>`_
+
+
 11.1.1 (2023-11-17)
 ++++++++++++++++++
 
