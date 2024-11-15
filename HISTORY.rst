@@ -3,6 +3,15 @@ History
 -------
 
 
+11.3.0 (2024-11-14)
+++++++++++++++++++
+
+`Changes <https://github.com/wakatime/vim-wakatime/compare/11.2.0...11.3.0>`_
+
+- Add support for detecting debugging with [nvim-dap](https://github.com/mfussenegger/nvim-dap)
+  `#191 <https://github.com/wakatime/vim-wakatime/pull/191>`_
+
+
 11.2.0 (2024-09-17)
 ++++++++++++++++++
 
