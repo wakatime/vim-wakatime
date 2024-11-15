@@ -572,6 +572,17 @@ EOF
             let cmd = cmd + ['--extra-heartbeats']
         endif
 
+        " Debugging category support
+        if has('lua')
+            " check if nvim-dap is loaded
+            if luaeval("package.loaded['dap'] ~= nil")
+                " check if debugging session is active
+                if luaeval("require('dap').session() ~= nil")
+                    let cmd = cmd + ['--category', 'debugging']
+                endif
+            end
+        endif
+
         " overwrite shell
         let [sh, shellcmdflag, shrd] = [&shell, &shellcmdflag, &shellredir]
         if !s:IsWindows()
