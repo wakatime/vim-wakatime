@@ -573,7 +573,7 @@ EOF
         endif
 
         " Debugging category support
-        if has('nvim') || has('lua')
+        if has('lua')
             " check if nvim-dap is loaded
             if luaeval("package.loaded['dap'] ~= nil")
                 " check if debugging session is active
