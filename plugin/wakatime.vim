@@ -6,7 +6,7 @@
 " Website:     https://wakatime.com/
 " ============================================================================
 
-let s:VERSION = '11.2.0'
+let s:VERSION = '11.3.0'
 
 
 " Init {{{
@@ -62,6 +62,7 @@ let s:VERSION = '11.2.0'
     let s:heartbeats_buffer = []
     let s:send_buffer_seconds = 30  " seconds between sending buffered heartbeats
     let s:last_sent = localtime()
+if luaeval("package.loaded['dap'] ~= nil")
     let s:has_async_patch = has('patch-7.4-2344') || v:version >= 800
     let s:has_async = s:has_async_patch && exists('*job_start')
     let s:nvim_async = exists('*jobstart')
@@ -570,6 +571,17 @@ EOF
         endif
         if !empty(extra_heartbeats)
             let cmd = cmd + ['--extra-heartbeats']
+        endif
+
+        " Debugging category support
+        if has('nvim') || has('lua')
+            " check if nvim-dap is loaded
+            if luaeval("package.loaded['dap'] ~= nil")
+                " check if debugging session is active
+                if luaeval("require('dap').session() ~= nil")
+                    let cmd = cmd + ['--category', 'debugging']
+                endif
+            end
         endif
 
         " overwrite shell
