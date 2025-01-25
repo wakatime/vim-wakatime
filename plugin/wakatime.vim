@@ -336,6 +336,14 @@ EOF
                 endif
             endif
 
+            " Check if WAKATIME_API_KEY env variable is set
+            if !found_api_key
+                let api_key = expand('$WAKATIME_API_KEY')
+                if !empty(api_key)
+                    let found_api_key = s:true
+                endif
+            endif
+
             if !found_api_key
                 echomsg '[WakaTime] Type the Vim command :WakaTimeApiKey to enter your WakaTime API Key. Find yours at https://wakatime.com/api-key'
             else
