@@ -574,7 +574,11 @@ EOF
             let cmd = cmd + ['--write']
         endif
         if has_key(heartbeat, 'language')
-            let cmd = cmd + ['--alternate-language', heartbeat.language]
+            if tolower(heartbeat.language) == 'forth'
+                let cmd = cmd + ['--language', heartbeat.language]
+            else
+                let cmd = cmd + ['--alternate-language', heartbeat.language]
+            endif
         endif
         if !empty(extra_heartbeats)
             let cmd = cmd + ['--extra-heartbeats']
@@ -696,7 +700,11 @@ EOF
                 let heartbeat_str = heartbeat_str . 'false'
             endif
             if has_key(heartbeat, 'language')
-                let heartbeat_str = heartbeat_str . ', "alternate_language": "' . s:JsonEscape(heartbeat.language) . '"'
+                if tolower(heartbeat.language) == 'forth'
+                    let heartbeat_str = heartbeat_str . ', "language": "' . s:JsonEscape(heartbeat.language) . '"'
+                else
+                    let heartbeat_str = heartbeat_str . ', "alternate_language": "' . s:JsonEscape(heartbeat.language) . '"'
+                endif
             endif
             let heartbeat_str = heartbeat_str . '}'
             let arr = arr + [heartbeat_str]
