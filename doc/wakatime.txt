@@ -1,6 +1,131 @@
-*wakatime.txt*          WakaTime, automatic time tracking for Vim.   *wakatime*
+*wakatime.txt*    WakaTime, automatic time tracking for Neovim.    *wakatime*
 
-                              WAKATIME MANUAL
+==============================================================================
+WAKATIME MANUAL
 
-1. About WakaTime                                  |wakatime-about|
-2. Quick Start                                     |wakatime-quickstart|
+1. About WakaTime........................................|wakatime-about|
+2. Quick Start...........................................|wakatime-quickstart|
+3. Commands..............................................|wakatime-commands|
+4. Configuration.........................................|wakatime-config|
+5. Troubleshooting.......................................|wakatime-troubleshooting|
+6. Uninstalling..........................................|wakatime-uninstall|
+
+==============================================================================
+
+ABOUT WAKATIME                                         *wakatime-about*
+
+WakaTime is an open-source time tracking tool for developers. This plugin,
+*wakatime.nvim*, is a full rewrite in Lua for Neovim, providing automatic
+coding activity tracking, metrics, and insights.
+
+This is NOT the official WakaTime plugin. For the official Vim/Neovim plugin,
+see: https://github.com/wakatime/vim-wakatime
+
+==============================================================================
+
+QUICK START                                            *wakatime-quickstart*
+
+1. Install the plugin using your preferred plugin manager.
+   Example for Lazy.nvim:
+
+      { "wakatime/vim-wakatime", lazy = false }
+
+2. Restart Neovim.
+
+3. Run:
+
+      :WakaTimeApiKey
+
+   Enter your WakaTime API key (get it from https://wakatime.com/api-key).
+
+4. Use Neovim as usual. Your coding activity will appear on your WakaTime
+   dashboard: https://wakatime.com
+
+==============================================================================
+
+COMMANDS                                               *wakatime-commands*
+
+:WakaTimeApiKey           Set or change your WakaTime API key.
+:WakaTimeDebugEnable      Enable debug mode (verbose logging).
+:WakaTimeDebugDisable     Disable debug mode.
+:WakaTimeScreenRedrawEnable      Enable screen redraw (prevents artifacts).
+:WakaTimeScreenRedrawEnableAuto  Redraw screen only if plugin is slow.
+:WakaTimeScreenRedrawDisable     Disable screen redraw.
+:WakaTimeToday            Show your total coding activity for today.
+:WakaTimeFileExpert       Show expert data for the current file.
+:WakaTimeCliLocation      Show the path to the WakaTime CLI.
+:WakaTimeCliVersion       Show the version of the WakaTime CLI.
+
+==============================================================================
+
+CONFIGURATION                                           *wakatime-config*
+
+You can configure the plugin using the `opts` table in your plugin manager.
+Example for Lazy.nvim:
+
+>lua
+  {
+    "wakatime/vim-wakatime",
+    lazy = false,
+    ---@type wakatime.Config?
+    opts = {
+      debug = false,
+      heartbeat_frequency = 5,
+      ignore = {
+        "COMMIT_EDITMSG$",
+        "PULLREQ_EDITMSG$",
+        "MERGE_MSG$",
+        "TAG_EDITMSG$",
+        "%.tmp$",
+        "/tmp/",
+        "%.log",
+      },
+    },
+  }
+<
+
+Available options:
+
+- `heartbeat_frequency` (number): Minutes between heartbeats for the same file.
+- `cli_path` (string): Path to wakatime-cli executable.
+- `python_binary` (string): Path to Python for CLI installation.
+- `debug` (boolean): Enable verbose logging.
+- `hidefilenames` (boolean): (Unused) Option for hiding filenames.
+- `ignore` (list): Patterns for files/paths to ignore.
+- `redraw_setting` (string): "auto", "enabled", or "disabled".
+- `api_key_vault_cmd` (string): Shell command to retrieve API key.
+- `plugin_name` (string): Plugin name for User Agent.
+
+==============================================================================
+
+TROUBLESHOOTING                                    *wakatime-troubleshooting*
+
+- Enable debug mode with:
+
+      :WakaTimeDebugEnable
+
+- Tail the log file in a terminal:
+
+      tail -f ~/.wakatime/wakatime.log
+
+- Disable debug mode with:
+
+      :WakaTimeDebugDisable
+
+- For more help, see:
+  https://github.com/wakatime/wakatime-cli#troubleshooting
+  https://wakatime.com/faq#debug-plugins
+
+==============================================================================
+
+UNINSTALLING                                         *wakatime-uninstall*
+
+1. Remove the plugin from your plugin manager configuration.
+2. Run the cleanup command for your plugin manager (e.g., :Lazy clean).
+3. Optionally, remove WakaTime config and data:
+
+      rm -rf ~/.wakatime.*
+
+==============================================================================
+
+vim:tw=78:ts=8:ft=help:norl:
