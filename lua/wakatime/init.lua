@@ -272,13 +272,8 @@ setup_debug_mode = function()
   if not state.debug_mode_already_setup then
     -- Prioritize config file setting if it exists
     local debug_setting = get_ini_setting('settings', 'debug')
-    if debug_setting == 'true' then
+    if debug_setting == 'true' or state.config.debug == 'true' then
       state.is_debug_on = true
-    elseif debug_setting == 'false' then
-      state.is_debug_on = false
-    else
-      -- Fallback to setup config if not set in file
-      state.is_debug_on = state.config.debug
     end
     state.debug_mode_already_setup = true
     if state.is_debug_on then vim.notify('[WakaTime] Debug mode enabled.', vim.log.levels.INFO) end
