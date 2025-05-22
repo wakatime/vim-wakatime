@@ -16,7 +16,7 @@ local cmd = vim.cmd
 local fmt = string.format
 local json = vim.json
 
-local VERSION = '12.0.0'
+local VERSION = '11.3.0'
 
 -- Constants
 local EXIT_CODE_CONFIG_PARSE_ERROR = 103
