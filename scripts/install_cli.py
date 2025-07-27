@@ -269,7 +269,31 @@ def architecture():
         return 'arm64'
     if 'arm' in arch:
         return 'arm64' if sys.maxsize > 2**32 else 'arm'
+    if getOsName() == "darwin":
+        uname = appleUname()
+        if uname:
+            return uname
     return 'amd64' if sys.maxsize > 2**32 else '386'
+
+
+def appleUname():
+    try:
+        folder = os.path.dirname(os.path.abspath(__file__))
+    except NameError:
+        folder = os.getcwd()
+
+    args = [os.path.join(folder, 'uname')]
+
+    try:
+        stdout, stderr = Popen(args, stdout=PIPE, stderr=PIPE).communicate()
+    except:
+        return None
+
+    stdout = ((stdout or b'') + (stderr or b'')).decode('utf-8').strip()
+    if not stdout:
+        return None
+
+    return stdout
 
 
 def isCliInstalled():
