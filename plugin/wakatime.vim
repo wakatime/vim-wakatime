@@ -65,6 +65,15 @@ let s:VERSION = '11.3.0'
     let s:has_async_patch = has('patch-7.4-2344') || v:version >= 800
     let s:has_async = s:has_async_patch && exists('*job_start')
     let s:nvim_async = exists('*jobstart')
+    
+    " AI vs Human line change tracking
+    let s:is_ai_code_generating = s:false
+    let s:lines_in_files = {}
+    let s:ai_line_changes = {}
+    let s:human_line_changes = {}
+    let s:ai_debounce_timer = -1
+    let s:ai_debounce_count = 0
+    let s:ai_recent_pastes = []
 
     function! s:Init()
         " Set default heartbeat frequency in minutes
@@ -532,6 +541,15 @@ EOF
             let heartbeat.lineno = cursor[1]
             let heartbeat.cursorpos = cursor[2]
             let heartbeat.lines = line("$")
+            
+            " Add AI vs Human line changes
+            if has_key(s:ai_line_changes, file) && s:ai_line_changes[file] != 0
+                let heartbeat.ai_line_changes = s:ai_line_changes[file]
+            endif
+            if has_key(s:human_line_changes, file) && s:human_line_changes[file] != 0
+                let heartbeat.human_line_changes = s:human_line_changes[file]
+            endif
+            
             let s:heartbeats_buffer = s:heartbeats_buffer + [heartbeat]
             call s:SetLastHeartbeat(a:now, a:now, file)
 
@@ -579,6 +597,12 @@ EOF
             else
                 let cmd = cmd + ['--alternate-language', heartbeat.language]
             endif
+        endif
+        if has_key(heartbeat, 'ai_line_changes')
+            let cmd = cmd + ['--ai-line-changes', string(heartbeat.ai_line_changes)]
+        endif
+        if has_key(heartbeat, 'human_line_changes')
+            let cmd = cmd + ['--human-line-changes', string(heartbeat.human_line_changes)]
         endif
         if !empty(extra_heartbeats)
             let cmd = cmd + ['--extra-heartbeats']
@@ -667,6 +691,10 @@ EOF
         let [&shell, &shellcmdflag, &shellredir] = [sh, shellcmdflag, shrd]
 
         let s:last_sent = localtime()
+        
+        " Clear line changes after sending
+        let s:ai_line_changes = {}
+        let s:human_line_changes = {}
 
         " need to repaint in case a key was pressed while sending
         if !s:has_async && !s:nvim_async && s:redraw_setting != 'disabled'
@@ -705,6 +733,12 @@ EOF
                 else
                     let heartbeat_str = heartbeat_str . ', "alternate_language": "' . s:JsonEscape(heartbeat.language) . '"'
                 endif
+            endif
+            if has_key(heartbeat, 'ai_line_changes')
+                let heartbeat_str = heartbeat_str . ', "ai_line_changes": ' . string(heartbeat.ai_line_changes)
+            endif
+            if has_key(heartbeat, 'human_line_changes')
+                let heartbeat_str = heartbeat_str . ', "human_line_changes": ' . string(heartbeat.human_line_changes)
             endif
             let heartbeat_str = heartbeat_str . '}'
             let arr = arr + [heartbeat_str]
@@ -815,6 +849,11 @@ EOF
         if !s:config_file_already_setup
             return
         endif
+        
+        " Update line numbers and detect AI code generation
+        call s:UpdateLineNumbers()
+        call s:DetectAICodeGeneration()
+        
         let file = s:GetCurrentFile()
         if !empty(file) && file !~ "-MiniBufExplorer-" && file !~ "--NO NAME--" && file !~ "^term:"
             let last = s:GetLastHeartbeat()
@@ -1005,6 +1044,70 @@ EOF
         return s:false
     endfunction
 
+    function! s:UpdateLineNumbers()
+        let file = s:GetCurrentFile()
+        if empty(file)
+            return
+        endif
+        
+        let current_lines = line('$')
+        
+        " Initialize line count for this file if not present
+        if !has_key(s:lines_in_files, file)
+            let s:lines_in_files[file] = current_lines
+            return
+        endif
+        
+        let prev_lines = s:lines_in_files[file]
+        let delta = current_lines - prev_lines
+        
+        " Track line changes based on AI state
+        if s:is_ai_code_generating
+            if !has_key(s:ai_line_changes, file)
+                let s:ai_line_changes[file] = 0
+            endif
+            let s:ai_line_changes[file] = s:ai_line_changes[file] + delta
+        else
+            if !has_key(s:human_line_changes, file)
+                let s:human_line_changes[file] = 0
+            endif
+            let s:human_line_changes[file] = s:human_line_changes[file] + delta
+        endif
+        
+        " Update current line count
+        let s:lines_in_files[file] = current_lines
+    endfunction
+
+    function! s:DetectAICodeGeneration()
+        " Simple heuristic: detect large pastes that might be AI-generated
+        let current_time = localtime()
+        let paste_threshold = 5  " lines
+        
+        " Get recent change information from v:register or other sources
+        " This is a simplified detection mechanism
+        " In a real implementation, you might hook into specific AI tools
+        
+        if exists('g:wakatime_ai_detected') && g:wakatime_ai_detected
+            let s:is_ai_code_generating = s:true
+            let s:ai_debounce_count = s:ai_debounce_count + 1
+            
+            " Clear existing timer and set new one
+            if s:ai_debounce_timer != -1
+                call timer_stop(s:ai_debounce_timer)
+            endif
+            
+            let s:ai_debounce_timer = timer_start(1000, function('s:StopAIDetection'))
+        endif
+    endfunction
+
+    function! s:StopAIDetection(timer_id)
+        if s:ai_debounce_count > 1
+            let s:is_ai_code_generating = s:false
+            let s:ai_debounce_count = 0
+            let s:ai_debounce_timer = -1
+        endif
+    endfunction
+
 " }}}
 
 
@@ -1134,6 +1237,8 @@ call s:Init()
     :command -nargs=0 WakaTimeFileExpert call g:WakaTimeFileExpert(function('s:PrintFileExpert'))
     :command -nargs=0 WakaTimeCliLocation call g:WakaTimeCliLocation(function('s:Print'))
     :command -nargs=0 WakaTimeCliVersion call g:WakaTimeCliVersion(function('s:Print'))
+    :command -nargs=0 WakaTimeAIEnable let g:wakatime_ai_detected = 1
+    :command -nargs=0 WakaTimeAIDisable let g:wakatime_ai_detected = 0
 
 " }}}
 
