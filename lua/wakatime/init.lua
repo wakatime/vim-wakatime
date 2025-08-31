@@ -776,7 +776,7 @@ send_heartbeats = function()
   end
 
   state.last_sent = now
-  
+
   -- Clear line changes after sending
   state.ai_line_changes = {}
   state.human_line_changes = {}
@@ -820,12 +820,12 @@ append_heartbeat = function(file, now, is_write, last)
     heartbeat.lines = api.nvim_buf_line_count(0) -- Total lines in buffer
 
     -- Add AI vs Human line changes
-    if state.ai_line_changes[current_file] and state.ai_line_changes[current_file] ~= 0 then
-      heartbeat.ai_line_changes = state.ai_line_changes[current_file]
-    end
-    if state.human_line_changes[current_file] and state.human_line_changes[current_file] ~= 0 then
-      heartbeat.human_line_changes = state.human_line_changes[current_file]
-    end
+    -- if state.ai_line_changes[current_file] and state.ai_line_changes[current_file] ~= 0 then
+    --   heartbeat.ai_line_changes = state.ai_line_changes[current_file]
+    -- end
+    -- if state.human_line_changes[current_file] and state.human_line_changes[current_file] ~= 0 then
+    --   heartbeat.human_line_changes = state.human_line_changes[current_file]
+    -- end
 
     table.insert(state.heartbeats_buffer, heartbeat)
     set_last_heartbeat(now, now, current_file) -- Update last heartbeat time
@@ -1036,25 +1036,25 @@ update_line_numbers = function()
   local doc = api.nvim_get_current_buf()
   local file = get_current_file()
   if not file or file == '' then return end
-  
+
   local current_lines = api.nvim_buf_line_count(doc)
-  
+
   -- Initialize line count for this file if not present
   if not state.lines_in_files[file] then
     state.lines_in_files[file] = current_lines
     return
   end
-  
+
   local prev_lines = state.lines_in_files[file]
   local delta = current_lines - prev_lines
-  
+
   -- Track line changes based on AI state
   if state.is_ai_code_generating then
     state.ai_line_changes[file] = (state.ai_line_changes[file] or 0) + delta
   else
     state.human_line_changes[file] = (state.human_line_changes[file] or 0) + delta
   end
-  
+
   -- Update current line count
   state.lines_in_files[file] = current_lines
 end
@@ -1065,12 +1065,12 @@ detect_ai_code_generation = function()
   if vim.g.wakatime_ai_detected then
     state.is_ai_code_generating = true
     state.ai_debounce_count = state.ai_debounce_count + 1
-    
+
     -- Clear existing timer and set new one
     if state.ai_debounce_timer then
       vim.fn.timer_stop(state.ai_debounce_timer)
     end
-    
+
     state.ai_debounce_timer = vim.fn.timer_start(1000, function()
       if state.ai_debounce_count > 1 then
         state.is_ai_code_generating = false
