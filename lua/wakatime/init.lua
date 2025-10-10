@@ -281,7 +281,7 @@ setup_debug_mode = function()
   if not state.debug_mode_already_setup then
     -- Prioritize config file setting if it exists
     local debug_setting = get_ini_setting('settings', 'debug')
-    if debug_setting == 'true' or state.config.debug == 'true' then
+    if debug_setting == 'true' or state.config.debug == true then
       state.is_debug_on = true
     end
     state.debug_mode_already_setup = true
