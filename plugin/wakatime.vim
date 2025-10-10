@@ -749,7 +749,7 @@ EOF
     endfunction
 
     function! s:OrderTime(time_str, loop_count)
-        " Add a milisecond to a:time.
+        " Add a millisecond to a:time.
         " Time prevision doesn't matter, but order of heartbeats does.
         if !(a:time_str =~ "\.")
             let millisecond = s:n2s(a:loop_count)
