@@ -89,13 +89,9 @@ local state = {
   async_callback_today = nil,
   async_callback_file_expert = nil,
   async_callback_version = nil,
-  -- AI vs Human line change tracking
-  is_ai_code_generating = false,
+  -- Line change tracking
   lines_in_files = {},
-  ai_line_changes = {},
   human_line_changes = {},
-  ai_debounce_timer = nil,
-  ai_debounce_count = 0,
 }
 
 -- Forward declarations for helper functions
@@ -125,7 +121,6 @@ local print_msg
 local print_today
 local print_file_expert
 local update_line_numbers
-local detect_ai_code_generation
 
 -- Helper Functions (Ported from Vimscript s: functions)
 
@@ -615,9 +610,6 @@ local function get_heartbeats_json()
         hb_data.alternate_language = heartbeat.language
       end
     end
-    if heartbeat.ai_line_changes then
-      hb_data.ai_line_changes = heartbeat.ai_line_changes
-    end
     if heartbeat.human_line_changes then
       hb_data.human_line_changes = heartbeat.human_line_changes
     end
@@ -718,10 +710,6 @@ send_heartbeats = function()
       table.insert(cmd_args, heartbeat.language)
     end
   end
-  if heartbeat.ai_line_changes then
-    table.insert(cmd_args, '--ai-line-changes')
-    table.insert(cmd_args, tostring(heartbeat.ai_line_changes))
-  end
   if heartbeat.human_line_changes then
     table.insert(cmd_args, '--human-line-changes')
     table.insert(cmd_args, tostring(heartbeat.human_line_changes))
@@ -778,7 +766,6 @@ send_heartbeats = function()
   state.last_sent = now
 
   -- Clear line changes after sending
-  state.ai_line_changes = {}
   state.human_line_changes = {}
 
   -- Redraw logic (less critical with async, but kept for parity)
@@ -819,13 +806,10 @@ append_heartbeat = function(file, now, is_write, last)
     heartbeat.cursorpos = cursor[2] + 1 -- WakaTime expects 1-based cursor position? Check CLI docs. Vim getpos is byte index. Let's assume col is fine.
     heartbeat.lines = api.nvim_buf_line_count(0) -- Total lines in buffer
 
-    -- Add AI vs Human line changes
-    -- if state.ai_line_changes[current_file] and state.ai_line_changes[current_file] ~= 0 then
-    --   heartbeat.ai_line_changes = state.ai_line_changes[current_file]
-    -- end
-    -- if state.human_line_changes[current_file] and state.human_line_changes[current_file] ~= 0 then
-    --   heartbeat.human_line_changes = state.human_line_changes[current_file]
-    -- end
+    -- Always classify line changes as human; wakatime-cli decides final category.
+    if state.human_line_changes[current_file] and state.human_line_changes[current_file] ~= 0 then
+      heartbeat.human_line_changes = state.human_line_changes[current_file]
+    end
 
     table.insert(state.heartbeats_buffer, heartbeat)
     set_last_heartbeat(now, now, current_file) -- Update last heartbeat time
@@ -849,9 +833,8 @@ handle_activity = function(is_write)
     return
   end
 
-  -- Update line numbers and detect AI code generation
+  -- Update line numbers for heartbeat metadata
   update_line_numbers()
-  detect_ai_code_generation()
 
   local file = get_current_file()
   -- Ignore transient buffers or special schemes
@@ -1048,37 +1031,11 @@ update_line_numbers = function()
   local prev_lines = state.lines_in_files[file]
   local delta = current_lines - prev_lines
 
-  -- Track line changes based on AI state
-  if state.is_ai_code_generating then
-    state.ai_line_changes[file] = (state.ai_line_changes[file] or 0) + delta
-  else
-    state.human_line_changes[file] = (state.human_line_changes[file] or 0) + delta
-  end
+  -- Always classify line changes as human; wakatime-cli decides final category.
+  state.human_line_changes[file] = (state.human_line_changes[file] or 0) + delta
 
   -- Update current line count
   state.lines_in_files[file] = current_lines
-end
-
-detect_ai_code_generation = function()
-  -- Simple heuristic: check if AI detection is enabled via global variable
-  -- This can be expanded to integrate with specific AI tools
-  if vim.g.wakatime_ai_detected then
-    state.is_ai_code_generating = true
-    state.ai_debounce_count = state.ai_debounce_count + 1
-
-    -- Clear existing timer and set new one
-    if state.ai_debounce_timer then
-      vim.fn.timer_stop(state.ai_debounce_timer)
-    end
-
-    state.ai_debounce_timer = vim.fn.timer_start(1000, function()
-      if state.ai_debounce_count > 1 then
-        state.is_ai_code_generating = false
-        state.ai_debounce_count = 0
-        state.ai_debounce_timer = nil
-      end
-    end)
-  end
 end
 
 -- Setup Function (Main entry point)
@@ -1182,8 +1139,6 @@ function M.setup(user_config)
   api.nvim_create_user_command('WakaTimeFileExpert', function() M.get_file_experts() end, { nargs = 0 })
   api.nvim_create_user_command('WakaTimeCliLocation', function() M.get_cli_location() end, { nargs = 0 })
   api.nvim_create_user_command('WakaTimeCliVersion', function() M.get_cli_version() end, { nargs = 0 })
-  api.nvim_create_user_command('WakaTimeAIEnable', function() vim.g.wakatime_ai_detected = true end, { nargs = 0 })
-  api.nvim_create_user_command('WakaTimeAIDisable', function() vim.g.wakatime_ai_detected = false end, { nargs = 0 })
 
   state.initialized = true
   vim.notify('[WakaTime] Initialized.', vim.log.levels.INFO)
