@@ -3,6 +3,20 @@ History
 -------
 
 
+12.0.0 (2026-04-13)
+++++++++++++++++++
+
+`Changes <https://github.com/wakatime/vim-wakatime/compare/11.3.0...12.0.0>`_
+
+- Lua rewrite for Neovim.
+  `#195 <https://github.com/wakatime/vim-wakatime/pull/195>`_
+- Forth and F# share the same file extension, so use Vim detected language.
+- Add support for WAKATIME_API_KEY env variable.
+  `#193 <https://github.com/wakatime/vim-wakatime/pull/193>`_
+- Improve Apple arm detection.
+- Add line changes to heartbeats.
+
+
 11.3.0 (2024-11-15)
 ++++++++++++++++++
 
