@@ -446,17 +446,19 @@ setup_cli = function()
         state.autoupdate_cli = false
         if state.is_debug_on then vim.notify('[WakaTime] Using Homebrew wakatime-cli', vim.log.levels.DEBUG) end
       else
-        -- Default to ~/.wakatime location and enable auto-update
+        -- Default to ~/.wakatime location and enable auto-update ONLY if no user cli_path was given
         state.wakatime_cli = default_path
-        state.autoupdate_cli = true
+        state.autoupdate_cli = (state.config.cli_path == nil)
         if state.is_debug_on then
           vim.notify(
-            fmt('[WakaTime] Using default CLI path: %s (autoupdate enabled)', state.wakatime_cli),
+            fmt('[WakaTime] Using default CLI path: %s (autoupdate %s)', state.wakatime_cli, state.autoupdate_cli and 'enabled' or 'disabled'),
             vim.log.levels.DEBUG
           )
         end
-        -- Try installing/updating if using the default path
-        install_cli()
+        -- Try installing/updating if using the default path and autoupdate is enabled
+        if state.autoupdate_cli and not executable(state.wakatime_cli) then
+          install_cli()
+        end
       end
     end
 
