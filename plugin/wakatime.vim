@@ -103,11 +103,11 @@ let s:VERSION = '12.0.0'
         let s:autoupdate_cli = s:false
 
         " Check vimrc config for wakatime-cli binary path
-        if exists("g:wakatime_CLIPath") && filereadable(g:wakatime_CLIPath)
+        if exists("g:wakatime_CLIPath")
             let s:wakatime_cli = g:wakatime_CLIPath
 
         " Legacy configuration of wakatime-cli
-        elseif exists("g:wakatime_OverrideCommandPrefix") && filereadable(g:wakatime_OverrideCommandPrefix)
+        elseif exists("g:wakatime_OverrideCommandPrefix")
             let s:wakatime_cli = g:wakatime_OverrideCommandPrefix
 
         " Check $PATH and ~/.wakatime/wakatime-cli symlink
@@ -126,7 +126,7 @@ let s:VERSION = '12.0.0'
             elseif !filereadable(path) && filereadable('/usr/local/bin/wakatime-cli')
                 let s:wakatime_cli = '/usr/local/bin/wakatime-cli'
 
-            " Default to ~/.wakatime/wakatime-cli
+            " Default to ~/.wakatime/wakatime-cli and enable auto-update
             else
                 let s:autoupdate_cli = s:true
                 let s:wakatime_cli = path
@@ -139,7 +139,7 @@ let s:VERSION = '12.0.0'
     endfunction
 
     function! s:InstallCLI(use_external_python)
-        if !s:autoupdate_cli && s:Executable(s:wakatime_cli)
+        if !s:autoupdate_cli || s:Executable(s:wakatime_cli)
             return
         endif
 
@@ -359,7 +359,9 @@ EOF
     function! s:SetupCLI()
         if !s:cli_already_setup
             let s:cli_already_setup = s:true
-            call s:InstallCLI(s:true)
+            if s:autoupdate_cli && !s:Executable(s:wakatime_cli)
+                call s:InstallCLI(s:true)
+            endif
         endif
     endfunction
 
