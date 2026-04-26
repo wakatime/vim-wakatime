@@ -1224,11 +1224,13 @@ function M.setup(user_config)
       state.config.redraw_setting = vi_redraw
     end
   end
-  local status_bar_enabled = get_ini_setting('settings', 'status_bar_enabled')
-  if status_bar_enabled == 'false' then
-    state.config.status_bar_enabled = false
-  elseif status_bar_enabled == 'true' then
-    state.config.status_bar_enabled = true
+  if user_config.status_bar_enabled == nil then
+    local status_bar_enabled = get_ini_setting('settings', 'status_bar_enabled')
+    if status_bar_enabled == 'false' then
+      state.config.status_bar_enabled = false
+    elseif status_bar_enabled == 'true' then
+      state.config.status_bar_enabled = true
+    end
   end
   -- Apply debug from config file (will be re-checked in setup_debug_mode)
   local debug_setting = get_ini_setting('settings', 'debug')
