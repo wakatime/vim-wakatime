@@ -1194,7 +1194,8 @@ function M.setup(user_config)
   end
 
   -- Merge user config with defaults
-  state.config = vim.tbl_deep_extend('force', state.config, user_config or {})
+  user_config = user_config or {}
+  state.config = vim.tbl_deep_extend('force', state.config, user_config)
 
   -- Determine home directory
   local wakatime_home_env = os.getenv('WAKATIME_HOME')
