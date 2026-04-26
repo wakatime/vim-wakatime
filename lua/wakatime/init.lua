@@ -1218,9 +1218,11 @@ function M.setup(user_config)
   state.shared_state_file = state.shared_state_parent_dir .. '/vim_shared_state'
 
   -- Apply settings from config file if they exist (e.g., vi_redraw)
-  local vi_redraw = get_ini_setting('settings', 'vi_redraw')
-  if vi_redraw == 'enabled' or vi_redraw == 'auto' or vi_redraw == 'disabled' then
-    state.config.redraw_setting = vi_redraw
+  if user_config.redraw_setting == nil then
+    local vi_redraw = get_ini_setting('settings', 'vi_redraw')
+    if vi_redraw == 'enabled' or vi_redraw == 'auto' or vi_redraw == 'disabled' then
+      state.config.redraw_setting = vi_redraw
+    end
   end
   local status_bar_enabled = get_ini_setting('settings', 'status_bar_enabled')
   if status_bar_enabled == 'false' then
