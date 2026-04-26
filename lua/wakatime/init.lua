@@ -1188,13 +1188,17 @@ end
 -- Setup Function (Main entry point)
 
 function M.setup(user_config)
+  user_config = user_config or {}
+
   if state.initialized then
-    vim.notify('[WakaTime] Already initialized.', vim.log.levels.WARN)
+    -- Re-apply opts when called again (e.g. user setup runs after auto-init from plugin/wakatime.vim)
+    if next(user_config) ~= nil then
+      state.config = vim.tbl_deep_extend('force', state.config, user_config)
+    end
     return
   end
 
   -- Merge user config with defaults
-  user_config = user_config or {}
   state.config = vim.tbl_deep_extend('force', state.config, user_config)
 
   -- Determine home directory
