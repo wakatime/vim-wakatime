@@ -507,6 +507,17 @@ setup_cli = function()
 end
 
 get_current_file = function()
+  local buftype = vim.bo.buftype
+  local non_file_buftypes = {
+    help = true,
+    nofile = true,
+    nowrite = true,
+    prompt = true,
+    quickfix = true,
+    terminal = true,
+  }
+  if non_file_buftypes[buftype] then return '' end
+
   return fn.expand('%:p') -- Get full path of the current buffer
 end
 
