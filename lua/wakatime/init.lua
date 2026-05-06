@@ -27,8 +27,6 @@ local EXIT_CODE_API_KEY_ERROR = 104
 --- @field cli_path? string # Absolute path to wakatime-cli. Overrides auto-detection. Defaults to nil.
 --- @field python_binary? string # Path to Python executable for CLI installation. Overrides auto-detection. Defaults to nil.
 --- @field debug? boolean # Enable verbose logging. Defaults to false.
---- @field hidefilenames? boolean # (Currently unused) Option for hiding filenames. Defaults to false.
---- @field ignore? string[] # List of Lua patterns for files/paths to ignore. Defaults to git message patterns.
 --- @field redraw_setting? "'auto'" | "'enabled'" | "'disabled'" # Screen redraw behavior after sending heartbeats. Defaults to 'auto'.
 --- @field api_key_vault_cmd? string # Shell command to retrieve the API key. Defaults to nil.
 --- @field plugin_name? string # Plugin name used in User Agent. Defaults to 'wakatime.nvim'.
@@ -43,13 +41,6 @@ local state = {
     cli_path = nil, -- Auto-detect if nil
     python_binary = nil, -- Auto-detect if nil
     debug = false,
-    hidefilenames = false, -- Note: This seems unused in the original script's logic, but kept for parity
-    ignore = { -- Default ignore patterns
-      'COMMIT_EDITMSG$',
-      'PULLREQ_EDITMSG$',
-      'MERGE_MSG$',
-      'TAG_EDITMSG$',
-    },
     redraw_setting = 'auto', -- 'auto', 'enabled', 'disabled'
     api_key_vault_cmd = nil,
     plugin_name = 'wakatime.nvim',
