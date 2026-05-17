@@ -91,6 +91,7 @@ local state = {
   status_bar_refresh_interval = 60,
   status_bar_refresh_in_progress = false,
   status_bar_component_added = false,
+  status_bar_requested = false,
   -- Line change tracking
   lines_in_files = {},
   human_line_changes = {},
@@ -1061,6 +1062,7 @@ end
 
 maybe_refresh_status_bar = function(force)
   if not state.config.status_bar_enabled then return end
+  if not state.status_bar_requested then return end
   if not executable(state.wakatime_cli) then return end
   if state.status_bar_refresh_in_progress then return end
 
@@ -1112,6 +1114,8 @@ maybe_attach_lualine_status_bar = function(attempt)
   for _, component in ipairs(config.sections.lualine_x) do
     if is_wakatime_lualine_component(component) then
       state.status_bar_component_added = true
+      state.status_bar_requested = true
+      maybe_refresh_status_bar(false)
       return
     end
   end
@@ -1119,10 +1123,17 @@ maybe_attach_lualine_status_bar = function(attempt)
   table.insert(config.sections.lualine_x, 1, make_lualine_component())
   lualine.setup(config)
   state.status_bar_component_added = true
+  state.status_bar_requested = true
+  maybe_refresh_status_bar(false)
 end
 
 function M.statusline()
   if not state.config.status_bar_enabled then return '' end
+
+  if not state.status_bar_requested then
+    state.status_bar_requested = true
+    maybe_refresh_status_bar(false)
+  end
 
   return state.status_bar_text
 end
