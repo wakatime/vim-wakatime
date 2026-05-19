@@ -674,24 +674,21 @@ local function neovim_async_exit_handler(job_id, exit_code, event, cmd_args_str)
   local output = strip_whitespace(table.concat(state.nvim_async_output, '\n'))
   state.nvim_async_output = {} -- Clear buffer
 
-  local is_error = false
+  local is_special_error = exit_code == EXIT_CODE_API_KEY_ERROR or exit_code == EXIT_CODE_CONFIG_PARSE_ERROR
   local error_msg = output
 
   if exit_code == EXIT_CODE_API_KEY_ERROR then
     error_msg = error_msg .. (error_msg ~= '' and '\n' or '') .. 'Invalid API Key. Use :WakaTimeApiKey'
-    is_error = true
     -- Potentially disable future heartbeats until key is fixed?
     state.config_file_already_setup = false -- Force re-check on next event
   elseif exit_code == EXIT_CODE_CONFIG_PARSE_ERROR then
     error_msg = error_msg .. (error_msg ~= '' and '\n' or '') .. 'Error parsing config file: ' .. state.config_file
-    is_error = true
-  elseif exit_code ~= 0 then
+  elseif exit_code ~= 0 and state.is_debug_on then
     error_msg = error_msg .. (error_msg ~= '' and '\n' or '') .. fmt('CLI exited with code %d', exit_code)
-    is_error = true
   end
 
-  if is_error or (state.is_debug_on and output ~= '') then
-    local level = is_error and vim.log.levels.ERROR or vim.log.levels.DEBUG
+  if (state.is_debug_on or is_special_error) and error_msg ~= '' then
+    local level = exit_code ~= 0 and vim.log.levels.ERROR or vim.log.levels.DEBUG
     local cmd_str = cmd_args_str or join_args(state.last_sent_cmd or {}) -- Use saved command if available
     vim.notify(fmt('[WakaTime] Command: %s\nOutput (Exit Code %d):\n%s', cmd_str, exit_code, error_msg), level)
   end
