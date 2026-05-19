@@ -348,18 +348,8 @@ end
 local function neovim_async_install_exit_handler(job_id, exit_code, event)
   local output = strip_whitespace(table.concat(state.nvim_async_output, '\n'))
   state.nvim_async_output = {} -- Clear buffer
-  if state.is_debug_on then
-    if exit_code ~= 0 or output ~= '' then
-      vim.notify(fmt('[WakaTime] Install script exited with code %d:\n%s', exit_code, output), vim.log.levels.INFO)
-    else
-      vim.notify('[WakaTime] Install script finished successfully.', vim.log.levels.INFO)
-    end
-  end
-  if exit_code ~= 0 and not contains(output, 'wakatime-cli is up to date') then
-    vim.notify('[WakaTime] Background install failed. Attempting foreground install...', vim.log.levels.WARN)
-    -- Maybe trigger a synchronous install attempt here if needed, or just notify user.
-    -- For simplicity, we'll just notify for now. A foreground retry might block Neovim.
-    -- install_cli(false) -- Avoid recursion for now
+  if state.is_debug_on and (exit_code ~= 0 or output ~= '') then
+    vim.notify(fmt('[WakaTime] Install script exited with code %d:\n%s', exit_code, output), vim.log.levels.INFO)
   end
 end
 
@@ -1006,18 +996,20 @@ local function run_cli_command(args, output_buffer_key, callback_key, exit_handl
       local output = strip_whitespace(table.concat(state[output_buffer_key], '\n'))
       state[output_buffer_key] = {} -- Clear buffer after use
 
-      if exit_code ~= 0 then
-        local err_msg = fmt('Command failed (Exit Code %d)', exit_code)
-        if exit_code == EXIT_CODE_API_KEY_ERROR then err_msg = err_msg .. ': Invalid API Key' end
-        output = output .. (output ~= '' and '\n' or '') .. err_msg
+      local is_special_error = exit_code == EXIT_CODE_API_KEY_ERROR or exit_code == EXIT_CODE_CONFIG_PARSE_ERROR
+      if exit_code == EXIT_CODE_API_KEY_ERROR then
+        output = output .. (output ~= '' and '\n' or '') .. 'Invalid API Key'
+      elseif exit_code == EXIT_CODE_CONFIG_PARSE_ERROR then
+        output = output .. (output ~= '' and '\n' or '') .. 'Error parsing config file: ' .. state.config_file
+      elseif exit_code ~= 0 and state.is_debug_on then
+        output = output .. (output ~= '' and '\n' or '') .. fmt('Command failed (Exit Code %d)', exit_code)
+      end
+
+      if (state.is_debug_on or is_special_error) and output ~= '' then
+        local level = exit_code ~= 0 and vim.log.levels.ERROR or vim.log.levels.DEBUG
         vim.notify(
-          fmt('[WakaTime] %s\nCommand: %s\nOutput:\n%s', err_msg, cmd_str_for_notify, output),
-          vim.log.levels.ERROR
-        )
-      elseif state.is_debug_on then
-        vim.notify(
-          fmt('[WakaTime] Command finished: %s\nOutput:\n%s', cmd_str_for_notify, output),
-          vim.log.levels.DEBUG
+          fmt('[WakaTime] Command: %s\nOutput (Exit Code %d):\n%s', cmd_str_for_notify, exit_code, output),
+          level
         )
       end
 
