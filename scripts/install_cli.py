@@ -10,6 +10,7 @@ import shutil
 import ssl
 import subprocess
 import sys
+import tempfile
 import time
 import traceback
 from subprocess import PIPE
@@ -198,43 +199,57 @@ def getConfigFile(internal=None):
 def downloadCLI():
     log('Downloading wakatime-cli...')
 
-    if os.path.isdir(os.path.join(getResourcesFolder(), 'wakatime-cli')):
-        shutil.rmtree(os.path.join(getResourcesFolder(), 'wakatime-cli'))
-
+    temp_folder = None
     try:
+        temp_folder = tempfile.mkdtemp(prefix='wakatime-cli-', dir=getResourcesFolder())
         url = cliDownloadUrl()
         log('Downloading wakatime-cli from {url}'.format(url=url))
-        zip_file = os.path.join(getResourcesFolder(), 'wakatime-cli.zip')
+        zip_file = os.path.join(temp_folder, 'wakatime-cli.zip')
         download(url, zip_file)
-
-        if isCliInstalled():
-            try:
-                os.remove(getCliLocation())
-            except:
-                log(traceback.format_exc())
-        if isCliLinked():
-            try:
-                os.remove(getSymlinkLocation())
-            except:
-                log(traceback.format_exc())
 
         log('Extracting wakatime-cli...')
         with contextlib.closing(ZipFile(zip_file)) as zf:
-            zf.extractall(getResourcesFolder())
+            zf.extractall(temp_folder)
 
+        new_cli = os.path.join(temp_folder, os.path.basename(getCliLocation()))
+        if not os.path.isfile(new_cli):
+            raise IOError('Downloaded archive does not contain wakatime-cli.')
         if not is_win:
-            os.chmod(getCliLocation(), 509)  # 755
+            os.chmod(new_cli, 509)  # 755
 
-        try:
-            os.remove(os.path.join(getResourcesFolder(), 'wakatime-cli.zip'))
-        except:
-            log(traceback.format_exc())
+        legacy_cli = getSymlinkLocation()
+        if os.path.isdir(legacy_cli):
+            shutil.rmtree(legacy_cli)
+
+        replaceFile(new_cli, getCliLocation())
+        createSymlink()
+        log('Finished extracting wakatime-cli.')
     except:
         log(traceback.format_exc())
+    finally:
+        if temp_folder:
+            try:
+                shutil.rmtree(temp_folder)
+            except:
+                log(traceback.format_exc())
 
-    createSymlink()
 
-    log('Finished extracting wakatime-cli.')
+def replaceFile(source, destination):
+    """Atomically replace destination when supported by this Python version."""
+    try:
+        replace = os.replace
+    except AttributeError:
+        replace = None
+
+    if replace:
+        replace(source, destination)
+        return
+
+    # os.rename replaces an existing file atomically on POSIX. Python 2 on
+    # Windows requires removing the destination immediately before the move.
+    if is_win and os.path.exists(destination):
+        os.remove(destination)
+    os.rename(source, destination)
 
 
 WAKATIME_CLI_LOCATION = None
