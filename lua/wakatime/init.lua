@@ -820,8 +820,8 @@ append_heartbeat = function(file, now, is_write, last)
     heartbeat.time = current_time_str()
     heartbeat.is_write = is_write
 
-    local ft = api.nvim_buf_get_option(0, 'filetype') -- Get filetype for current buffer
-    local syn = api.nvim_buf_get_option(0, 'syntax') -- Get syntax
+    local ft = vim.bo.filetype
+    local syn = vim.bo.syntax
     if syn and syn ~= '' and syn ~= 'ON' then
       heartbeat.language = syn
     elseif ft and ft ~= '' then
