@@ -473,7 +473,7 @@ EOF
 
     function! s:GetPythonBinary()
         let python_bin = ""
-        if has('g:wakatime_PythonBinary')
+        if exists('g:wakatime_PythonBinary')
             let python_bin = g:wakatime_PythonBinary
         endif
         if !s:Executable(python_bin) || !filereadable(python_bin)
