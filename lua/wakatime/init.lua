@@ -30,7 +30,7 @@ local EXIT_CODE_API_KEY_ERROR = 104
 --- @field redraw_setting? "'auto'" | "'enabled'" | "'disabled'" # Screen redraw behavior after sending heartbeats. Defaults to 'auto'.
 --- @field api_key_vault_cmd? string # Shell command to retrieve the API key. Defaults to nil.
 --- @field plugin_name? string # Plugin name used in User Agent. Defaults to 'wakatime.nvim'.
---- @field status_bar_enabled? boolean # Enable cached statusline text from `require('wakatime').statusline()`. Defaults to true unless disabled in ~/.wakatime.cfg.
+--- @field status_bar_enabled? boolean # Enable cached statusline text from `require('wakatime').statusline()`. Defaults to true unless disabled in the WakaTime config file.
 
 -- Module state (equivalent to s: variables)
 local state = {
@@ -147,6 +147,11 @@ executable = function(path) return path and path ~= '' and fn.executable(path) =
 contains = function(str, substr)
   if not str or not substr or str == '' or substr == '' then return false end
   return str:find(substr, 1, true) ~= nil
+end
+
+local function config_file_missing(path)
+  local _, _, code = loop.fs_stat(path)
+  return code == 'ENOENT'
 end
 
 get_ini_setting = function(section, key)
@@ -295,7 +300,7 @@ end
 setup_config_file = function()
   if not state.config_file_already_setup then
     -- Create config file if it does not exist
-    if fn.filereadable(state.config_file) == 0 then
+    if config_file_missing(state.config_file) then
       local dir = fn.fnamemodify(state.config_file, ':h')
       if fn.isdirectory(dir) == 0 then fn.mkdir(dir, 'p', '0o700') end
       local ok, err = pcall(fn.writefile, state.default_configs_content, state.config_file)
@@ -712,7 +717,7 @@ send_heartbeats = function()
     extra_heartbeats_json = get_heartbeats_json() -- This also clears the buffer
   end
 
-  local cmd_args = { state.wakatime_cli, '--entity', heartbeat.entity }
+  local cmd_args = { state.wakatime_cli, '--config', state.config_file, '--entity', heartbeat.entity }
   table.insert(cmd_args, '--time')
   table.insert(cmd_args, heartbeat.time)
   table.insert(cmd_args, '--lineno')
@@ -972,7 +977,7 @@ local function run_cli_command(args, output_buffer_key, callback_key, exit_handl
     return -1
   end
 
-  local cmd_args = { state.wakatime_cli }
+  local cmd_args = { state.wakatime_cli, '--config', state.config_file }
   for _, arg in ipairs(args) do
     table.insert(cmd_args, arg)
   end
@@ -1220,6 +1225,18 @@ function M.setup(user_config)
 
   -- Define paths based on home dir
   state.config_file = state.home .. '/.wakatime.cfg'
+  -- Match wakatime-cli: explicit home, existing legacy config, then XDG.
+  if (not wakatime_home_env or wakatime_home_env == '') and config_file_missing(state.config_file) then
+    local config_home = os.getenv('XDG_CONFIG_HOME') or ''
+    local is_absolute
+    if state.is_windows then
+      is_absolute = config_home:match('^%a:[/\\]') or config_home:match('^[/\\][/\\]')
+    else
+      is_absolute = config_home:sub(1, 1) == '/'
+    end
+    if not is_absolute then config_home = state.home .. '/.config' end
+    state.config_file = config_home .. '/wakatime/wakatime.cfg'
+  end
   state.shared_state_parent_dir = state.home .. '/.wakatime'
   state.shared_state_file = state.shared_state_parent_dir .. '/vim_shared_state'
 

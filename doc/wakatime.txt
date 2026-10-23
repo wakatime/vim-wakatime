@@ -60,6 +60,20 @@ COMMANDS                                               *wakatime-commands*
 
 CONFIGURATION                                           *wakatime-config*
 
+The shared WakaTime config file is selected in this order:
+
+1. $WAKATIME_HOME/.wakatime.cfg when WAKATIME_HOME is non-empty.
+2. An existing ~/.wakatime.cfg, including an empty file.
+3. $XDG_CONFIG_HOME/wakatime/wakatime.cfg. When XDG_CONFIG_HOME is unset,
+   empty, or relative, use ~/.config/wakatime/wakatime.cfg.
+
+Directory search permission errors keep the legacy config path selected.
+Config commands write to the selected file, creating missing parent directories.
+Runtime CLI commands receive the selected path through --config, so older CLI
+versions without XDG discovery use the same settings.
+Existing configs are not moved. CLI installation and shared state still use
+$WAKATIME_HOME/.wakatime/, with WAKATIME_HOME defaulting to $HOME.
+
 You can configure the plugin using the `opts` table in your plugin manager.
 Example for Lazy.nvim:
 
