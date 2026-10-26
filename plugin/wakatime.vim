@@ -46,16 +46,49 @@ let s:VERSION = '12.0.0'
         set wildignore=""
     endif
 
+    function! s:ConfigFileMissing(path)
+        try
+            let path = resolve(a:path)
+        catch /^Vim\%((\a\+)\)\=:E655:/
+            " Keep symlink cycles authoritative like other lookup errors.
+            return s:false
+        endtry
+        if !empty(getftype(path))
+            return s:false
+        endif
+        " getftype() also returns empty on lookup errors. Check the nearest
+        " existing ancestor's search access before treating the file as missing.
+        let parent = fnamemodify(path, ':h')
+        while parent !=# path && empty(getftype(parent))
+            let path = parent
+            let parent = fnamemodify(path, ':h')
+        endwhile
+        return isdirectory(parent . '/.')
+    endfunction
+
     " Script Globals
     let s:home = ''
-    if exists('$WAKATIME_HOME')
-        let s:home = expand(expand('$WAKATIME_HOME'))
+    if !empty($WAKATIME_HOME)
+        let s:home = expand($WAKATIME_HOME)
     else
         let s:home = expand(expand("$HOME"))
     endif
     let s:home = substitute(s:home, '\', '/', 'g')
     let s:plugin_root_folder = substitute(expand("<sfile>:p:h:h"), '\', '/', 'g')
     let s:config_file = s:home . '/.wakatime.cfg'
+    " Match wakatime-cli: explicit home, existing legacy config, then XDG.
+    if empty($WAKATIME_HOME) && s:ConfigFileMissing(s:config_file)
+        let s:config_home = $XDG_CONFIG_HOME
+        if has('win32')
+            let s:config_home_is_absolute = s:config_home =~# '^\%(\a:[/\\]\|[/\\][/\\]\)'
+        else
+            let s:config_home_is_absolute = s:config_home =~# '^/'
+        endif
+        if !s:config_home_is_absolute
+            let s:config_home = s:home . '/.config'
+        endif
+        let s:config_file = s:config_home . '/wakatime/wakatime.cfg'
+    endif
     let s:default_configs = ['[settings]', 'debug = false', 'hidefilenames = false', 'ignore =', '    COMMIT_EDITMSG$', '    PULLREQ_EDITMSG$', '    MERGE_MSG$', '    TAG_EDITMSG$']
     let s:shared_state_parent_dir = s:home . '/.wakatime'
     let s:shared_state_file = s:shared_state_parent_dir . '/vim_shared_state'
@@ -210,7 +243,7 @@ let s:VERSION = '12.0.0'
                         call s:InstallCLI(s:false)
                     endif
                 else
-                    exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+                    exec 'silent !start /b cmd /c "' . escape(s:JoinArgs(cmd), '!') . ' > nul 2> nul"'
                 endif
             else
                 if s:is_debug_on
@@ -308,7 +341,7 @@ EOF
             if s:is_debug_on
                 let stdout = system('(' . s:JoinArgs(cmd) . ')')
             else
-                exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+                exec 'silent !start /b cmd /c "' . escape(s:JoinArgs(cmd), '!') . ' > nul 2> nul"'
             endif
         else
             if s:is_debug_on
@@ -353,7 +386,8 @@ EOF
         if !s:config_file_already_setup
 
             " Create config file if does not exist
-            if !filereadable(s:config_file)
+            if s:ConfigFileMissing(s:config_file)
+                call s:EnsureConfigDir()
                 call writefile(s:default_configs, s:config_file)
             endif
 
@@ -428,6 +462,13 @@ EOF
         return ''
     endfunction
 
+    function! s:EnsureConfigDir()
+        let dir = fnamemodify(s:config_file, ':h')
+        if !isdirectory(dir)
+            call mkdir(dir, 'p', 0700)
+        endif
+    endfunction
+
     function! s:SetIniSetting(section, key, val)
         let output = []
         let sectionFound = s:false
@@ -469,6 +510,7 @@ EOF
                 let output = output + [join([a:key, a:val], '=')]
             endif
         endif
+        call s:EnsureConfigDir()
         call writefile(output, s:config_file)
     endfunction
 
@@ -515,21 +557,16 @@ EOF
         return expand("%:p")
     endfunction
 
-    function! s:SanitizeArg(arg)
-        let sanitized = shellescape(a:arg)
-        let sanitized = substitute(sanitized, '!', '\\!', 'g')
-        return sanitized
-    endfunction
-
     function! s:JsonEscape(str)
         let escaped = substitute(a:str, '\\', '\\\\', 'g')
         return substitute(escaped, '"', '\\"', 'g')
     endfunction
 
     function! s:JoinArgs(args)
+        " Extra ! escaping belongs at the :! call sites.
         let safeArgs = []
         for arg in a:args
-            let safeArgs = safeArgs + [s:SanitizeArg(arg)]
+            let safeArgs = safeArgs + [shellescape(arg)]
         endfor
         return join(safeArgs, ' ')
     endfunction
@@ -611,7 +648,7 @@ EOF
             let extra_heartbeats = ''
         endif
 
-        let cmd = [s:wakatime_cli, '--entity', heartbeat.entity]
+        let cmd = [s:wakatime_cli, '--config', s:config_file, '--entity', heartbeat.entity]
         let cmd = cmd + ['--time', heartbeat.time]
         let cmd = cmd + ['--lineno', heartbeat.lineno]
         let cmd = cmd + ['--cursorpos', heartbeat.cursorpos]
@@ -691,7 +728,7 @@ EOF
                 if s:buffering_heartbeats_enabled
                     echo "[WakaTime] Error: Buffering heartbeats should be disabled on Windows without async support."
                 endif
-                exec 'silent !start /b cmd /c "' . s:JoinArgs(cmd) . ' > nul 2> nul"'
+                exec 'silent !start /b cmd /c "' . escape(s:JoinArgs(cmd), '!') . ' > nul 2> nul"'
             endif
         else
             if s:is_debug_on
@@ -928,7 +965,7 @@ EOF
     endfunction
 
     function! g:WakaTimeToday(callback)
-        let cmd = [s:wakatime_cli, '--today']
+        let cmd = [s:wakatime_cli, '--config', s:config_file, '--today']
 
         let s:async_callback_today = a:callback
         if empty(a:callback)
@@ -967,7 +1004,7 @@ EOF
         if empty(file)
             let file = s:GetLastHeartbeat().file
         endif
-        let cmd = [s:wakatime_cli, '--file-experts', '--entity', file]
+        let cmd = [s:wakatime_cli, '--config', s:config_file, '--file-experts', '--entity', file]
 
         let s:async_callback_file_expert = a:callback
         if empty(a:callback)
@@ -1010,7 +1047,7 @@ EOF
     endfunction
 
     function! g:WakaTimeCliVersion(callback)
-        let cmd = [s:wakatime_cli, '--version']
+        let cmd = [s:wakatime_cli, '--config', s:config_file, '--version']
 
         let s:async_callback_version = a:callback
         if empty(a:callback)

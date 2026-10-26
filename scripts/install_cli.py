@@ -2,6 +2,7 @@
 
 
 import contextlib
+import errno
 import json
 import os
 import platform
@@ -139,8 +140,7 @@ class Popen(subprocess.Popen):
 
 def parseConfigFile(configFile):
     """Returns a configparser.SafeConfigParser instance with configs
-    read from the config file. Default location of the config file is
-    at ~/.wakatime.cfg.
+    read from the given config file.
     """
 
     kwargs = {} if is_py2 else {'strict': False}
@@ -193,7 +193,28 @@ def getResourcesFolder():
 def getConfigFile(internal=None):
     if internal:
         return os.path.join(getResourcesFolder(), 'wakatime-internal.cfg')
-    return os.path.join(getHomeFolder(), '.wakatime.cfg')
+
+    legacy = os.path.join(getHomeFolder(), '.wakatime.cfg')
+    if os.environ.get('WAKATIME_HOME'):
+        return legacy
+
+    # Only a missing legacy file permits fallback; lookup errors stay authoritative.
+    try:
+        os.stat(legacy)
+        return legacy
+    except OSError as err:
+        if err.errno != errno.ENOENT:
+            return legacy
+
+    configHome = os.environ.get('XDG_CONFIG_HOME', '')
+    if os.name == 'nt':
+        # Older Python versions accept root-relative NT paths as absolute.
+        configHomeIsAbsolute = re.match(r'^(?:[a-zA-Z]:[/\\]|[/\\]{2})', configHome)
+    else:
+        configHomeIsAbsolute = os.path.isabs(configHome)
+    if not configHomeIsAbsolute:
+        configHome = os.path.join(getHomeFolder(), '.config')
+    return os.path.join(configHome, 'wakatime', 'wakatime.cfg')
 
 
 def downloadCLI():

@@ -42,7 +42,7 @@
 
 ## Commands
 
-* `:WakaTimeApiKey` - set or change the api key saved in your `~/.wakatime.cfg`
+* `:WakaTimeApiKey` - set or change the api key saved in your WakaTime config file
 * `:WakaTimeDebugEnable` - enable debug mode (may slow down Vim so disable when finished debugging)
 * `:WakaTimeDebugDisable` - disable debug mode
 * `:WakaTimeScreenRedrawEnable` - enable screen redraw to prevent artifacts (only for Vim < 8.0)
@@ -51,8 +51,19 @@
 * `:WakaTimeToday` - echo your total coding activity for Today
 
 The vim-wakatime plugin automatically downloads and updates [wakatime-cli][wakatime-cli] in your `$WAKATIME_HOME/.wakatime/` folder.
-WakaTime plugins also share a common [$WAKATIME_HOME/.wakatime.cfg config file][wakatime-cli-config].
-`$WAKATIME_HOME` defaults to your `$HOME` folder.
+The plugin selects the shared [WakaTime config file][wakatime-cli-config] in this order:
+
+1. `$WAKATIME_HOME/.wakatime.cfg` when `WAKATIME_HOME` is non-empty.
+2. An existing `~/.wakatime.cfg`, including an empty file.
+3. `$XDG_CONFIG_HOME/wakatime/wakatime.cfg`, or `~/.config/wakatime/wakatime.cfg`
+   when `XDG_CONFIG_HOME` is unset, empty, or relative.
+
+Directory search permission errors keep the legacy config path selected.
+Config commands write to the selected file and create missing parent directories.
+Runtime CLI commands receive the selected path through `--config`, so older CLI
+versions without XDG discovery use the same settings.
+Existing configs are not moved. CLI installation and shared state remain under
+`$WAKATIME_HOME/.wakatime/`, with `WAKATIME_HOME` defaulting to `$HOME`.
 
 To disable the lualine status bar item:
 ```lua
