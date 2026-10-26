@@ -133,6 +133,7 @@ let s:VERSION = '12.0.0'
 
             " Prefer the managed CLI before falling back to Homebrew binaries
             elseif filereadable(path)
+                let s:autoupdate_cli = s:true
                 let s:wakatime_cli = path
                 if s:IsWindows()
                     let s:wakatime_cli = s:wakatime_cli . '.exe'
@@ -159,7 +160,7 @@ let s:VERSION = '12.0.0'
     endfunction
 
     function! s:InstallCLI(use_external_python)
-        if !s:autoupdate_cli || s:Executable(s:wakatime_cli)
+        if !s:autoupdate_cli
             return
         endif
 
@@ -388,7 +389,7 @@ EOF
     function! s:SetupCLI()
         if !s:cli_already_setup
             let s:cli_already_setup = s:true
-            if s:autoupdate_cli && !s:Executable(s:wakatime_cli)
+            if s:autoupdate_cli
                 call s:InstallCLI(s:true)
             endif
         endif

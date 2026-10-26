@@ -441,7 +441,7 @@ setup_cli = function()
         if state.is_debug_on then vim.notify('[WakaTime] Using legacy wakatime found in PATH', vim.log.levels.DEBUG) end
       elseif fn.filereadable(default_path) == 1 then
         state.wakatime_cli = default_path
-        state.autoupdate_cli = false
+        state.autoupdate_cli = (state.config.cli_path == nil)
         if state.is_debug_on then vim.notify('[WakaTime] Using managed wakatime-cli', vim.log.levels.DEBUG) end
       elseif not state.is_windows and fn.filereadable('/opt/homebrew/bin/wakatime-cli') == 1 then
         state.wakatime_cli = '/opt/homebrew/bin/wakatime-cli' -- Homebrew on Apple Silicon
@@ -461,12 +461,11 @@ setup_cli = function()
             vim.log.levels.DEBUG
           )
         end
-        -- Try installing/updating if using the default path and autoupdate is enabled
-        if state.autoupdate_cli and not executable(state.wakatime_cli) then
-          install_cli()
-        end
       end
     end
+
+    -- The installer throttles update checks for an existing managed CLI.
+    if state.autoupdate_cli then install_cli() end
 
     if not executable(state.wakatime_cli) and not state.autoupdate_cli then
       vim.notify(
